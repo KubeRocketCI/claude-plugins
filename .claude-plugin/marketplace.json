@@ -1,0 +1,26 @@
+{
+  "name": "kuberocketci-plugins",
+  "description": "AI agents for KubeRocketCI platform - Software Development Lifecycle automation",
+  "owner": {
+    "name": "KubeRocketCI Team"
+  },
+  "metadata": {
+    "version": "0.1.0",
+    "description": "AI agents adapted from KubeRocketAI framework for SDLC workflows"
+  },
+  "plugins": [
+    {
+      "name": "krci-godev",
+      "source": "./plugins/krci-godev",
+      "description": "KubeRocketCI Go Developer agent - Expert Go and Kubernetes operator development assistance",
+      "version": "0.1.0",
+      "category": "development",
+      "keywords": ["kuberocketci", "golang", "go", "kubernetes", "operator", "crd"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    }
+  ]
+}
