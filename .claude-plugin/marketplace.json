@@ -21,6 +21,19 @@
       "author": {
         "name": "KubeRocketCI Team"
       }
+    },
+    {
+      "name": "krci-commit",
+      "source": "./plugins/krci-commit",
+      "description": "Generate conventional commit messages for KubeRocketCI platform by analyzing staged git changes",
+      "version": "0.1.0",
+      "category": "development",
+      "keywords": ["kuberocketci", "git", "commit", "conventional-commits", "automation"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
     }
   ]
 }
