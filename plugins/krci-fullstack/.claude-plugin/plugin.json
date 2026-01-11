@@ -1,0 +1,23 @@
+{
+  "name": "krci-fullstack",
+  "description": "KubeRocketCI Fullstack Developer agent - Expert React, TypeScript, Radix UI, Tailwind CSS, and tRPC development assistance for portal applications",
+  "version": "0.1.0",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kuberocketci",
+    "react",
+    "typescript",
+    "radix-ui",
+    "tailwind",
+    "frontend",
+    "trpc",
+    "fullstack-dev",
+    "portal"
+  ]
+}
