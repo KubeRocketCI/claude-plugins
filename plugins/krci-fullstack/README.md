@@ -24,6 +24,14 @@ The **krci-fullstack** plugin provides comprehensive guidance and automation for
   - Phase 4: Implementation - Create code following established patterns
   - Phase 5: Testing - Verify and validate implementation
 
+- `/krci-fullstack:fix-issue <issue-description>`: Guided phased workflow for diagnosing and fixing issues
+  - Phase 1: Issue Discovery & Diagnosis - Root cause analysis with code inspection
+  - Phase 2: Impact Analysis - Identify all affected components and side effects
+  - Phase 3: Fix Planning & Design - Determine fix strategy with skill consultation
+  - Phase 4: Implementation - Apply minimal fixes following portal patterns
+  - Phase 5: Verification & Testing - Verify fix and conditionally add tests
+  - Handles both frontend (layout, styles, components) and backend (tRPC, queries) issues
+
 ### Skills
 
 The plugin provides 8 comprehensive skills covering frontend development patterns:
@@ -84,6 +92,24 @@ The command will guide you through:
 4. Implementing the code
 5. Testing and validation
 
+### Fixing an Issue
+
+Use the issue diagnosis and fixing command:
+
+```
+/krci-fullstack:fix-issue "Login button is not centered on mobile screens"
+```
+
+The command will guide you through:
+
+1. Diagnosing the issue with thorough root cause analysis
+2. Analyzing impact on related components
+3. Planning the fix strategy with relevant skill consultation
+4. Implementing minimal changes following portal patterns
+5. Verifying the fix and conditionally adding tests
+
+Supports both frontend issues (layout, styling, components, forms, tables) and backend issues (tRPC endpoints, queries, mutations, data flow).
+
 ### Leveraging Skills
 
 Skills auto-activate based on context. For example:
@@ -127,13 +153,34 @@ The `fullstack-dev` agent activates when you're working on portal features. It h
 > Implement a table showing all applications with filters
 ```
 
+### Example 4: Fixing a Frontend Issue
+
+```
+/krci-fullstack:fix-issue "User table pagination is broken - clicking next page doesn't update the data"
+```
+
+### Example 5: Fixing a Backend Issue
+
+```
+/krci-fullstack:fix-issue "API endpoint /pipelines/list returns 500 error when user has no permissions"
+```
+
+### Example 6: Fixing a Styling Issue
+
+```
+/krci-fullstack:fix-issue "Login button overlaps with footer on mobile devices"
+```
+
 ## Best Practices
 
-- Always use the phased `implement-feature` command for new work
-- Review relevant skills before implementation
+- Use the phased `implement-feature` command for implementing new features
+- Use the phased `fix-issue` command for diagnosing and fixing bugs
+- Review relevant skills before implementation or fixes
 - Follow established patterns from the portal codebase
+- Apply minimal changes when fixing issues (avoid unnecessary refactoring)
 - Ensure WCAG 2.1 Level AA accessibility compliance
 - Write comprehensive tests using Vitest and Testing Library
+- Add regression tests for logic bugs, skip for simple styling fixes
 - Integrate RBAC permissions for protected actions
 
 ## Contributing

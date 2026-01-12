@@ -29,7 +29,10 @@ Go developer agent for Kubernetes operators and Custom Resources.
 
 Fullstack developer agent for React, TypeScript, Radix UI, Tailwind CSS, and tRPC portal development.
 
-**Commands:** `/krci-fullstack:implement-feature`
+**Commands:** `/krci-fullstack:implement-feature`, `/krci-fullstack:fix-issue`
+
+- **implement-feature**: Guided phased workflow for implementing new features
+- **fix-issue**: Guided phased workflow for diagnosing and fixing frontend/backend issues
 
 ### krci-devops
 
