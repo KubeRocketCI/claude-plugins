@@ -47,6 +47,19 @@
       "author": {
         "name": "KubeRocketCI Team"
       }
+    },
+    {
+      "name": "krci-devops",
+      "source": "./plugins/krci-devops",
+      "description": "KubeRocketCI DevOps agent - Expert automation for EDP-Tekton repository (github.com/epam/edp-tekton) pipeline and task onboarding",
+      "version": "0.1.0",
+      "category": "devops",
+      "keywords": ["kuberocketci", "devops", "tekton", "pipelines", "helm", "kubernetes", "automation", "edp-tekton"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
     }
   ]
 }

@@ -1,0 +1,22 @@
+{
+  "name": "krci-devops",
+  "description": "KubeRocketCI DevOps agent - Expert EDP-Tekton pipeline and task automation assistance",
+  "version": "0.1.0",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kuberocketci",
+    "devops",
+    "tekton",
+    "pipelines",
+    "helm",
+    "kubernetes",
+    "automation",
+    "edp-tekton"
+  ]
+}

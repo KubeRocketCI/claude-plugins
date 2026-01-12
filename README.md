@@ -1,8 +1,4 @@
-# KubeRocketCI Claude Code Assistants
-
-Claude Code plugins for KubeRocketCI platform development and delivery workflows.
-
-## Overview
+# KubeRocketCI Claude Code Plugins
 
 AI assistants for the complete software development lifecycle on KubeRocketCI - from platform development to application delivery.
 
@@ -14,24 +10,39 @@ claude plugin marketplace add /path/to/claude-plugins
 
 # Install plugins
 claude plugin install krci-godev
+claude plugin install krci-fullstack
+claude plugin install krci-devops
 claude plugin install krci-commit
 ```
 
-## Available Assistants
+## Available Plugins
 
 ### krci-godev
-**Platform Development** - Go developer agent specializing in Kubernetes operators and Custom Resources for KubeRocketCI platform development.
 
-**Commands:**
-- `/krci-godev:review-code` - Review Go code for best practices
-- `/krci-godev:implement-new-cr` - Implement Kubernetes Custom Resource
+Go developer agent for Kubernetes operators and Custom Resources.
+
+**Commands:** `/krci-godev:review-code`, `/krci-godev:implement-new-cr`
+
+### krci-fullstack
+
+Fullstack developer agent for React, TypeScript, Radix UI, Tailwind CSS, and tRPC portal development.
+
+**Commands:** `/krci-fullstack:implement-feature`
+
+### krci-devops
+
+DevOps agent for EDP-Tekton repository (<https://github.com/epam/edp-tekton>) pipeline and task automation.
+
+**Commands:** `/krci-devops:add-task`, `/krci-devops:add-pipeline`
+
+**Important:** Must be run from within a clone of the EDP-Tekton repository.
 
 ### krci-commit
-**Delivery Automation** - Generate conventional commit messages from staged changes for consistent version control.
 
-**Commands:**
-- `/krci-commit:generate` - Generate conventional commit message
+Generate conventional commit messages from staged changes.
+
+**Commands:** `/krci-commit:generate`
 
 ## License
 
-Apache-2.0 - See [LICENSE](LICENSE) for details.
+Apache-2.0
