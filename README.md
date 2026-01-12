@@ -5,8 +5,10 @@ AI assistants for the complete software development lifecycle on KubeRocketCI - 
 ## Installation
 
 ```bash
-# Add marketplace
+# Add marketplace from local path
 claude plugin marketplace add /path/to/claude-plugins
+# or from GitHub
+claude plugin marketplace add KubeRocketCI/claude-plugins
 
 # Install plugins
 claude plugin install krci-godev
