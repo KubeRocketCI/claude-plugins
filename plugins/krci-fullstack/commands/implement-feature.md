@@ -6,15 +6,24 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 You are helping a developer implement a new feature. Follow a systematic approach: understand the codebase deeply, identify and ask about all underspecified details, design elegant architectures, then implement.
 
+## Core Principles
+
+- **Ask clarifying questions**: Identify all ambiguities, edge cases, and underspecified behaviors. Ask specific, concrete questions rather than making assumptions. Wait for user answers before proceeding with implementation. Ask questions early (before understanding the codebase and designing architecture).
+- **Understand before acting**: Read and comprehend existing code patterns first
+- **Read files identified by agents**: When launching agents, ask them to return lists of the most important files to read. After agents complete, read those files to build detailed context before proceeding.
+- **Simple and elegant**: Prioritize readable, maintainable, architecturally sound code
+- **Use TodoWrite**: Track all progress throughout
+
 # Implement Feature - Phased Workflow
 
-**CRITICAL: Follow this workflow to implement the portal feature:**
+CRITICAL: Follow this workflow to implement the portal feature:
 
-1. **Use fullstack-dev agent to implement the feature:**
-   - The fullstack-dev agent will implement `$ARGUMENTS`
-   - Agent will follow structured phases: Discovery → Planning → Design → Implementation → Testing
-   - Agent will load skills dynamically based on what the feature needs
-   - Agent will use TodoWrite to track all phases
+Use fullstack-dev agent to implement the feature:
+
+- The fullstack-dev agent will implement `$ARGUMENTS`
+- Agent will follow structured phases: Discovery → Planning → Design → Implementation → Testing
+- Agent will load skills dynamically based on what the feature needs
+- Agent will use TodoWrite to track all phases
 
 ---
 
@@ -33,7 +42,7 @@ You are helping a developer implement a new feature. Follow a systematic approac
    - Who will use it and when?
    - What should it do?
    - Are there similar features in the portal to reference?
-4. Summarize understanding and confirm with user before proceeding
+4. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
 
 **Output**: Clear statement of feature purpose and target users
 
@@ -83,6 +92,8 @@ You are helping a developer implement a new feature. Follow a systematic approac
    - If K8s UIs: k8s-resources
    - Testing will need: testing-standards
 
+7. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
+
 **Output**: Confirmed list of components to create/modify + list of skills to load
 
 **Mark Phase 2 complete in TodoWrite**, then proceed to Phase 3.
@@ -128,6 +139,14 @@ You are helping a developer implement a new feature. Follow a systematic approac
 4. Present all questions in organized sections (one per component type)
 5. Wait for user answers before proceeding to implementation
 6. Document detailed specifications for each component
+7. Use AskUserQuestion to confirm:
+
+   ```
+   I've detailed the specifications for each component:
+   - [Summary of each component's design]
+
+   Do these specifications look correct? Should I proceed with implementation?
+   ```
 
 **Output**: Detailed specification for each component with user confirmation
 
@@ -229,7 +248,7 @@ You are helping a developer implement a new feature. Follow a systematic approac
    - Use Vitest and React Testing Library
    - Focus on user behavior, not implementation details
 3. Run tests and fix any failures:
-   - Execute tests with Bash tool: `npm test` or `vitest`
+   - Execute tests with Bash tool: `pnpm run lint:check` or `pnpm run tsc:check`
    - Address failing tests
    - Ensure coverage is comprehensive
 4. Perform manual verification:
@@ -348,5 +367,3 @@ Every component must meet:
 - Performance optimized
 
 ---
-
-**Begin with Phase 1: Discovery**
