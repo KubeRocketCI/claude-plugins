@@ -385,20 +385,21 @@ Skills are loaded **dynamically based on affected components** identified in Pha
 
 Every fix must meet:
 
-- ✅ Addresses root cause (not just symptoms)
-- ✅ Minimal changes (don't refactor unrelated code)
-- ✅ Follows portal patterns
-- ✅ TypeScript types correct
-- ✅ No new console errors
-- ✅ Backward compatible
-- ✅ Accessibility maintained (frontend)
-- ✅ Tests added (for logic bugs)
-- ✅ No regressions in related features
-- ✅ Code style consistent
+- Addresses root cause (not just symptoms)
+- Minimal changes (don't refactor unrelated code)
+- Follows portal patterns
+- TypeScript types correct
+- No new console errors
+- Backward compatible
+- Accessibility maintained (frontend)
+- Tests added (for logic bugs)
+- No regressions in related features
+- Code style consistent
 
 ### Common Issue Types & Patterns
 
 **Frontend Issues**:
+
 - Layout/styling bugs → Check Tailwind classes, responsive design
 - Component rendering → Check props, state, conditional logic
 - Forms not working → Check validation, submission, error handling
@@ -406,12 +407,14 @@ Every fix must meet:
 - Accessibility issues → Check ARIA attributes, keyboard navigation
 
 **Backend Issues**:
+
 - API errors → Check tRPC router, Zod schema, error handling
 - Data not loading → Check query hooks, API calls, caching
 - Mutations failing → Check input validation, permissions, DB operations
 - Type errors → Check TypeScript definitions, schema alignment
 
 **Integration Issues**:
+
 - Props not passing → Check prop types, component hierarchy
 - API calls failing → Check endpoint path, request format, auth
 - State not updating → Check mutation hooks, query invalidation

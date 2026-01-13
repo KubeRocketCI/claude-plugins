@@ -184,14 +184,14 @@ The `createSearchMatchFunction` provides:
 
 ## When to Use
 
-✅ **Use simple search filter when:**
+**Use simple search filter when:**
 
 - List has < 100 items
 - Users primarily search by name
 - Advanced filtering not required
 - Quick implementation needed
 
-❌ **Use multi-field filter when:**
+**Use multi-field filter when:**
 
 - List has > 100 items
 - Multiple filter criteria needed

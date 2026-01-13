@@ -113,12 +113,12 @@ Sidebar components for app navigation.
 
 Create new components only if:
 
-- ✅ No existing component fits the use case
-- ✅ Pattern will be reused across multiple features
-- ✅ Component is feature-specific (place in feature module)
+- No existing component fits the use case
+- Pattern will be reused across multiple features
+- Component is feature-specific (place in feature module)
 
 **Avoid creating**:
 
-- ❌ Variants of existing components (extend props instead)
-- ❌ One-off components that won't be reused
-- ❌ Components that duplicate existing functionality
+- Variants of existing components (extend props instead)
+- One-off components that won't be reused
+- Components that duplicate existing functionality

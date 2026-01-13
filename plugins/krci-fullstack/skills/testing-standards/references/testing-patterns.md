@@ -316,12 +316,12 @@ it('should match snapshot', () => {
 
 Focus coverage on critical paths:
 
-- ✅ Business logic (100%)
-- ✅ User interactions (critical flows)
-- ✅ Error handling
-- ❌ Simple presentational components
-- ❌ Generated code
-- ❌ Third-party library wrappers
+- Business logic (100%)
+- User interactions (critical flows)
+- Error handling
+- Simple presentational components
+- Generated code
+- Third-party library wrappers
 
 ## Test Organization
 

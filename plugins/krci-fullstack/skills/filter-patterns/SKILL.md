@@ -15,6 +15,7 @@ Guide filter implementation using the portal's FilterProvider pattern, enabling 
 **FilterProvider Pattern**: Centralized filter state management using TanStack Form with debounced updates (300ms), URL synchronization, and type-safe match functions.
 
 **Key Components**:
+
 - `@/core/providers/Filter` - FilterProvider, useFilterContext hook
 - Match functions - Declarative filtering logic per field
 - Form integration - TanStack Form fields for filter inputs
@@ -186,6 +187,7 @@ See **`references/match-functions.md`** for detailed usage and custom implementa
 ## Reference Examples
 
 Real implementations in codebase:
+
 - `apps/client/src/modules/platform/configuration/modules/quicklinks/components/QuickLinkFilter/`
 - `apps/client/src/modules/platform/cdpipelines/pages/list/components/CDPipelineFilter/`
 

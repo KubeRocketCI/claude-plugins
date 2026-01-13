@@ -19,6 +19,7 @@ allowed-tools: [Read, Grep, Glob, Skill, Task]
    - Agent will provide comprehensive review with specific violations and recommendations
 
 These skills contain ALL the standards, patterns, and best practices the agent will apply during the review.
+
 ## Review Output Format
 
 <review_output_format>
@@ -53,6 +54,7 @@ Prioritized list of recommended fixes:
 ## Review Principles
 
 <review_principles>
+
 - Be constructive and educational
 - Reference the specific guidelines from the documentation
 - Provide concrete examples and suggestions

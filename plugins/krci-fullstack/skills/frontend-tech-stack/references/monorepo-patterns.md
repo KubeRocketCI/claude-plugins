@@ -177,7 +177,7 @@ import { codebaseSchema, pipelineRunSchema } from "@my-project/shared";
 **Shared Package Examples**:
 
 ```typescript
-// ✅ Type definitions used by both
+// Type definitions used by both
 export interface User {
   id: string;
   name: string;
@@ -185,12 +185,12 @@ export interface User {
   roles: string[];
 }
 
-// ✅ Business logic functions (no UI)
+// Business logic functions (no UI)
 export const getPipelineRunStatus = (pipelineRun: PipelineRun): PipelineRunStatus => {
   return pipelineRun.status?.conditions?.[0]?.type || "Unknown";
 };
 
-// ✅ K8s resource configuration
+// K8s resource configuration
 export const k8sPipelineRunConfig = {
   apiVersion: "tekton.dev/v1beta1",
   kind: "PipelineRun",
@@ -199,7 +199,7 @@ export const k8sPipelineRunConfig = {
   plural: "pipelineruns",
 } as const satisfies K8sResourceConfig;
 
-// ✅ Validation schema
+// Validation schema
 export const codebaseSchema = z.object({
   name: z.string().min(1),
   gitUrl: z.string().url(),
@@ -210,7 +210,7 @@ export const codebaseSchema = z.object({
 **Client-Only Examples**:
 
 ```typescript
-// ✅ React component
+// React component
 export const PipelineRunStatus: React.FC<Props> = ({ pipelineRun }) => {
   const status = getPipelineRunStatus(pipelineRun);
   const Icon = getStatusIcon(status);
@@ -222,7 +222,7 @@ export const PipelineRunStatus: React.FC<Props> = ({ pipelineRun }) => {
   );
 };
 
-// ✅ UI-specific utility
+// UI-specific utility
 export const getPipelineRunStatusIcon = (status: PipelineRunStatus): React.ComponentType => {
   switch (status) {
     case "Running": return RunningIcon;
@@ -232,7 +232,7 @@ export const getPipelineRunStatusIcon = (status: PipelineRunStatus): React.Compo
   }
 };
 
-// ✅ Custom hook with React Query
+// Custom hook with React Query
 export const usePipelineRuns = () => {
   const trpc = useTRPC();
   return trpc.pipelineRuns.list.useQuery();
@@ -242,7 +242,7 @@ export const usePipelineRuns = () => {
 **Server-Only Examples**:
 
 ```typescript
-// ✅ tRPC router
+// tRPC router
 export const pipelineRunRouter = createTRPCRouter({
   list: publicProcedure
     .query(async ({ ctx }) => {
@@ -258,14 +258,14 @@ export const pipelineRunRouter = createTRPCRouter({
     }),
 });
 
-// ✅ Kubernetes service
+// Kubernetes service
 export class K8sService {
   async listPipelineRuns(): Promise<PipelineRun[]> {
     // Implementation
   }
 }
 
-// ✅ Authentication middleware
+// Authentication middleware
 export const authMiddleware = async (req, res, next) => {
   // Validate session, attach user to context
 };
@@ -277,7 +277,7 @@ export const authMiddleware = async (req, res, next) => {
 
 Barrel exports (`export * from` in `index.ts`) are appropriate when the folder represents a cohesive unit consumed as a whole.
 
-#### ✅ Appropriate: Shared Packages
+#### Appropriate: Shared Packages
 
 Packages define public APIs consumed by multiple apps:
 
@@ -293,7 +293,7 @@ export * from "./schemas";
 
 **Why**: External consumers (`apps/client/`, `apps/server/`) import from the package as a unit, not individual files.
 
-#### ✅ Appropriate: K8s API Resource Folders
+#### Appropriate: K8s API Resource Folders
 
 Each K8s resource folder is a cohesive unit with hooks and utilities used together:
 
@@ -315,18 +315,18 @@ import {
 
 ### When NOT to Use Barrel Exports
 
-#### ❌ Inappropriate: Convenience Re-exports in Hook Files
+#### Inappropriate: Convenience Re-exports in Hook Files
 
 Do not re-export unrelated modules from a hook or component file:
 
 ```typescript
-// ❌ DON'T: Re-export from a hook file
+// DON'T: Re-export from a hook file
 // modules/platform/tekton/hooks/usePipelineMetrics/index.tsx
 export const usePipelineMetrics = () => { ... };
 export * from "./filters";  // Bad - mixing concerns
 export * from "./utils";    // Bad - creates implicit dependencies
 
-// ✅ DO: Keep exports focused
+// DO: Keep exports focused
 // modules/platform/tekton/hooks/usePipelineMetrics/index.tsx
 export const usePipelineMetrics = () => { ... };
 
@@ -337,17 +337,17 @@ import { buildPipelineFilter } from "@/modules/platform/tekton/hooks/usePipeline
 
 **Why**: Mixing concerns, breaks tree-shaking, hides import origins.
 
-#### ❌ Inappropriate: Deep Re-exports Across Module Boundaries
+#### Inappropriate: Deep Re-exports Across Module Boundaries
 
 Do not re-export from parent folders to create shortcuts:
 
 ```typescript
-// ❌ DON'T: modules/platform/tekton/index.ts
+// DON'T: modules/platform/tekton/index.ts
 export * from "./components";
 export * from "./hooks";
 export * from "./utils";
 
-// ✅ DO: Import from specific locations
+// DO: Import from specific locations
 import { PipelineRunList } from "@/modules/platform/tekton/components/PipelineRunList";
 import { usePipelineRuns } from "@/modules/platform/tekton/hooks/usePipelineRuns";
 ```
@@ -358,13 +358,13 @@ import { usePipelineRuns } from "@/modules/platform/tekton/hooks/usePipelineRuns
 
 | Location | Appropriate? | Reason |
 |----------|--------------|--------|
-| `packages/shared/` | ✅ Yes | Public API for multiple consumers |
-| `packages/trpc/` | ✅ Yes | Public API for multiple consumers |
-| `k8s/api/groups/{Resource}/` | ✅ Yes | Resource is a cohesive unit |
-| Hook file re-exporting utilities | ❌ No | Mixing concerns, breaks tree-shaking |
-| Module root aggregating subfolders | ❌ No | Creates shortcuts, hides origins |
-| Component folder with single component | ❌ No | Single file, no need for barrel |
-| Utility folder with related functions | ✅ Maybe | Only if functions are always used together |
+| `packages/shared/` | Yes | Public API for multiple consumers |
+| `packages/trpc/` | Yes | Public API for multiple consumers |
+| `k8s/api/groups/{Resource}/` | Yes | Resource is a cohesive unit |
+| Hook file re-exporting utilities | No | Mixing concerns, breaks tree-shaking |
+| Module root aggregating subfolders | No | Creates shortcuts, hides origins |
+| Component folder with single component | No | Single file, no need for barrel |
+| Utility folder with related functions | Maybe | Only if functions are always used together |
 
 ## Monorepo Best Practices
 
@@ -437,7 +437,7 @@ import { usePipelineRuns } from "@/modules/platform/tekton/hooks/usePipelineRuns
 
 ### Anti-Pattern 1: Circular Dependencies
 
-❌ **Don't**:
+**Don't**:
 
 ```typescript
 // apps/client/src/utils/index.ts
@@ -447,7 +447,7 @@ import { formatDate } from "@my-project/shared";
 import { formatComponent } from "krci-portal/apps/client/src/utils";  // Circular!
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // Keep dependencies unidirectional: client/server → shared, never reverse
@@ -455,7 +455,7 @@ import { formatComponent } from "krci-portal/apps/client/src/utils";  // Circula
 
 ### Anti-Pattern 2: Client Code in Shared
 
-❌ **Don't**:
+**Don't**:
 
 ```typescript
 // packages/shared/src/components/Button.tsx  ← React component in shared!
@@ -463,7 +463,7 @@ import React from 'react';
 export const Button: React.FC = () => <button>Click</button>;
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // apps/client/src/core/components/ui/Button.tsx  ← React in client only
@@ -473,7 +473,7 @@ export const Button: React.FC = () => <button>Click</button>;
 
 ### Anti-Pattern 3: Server Code in Client
 
-❌ **Don't**:
+**Don't**:
 
 ```typescript
 // apps/client/src/services/k8s.ts  ← Direct K8s API calls in client!
@@ -481,7 +481,7 @@ import { KubeConfig } from '@kubernetes/client-node';
 export const listPods = async () => { /* ... */ };
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // apps/client/src/hooks/usePods.ts  ← Use tRPC to call server
@@ -498,14 +498,14 @@ export const k8sRouter = createTRPCRouter({
 
 ### Anti-Pattern 4: Root Project Imports
 
-❌ **Don't**:
+**Don't**:
 
 ```typescript
 import { Button } from "krci-portal/apps/client/src/core/components/ui/Button";
 import { authMiddleware } from "krci-portal/apps/server/src/middleware/auth";
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // Within client

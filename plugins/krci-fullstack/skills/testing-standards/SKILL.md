@@ -159,13 +159,13 @@ describe('CodebaseForm', () => {
 5. `getByTestId`: Last resort
 
 ```typescript
-// ✅ Good - accessible queries
+// Good - accessible queries
 screen.getByRole('button', { name: /create/i });
 screen.getByLabelText(/email address/i);
 screen.getByPlaceholderText(/enter email/i);
 screen.getByText(/welcome/i);
 
-// ❌ Avoid - implementation details
+// Avoid - implementation details
 screen.getByClassName('submit-button');
 container.querySelector('.error-message');
 ```

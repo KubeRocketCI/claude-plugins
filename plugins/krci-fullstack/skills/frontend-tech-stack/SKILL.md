@@ -102,7 +102,7 @@ Always verify each project's `tsconfig.json` for correct import path configurati
 
 ### Correct Import Patterns
 
-**Project-Internal Aliases** (✅ Use these):
+**Project-Internal Aliases** (Use these):
 
 ```typescript
 // In client code
@@ -114,7 +114,7 @@ import { createTRPCRouter } from "@/trpc/utils/createTRPCRouter";
 import { authMiddleware } from "@/middleware/auth";
 ```
 
-**Cross-Package Imports** (✅ For shared package):
+**Cross-Package Imports** (For shared package):
 
 ```typescript
 // From client or server to shared
@@ -122,7 +122,7 @@ import { K8sResourceConfig, createCodebaseDraft } from "@my-project/shared";
 import { k8sCodebaseConfig, CodebaseDraft } from "@my-project/shared";
 ```
 
-**Never Use Root Project Name** (❌ Avoid):
+**Never Use Root Project Name** (Avoid):
 
 ```typescript
 // DON'T DO THIS
@@ -138,7 +138,7 @@ Place code in the appropriate block based on intended usage:
 **Shared Package Criteria** - Use `shared/` if code is used by both client and server:
 
 ```typescript
-// ✅ Shared: Used by both client and server
+// Shared: Used by both client and server
 export const getPipelineRunStatus = (pipelineRun: PipelineRun): PipelineRunStatus => {
   return pipelineRun.status?.conditions?.[0]?.type || "Unknown";
 };
@@ -147,7 +147,7 @@ export const getPipelineRunStatus = (pipelineRun: PipelineRun): PipelineRunStatu
 **Client-Only Code** - Use `client/` for UI/UX specific logic:
 
 ```typescript
-// ✅ Client-only: React component
+// Client-only: React component
 export const PipelineRunStatus: React.FC<Props> = ({ pipelineRun }) => {
   const Icon = getPipelineRunStatusIcon(getPipelineRunStatus(pipelineRun));
   return <Icon />;

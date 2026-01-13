@@ -342,14 +342,14 @@ const groupedOptions = React.useMemo(() => {
 
 ## When to Use
 
-✅ **Use multi-field filter when:**
+**Use multi-field filter when:**
 
 - List has > 100 items
 - Multiple filter criteria needed
 - Users need precise filtering
 - Complex data relationships exist
 
-❌ **Use simple filter when:**
+**Use simple filter when:**
 
 - List has < 100 items
 - Search-only is sufficient

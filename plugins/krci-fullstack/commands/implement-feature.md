@@ -4,6 +4,8 @@ argument-hint: [feature-description]
 allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestion, TodoWrite, WebFetch, WebSearch, BashOutput]
 ---
 
+You are helping a developer implement a new feature. Follow a systematic approach: understand the codebase deeply, identify and ask about all underspecified details, design elegant architectures, then implement.
+
 # Implement Feature - Phased Workflow
 
 **CRITICAL: Follow this workflow to implement the portal feature:**
