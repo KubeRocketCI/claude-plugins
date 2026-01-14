@@ -8,13 +8,16 @@ Comprehensive guide to monorepo architecture, code organization, import patterns
 portal/
 ├── apps/
 │   ├── client/          # Frontend application
-│   └── server/          # Backend for Frontend (BFF)
+│   └── server/          # Hosting server (auth, cookies, sessions, static files)
 ├── packages/
-│   └── shared/          # Common code and models
+│   ├── shared/          # Common code, types, and models
+│   └── trpc/            # tRPC routers, procedures, and API definitions
 └── package.json         # Root configuration
 ```
 
-## Shared Package Structure
+## Package Structures
+
+### Shared Package
 
 ```
 packages/shared/
@@ -64,6 +67,237 @@ packages/shared/
 - Operation types and enums
 - Shared configuration values
 
+### tRPC Package
+
+```
+packages/trpc/
+├── src/
+│   ├── routers/           # tRPC routers with endpoint definitions
+│   │   ├── k8s/           # Kubernetes API routers
+│   │   ├── auth/          # Authentication routers
+│   │   └── index.ts       # Root router aggregation
+│   ├── procedures/        # Base procedures (public, protected)
+│   ├── context/           # tRPC context definitions
+│   ├── clients/           # tRPC clients for different environments
+│   ├── utils/             # tRPC utilities
+│   └── index.ts           # Package exports
+└── package.json
+```
+
+### tRPC Package Contents
+
+**Routers**:
+
+- API endpoint definitions using tRPC
+- Query and mutation procedures
+- Input validation with Zod schemas
+- Business logic integration with K8s clients
+
+**Procedures**:
+
+- Base procedure builders (public, protected)
+- Middleware integration (auth, logging)
+- Context augmentation
+
+**Clients**:
+
+- tRPC clients for server-side usage
+- Client configuration for different environments
+- Type-safe API client instances
+
+**Context**:
+
+- Request context creation
+- User session handling
+- Authentication state
+
+### Client App Structure - K8s Module
+
+```
+apps/client/src/k8s/
+├── api/
+│   ├── groups/            # K8s resource group API integrations
+│   │   ├── KRCI/          # KRCI-specific resources
+│   │   │   ├── Codebase/
+│   │   │   │   ├── hooks/ # useCodebaseWatchList, useCodebasePermissions
+│   │   │   │   └── utils/ # Status icons, formatters, UI helpers
+│   │   │   └── ...
+│   │   └── Tekton/        # Tekton resources
+│   └── hooks/             # Generic K8s watch hooks (useWatchList, useWatchItem)
+├── constants/             # UI-related constants (tables, status colors)
+├── services/              # K8s API service layer
+├── store/                 # K8s state management (Zustand)
+└── types.ts               # Client-specific K8s types
+```
+
+### Client K8s Module Contents
+
+**API Integration**:
+
+- Watch hooks for real-time K8s resource updates (`useWatchList`, `useWatchItem`)
+- Resource-specific hooks (e.g., `useCodebaseWatchList`)
+- Permission hooks for RBAC (`useCodebasePermissions`)
+- CRUD operation hooks (`useBasicCRUD`)
+
+**UI Constants & Utils**:
+
+- Status icon configurations (icon, color, spinning state)
+- Status color mappings for UI display
+- Resource formatters for display
+- Table configurations and column definitions
+- UI-specific helper functions
+
+**State Management**:
+
+- Zustand store for K8s cluster state
+- Namespace management
+- WebSocket connection state
+
+**Example - Status Icons (UI logic in client)**:
+```typescript
+// apps/client/src/k8s/api/groups/KRCI/Codebase/utils/getCodebaseStatusIcon.ts
+export const getCodebaseStatusIcon = (codebase: Codebase) => {
+  const phase = codebase.status?.phase;
+  switch (phase) {
+    case 'Running': return { Icon: CheckCircle, color: 'success' };
+    case 'Failed': return { Icon: XCircle, color: 'error' };
+    // ... UI presentation logic
+  }
+};
+```
+
+### Shared Package - K8s Models
+
+**What belongs in shared k8s**:
+
+**Resource Configurations**:
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts
+export const k8sCodebaseConfig = {
+  apiVersion: "v2.edp.epam.com/v1",
+  kind: "Codebase",
+  pluralName: "codebases",
+  // ... resource metadata
+} as const satisfies K8sResourceConfig;
+```
+
+**TypeScript Types & Interfaces**:
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/types.ts
+export interface Codebase extends K8sResource {
+  spec: CodebaseSpec;
+  status?: CodebaseStatus;
+}
+```
+
+**Zod Schemas**:
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/schema.ts
+export const codebaseSchema = z.object({
+  name: z.string().min(1),
+  gitUrl: z.string().url(),
+  // ... validation rules
+});
+```
+
+**Business Logic Utilities**:
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/utils.ts
+export const createCodebaseDraft = (data: CodebaseFormData): Codebase => {
+  return {
+    apiVersion: k8sCodebaseConfig.apiVersion,
+    kind: k8sCodebaseConfig.kind,
+    metadata: { name: data.name },
+    spec: { /* ... */ },
+  };
+};
+```
+
+**Resource-Specific Labels** (separate `labels.ts` file):
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/labels.ts
+export const codebaseLabels = {
+  codebaseType: 'app.edp.epam.com/codebaseType',
+  gitServer: 'app.edp.epam.com/gitserver',
+  integration: 'app.edp.epam.com/integration',
+  systemType: 'app.edp.epam.com/systemType',
+} as const;
+
+// packages/shared/src/models/k8s/groups/ArgoCD/Application/labels.ts
+export const applicationLabels = {
+  pipeline: 'app.edp.epam.com/pipeline',
+  stage: 'app.edp.epam.com/stage',
+  component: 'app.kubernetes.io/component', // Standard K8s label
+  environment: 'environment', // Custom label
+} as const;
+```
+
+**Label Usage in Config**:
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts
+import { codebaseLabels } from "./labels.js";
+
+export const k8sCodebaseConfig = {
+  apiVersion: "v2.edp.epam.com/v1",
+  kind: "Codebase",
+  pluralName: "codebases",
+  labels: codebaseLabels, // Reference label constants
+} as const satisfies K8sResourceConfig<typeof codebaseLabels>;
+```
+
+### Client K8s vs Shared K8s - Summary
+
+| Location | Purpose | Examples |
+|----------|---------|----------|
+| `apps/client/src/k8s/` | **API integration & UI logic** | Watch hooks, status icons, colors, formatters, permission hooks, store |
+| `packages/shared/src/models/k8s/` | **Resource definitions & business logic** | Configs, types, schemas, draft creators, **label constants** |
+
+**Resource Structure in Shared**:
+```
+packages/shared/src/models/k8s/groups/{Group}/{Resource}/
+├── constants.ts    # Resource config, enums, constants
+├── labels.ts       # Label key constants (app.edp.epam.com/*, app.kubernetes.io/*)
+├── types.ts        # TypeScript interfaces
+├── schema.ts       # Zod validation schemas
+└── utils/          # Business logic (draft creators, etc.)
+```
+
+**Rule of thumb**:
+- If it's about **how resources are displayed or fetched** → Client k8s module
+- If it's about **what resources are and how they're structured** → Shared package
+- **All label keys** (including standard K8s labels like `app.kubernetes.io/*`) → Shared package in `labels.ts`
+
+### Server App Structure
+
+```
+apps/server/
+├── src/
+│   ├── config/            # Server configuration
+│   │   ├── development.ts # Development server setup
+│   │   └── production.ts  # Production server setup
+│   ├── clients/           # External clients (optional)
+│   ├── index.ts           # Server entry point
+│   ├── config.ts          # Environment configuration
+│   └── paths.ts           # Path constants
+└── package.json
+```
+
+### Server App Purpose
+
+The server app is a **pure hosting application** that:
+
+- Sets up Fastify server with middleware
+- Configures authentication (OAuth, sessions)
+- Manages cookies and sessions
+- Serves static files (client build)
+- Configures CORS and websockets
+- Hosts the tRPC router from `@my-project/trpc` package
+
+**Server does NOT contain**:
+- ❌ API endpoint definitions (those are in trpc package)
+- ❌ Business logic (in shared or trpc packages)
+- ❌ tRPC procedures (in trpc package)
+
 ## Import Path Patterns
 
 ### TypeScript Path Mapping
@@ -90,7 +324,21 @@ Each application has its own path mapping configuration in `tsconfig.json`:
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"],
-      "@my-project/shared": ["../../packages/shared/src"]
+      "@my-project/shared": ["../../packages/shared/src"],
+      "@my-project/trpc": ["../../packages/trpc/src"]
+    }
+  }
+}
+```
+
+**tRPC Package tsconfig.json**:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@my-project/shared": ["../shared/src"]
     }
   }
 }
@@ -121,23 +369,38 @@ import { useCodebase } from "@/modules/codebase/hooks/useCodebase";
 **Internal Imports (within server)**:
 
 ```typescript
-// tRPC router imports
-import { createTRPCRouter } from "@/trpc/utils/createTRPCRouter";
-import { publicProcedure } from "@/trpc/procedures/publicProcedure";
+// Server configuration imports
+import { LocalFastifyServer } from "@/config/development";
+import { ProductionFastifyServer } from "@/config/production";
 
-// Middleware imports
-import { authMiddleware } from "@/middleware/auth";
-import { sessionMiddleware } from "@/middleware/session";
-
-// Service imports
-import { k8sService } from "@/services/k8s";
-import { authService } from "@/services/auth";
+// Server-specific utilities
+import { PATHS } from "@/paths";
+import { config } from "@/config";
 ```
 
-**Cross-Package Imports (shared package)**:
+**Internal Imports (within trpc package)**:
 
 ```typescript
-// From client or server
+// tRPC utilities
+import { createTRPCRouter } from "@/utils/createTRPCRouter";
+import { publicProcedure, protectedProcedure } from "@/procedures";
+
+// Context imports
+import { createTRPCContext } from "@/context";
+
+// Client imports
+import { k8sClient } from "@/clients/k8s";
+import { authClient } from "@/clients/auth";
+
+// Router imports
+import { k8sRouter } from "@/routers/k8s";
+import { authRouter } from "@/routers/auth";
+```
+
+**Cross-Package Imports (from shared package)**:
+
+```typescript
+// From client, server, or trpc package
 import {
   K8sResourceConfig,
   createCodebaseDraft,
@@ -153,24 +416,50 @@ import { PipelineRun, PipelineRunStatus } from "@my-project/shared";
 import { codebaseSchema, pipelineRunSchema } from "@my-project/shared";
 ```
 
+**Cross-Package Imports (from trpc package)**:
+
+```typescript
+// From client - tRPC client-side hooks
+import { trpc } from "@my-project/trpc/client";
+
+// From server - tRPC router and context
+import { appRouter } from "@my-project/trpc";
+import { createTRPCContext } from "@my-project/trpc";
+
+// Type exports for client usage
+import type { AppRouter } from "@my-project/trpc";
+```
+
 ## Code Placement Guidelines
 
 ### Decision Tree: Where Should Code Go?
 
-**Question 1**: Is the code used by both client AND server?
+**Question 1**: Is the code related to tRPC API endpoints/procedures?
 
-- **Yes** → Place in `packages/shared/`
+- **Yes** → Place in `packages/trpc/`
 - **No** → Go to Question 2
 
-**Question 2**: Does the code contain UI/React components?
+**Question 2**: Is the code K8s-related?
 
-- **Yes** → Place in `apps/client/`
+- **Yes** → Go to K8s sub-decision:
+  - **Resource configs, types, schemas, draft creators?** → `packages/shared/src/models/k8s/`
+  - **API hooks, status icons, UI formatters, permissions?** → `apps/client/src/k8s/`
 - **No** → Go to Question 3
 
-**Question 3**: Does the code handle API endpoints or server logic?
+**Question 3**: Is the code used by multiple packages (client, server, AND/OR trpc)?
+
+- **Yes** → Place in `packages/shared/`
+- **No** → Go to Question 4
+
+**Question 4**: Does the code contain UI/React components?
+
+- **Yes** → Place in `apps/client/`
+- **No** → Go to Question 5
+
+**Question 5**: Does the code handle server hosting concerns (auth, cookies, sessions)?
 
 - **Yes** → Place in `apps/server/`
-- **No** → Re-evaluate if it should be in shared
+- **No** → Re-evaluate or place in `packages/shared/`
 
 ### Examples by Category
 
@@ -239,21 +528,21 @@ export const usePipelineRuns = () => {
 };
 ```
 
-**Server-Only Examples**:
+**tRPC Package Examples**:
 
 ```typescript
 // tRPC router
 export const pipelineRunRouter = createTRPCRouter({
   list: publicProcedure
     .query(async ({ ctx }) => {
-      const runs = await k8sService.listPipelineRuns();
+      const runs = await k8sClient.listPipelineRuns();
       return runs;
     }),
 
   create: protectedProcedure
     .input(codebaseSchema)
     .mutation(async ({ ctx, input }) => {
-      const run = await k8sService.createPipelineRun(input);
+      const run = await k8sClient.createPipelineRun(input);
       return run;
     }),
 });
@@ -261,7 +550,37 @@ export const pipelineRunRouter = createTRPCRouter({
 // Kubernetes service
 export class K8sService {
   async listPipelineRuns(): Promise<PipelineRun[]> {
-    // Implementation
+    // Implementation using @kubernetes/client-node
+  }
+}
+```
+
+**Server App Examples**:
+
+```typescript
+// ✅ Fastify server setup (in apps/server/src/config/development.ts)
+export class LocalFastifyServer {
+  private fastify: FastifyInstance;
+
+  constructor() {
+    this.fastify = Fastify();
+    this.setupMiddleware();
+    this.setupTRPC();
+  }
+
+  private setupMiddleware() {
+    // Cookie, session, CORS, static files
+    this.fastify.register(fastifyCookie);
+    this.fastify.register(fastifySession, { /* ... */ });
+    this.fastify.register(fastifyCors, { /* ... */ });
+  }
+
+  private setupTRPC() {
+    // Host the tRPC router from @my-project/trpc
+    this.fastify.register(fastifyTRPCPlugin, {
+      router: appRouter,
+      createContext: createTRPCContext,
+    });
   }
 }
 
@@ -471,7 +790,123 @@ import React from 'react';
 export const Button: React.FC = () => <button>Click</button>;
 ```
 
-### Anti-Pattern 3: Server Code in Client
+### Anti-Pattern 3: K8s UI Logic in Shared
+
+❌ **Don't**:
+
+```typescript
+// packages/shared/src/models/k8s/Codebase/utils.ts  ← UI logic in shared!
+export const getCodebaseStatusIcon = (codebase: Codebase) => {
+  return {
+    Icon: codebase.status === 'Running' ? CheckIcon : ErrorIcon,
+    color: codebase.status === 'Running' ? 'success' : 'error',
+  };
+};
+
+// packages/shared/src/models/k8s/Codebase/hooks.ts  ← React hooks in shared!
+export const useCodebaseWatch = () => useWatchList({ /* ... */ });
+```
+
+✅ **Do**:
+
+```typescript
+// apps/client/src/k8s/api/groups/KRCI/Codebase/utils/getStatusIcon.ts
+export const getCodebaseStatusIcon = (codebase: Codebase) => {
+  return {
+    Icon: codebase.status === 'Running' ? CheckIcon : ErrorIcon,
+    color: codebase.status === 'Running' ? 'success' : 'error',
+  };
+};
+
+// apps/client/src/k8s/api/groups/KRCI/Codebase/hooks/useCodebaseWatchList.ts
+export const useCodebaseWatchList = () => useWatchList({ /* ... */ });
+
+// packages/shared/src/models/k8s/Codebase/ ← Keep only configs, types, schemas
+```
+
+**Why**: Shared should have no UI dependencies (React, icons, colors). UI presentation logic belongs in client.
+
+### Anti-Pattern 4: K8s Resource Configs in Client
+
+❌ **Don't**:
+
+```typescript
+// apps/client/src/k8s/config/codebase.ts  ← Resource config in client!
+export const k8sCodebaseConfig = {
+  apiVersion: "v2.edp.epam.com/v1",
+  kind: "Codebase",
+  pluralName: "codebases",
+};
+
+// apps/client/src/utils/createDraft.ts  ← Draft creator in client!
+export const createCodebaseDraft = (data: FormData) => ({ /* ... */ });
+```
+
+✅ **Do**:
+
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts
+export const k8sCodebaseConfig = {
+  apiVersion: "v2.edp.epam.com/v1",
+  kind: "Codebase",
+  pluralName: "codebases",
+} as const satisfies K8sResourceConfig;
+
+// packages/shared/src/models/k8s/groups/KRCI/Codebase/utils.ts
+export const createCodebaseDraft = (data: FormData): Codebase => ({ /* ... */ });
+```
+
+**Why**: Resource definitions and business logic should be shared between client and trpc packages.
+
+### Anti-Pattern 5: Hardcoding K8s Label Strings
+
+❌ **Don't**:
+
+```typescript
+// apps/client/src/components/CodebaseBranches.tsx  ← Hardcoded labels!
+const { data: branches } = useWatchList({
+  config: k8sCodebaseBranchConfig,
+  labelSelector: {
+    'app.edp.epam.com/codebaseName': codebaseName, // Typo-prone, no type safety
+  },
+});
+
+// apps/client/src/components/AppList.tsx  ← Hardcoded standard K8s label!
+const { data: apps } = useWatchList({
+  labelSelector: {
+    'app.kubernetes.io/component': 'frontend', // Should be constant
+  },
+});
+```
+
+✅ **Do**:
+
+```typescript
+// packages/shared/src/models/k8s/groups/KRCI/CodebaseBranch/labels.ts
+export const codebaseBranchLabels = {
+  codebase: 'app.edp.epam.com/codebaseName',
+} as const;
+
+// packages/shared/src/models/k8s/groups/ArgoCD/Application/labels.ts
+export const applicationLabels = {
+  component: 'app.kubernetes.io/component', // Standard K8s label as constant
+  environment: 'environment',
+} as const;
+
+// apps/client/src/components/CodebaseBranches.tsx
+import { codebaseBranchLabels } from "@my-project/shared";
+
+const { data: branches } = useWatchList({
+  config: k8sCodebaseBranchConfig,
+  labelSelector: {
+    [codebaseBranchLabels.codebase]: codebaseName, // ✅ Type-safe constant
+  },
+});
+```
+
+**Why**: Label constants provide type safety, prevent typos, enable refactoring, and maintain consistency across client and trpc packages.
+
+### Anti-Pattern 6: Server Code in Client
 
 **Don't**:
 
@@ -484,19 +919,40 @@ export const listPods = async () => { /* ... */ };
 **Do**:
 
 ```typescript
-// apps/client/src/hooks/usePods.ts  ← Use tRPC to call server
+// apps/client/src/hooks/usePods.ts  ← Use tRPC to call API
 export const usePods = () => {
   const trpc = useTRPC();
   return trpc.k8s.listPods.useQuery();
 };
 
-// apps/server/src/routers/k8s.ts  ← K8s logic on server
+// packages/trpc/src/routers/k8s.ts  ← K8s API logic in trpc package
 export const k8sRouter = createTRPCRouter({
   listPods: protectedProcedure.query(async () => { /* ... */ }),
 });
 ```
 
-### Anti-Pattern 4: Root Project Imports
+### Anti-Pattern 7: tRPC Code in Wrong Package
+
+❌ **Don't**:
+
+```typescript
+// packages/shared/src/routers/k8s.ts  ← tRPC router in shared!
+export const k8sRouter = createTRPCRouter({ /* ... */ });
+
+// apps/server/src/routers/k8s.ts  ← tRPC router in server app!
+export const k8sRouter = createTRPCRouter({ /* ... */ });
+```
+
+✅ **Do**:
+
+```typescript
+// packages/trpc/src/routers/k8s.ts  ← tRPC routers belong in trpc package
+export const k8sRouter = createTRPCRouter({ /* ... */ });
+```
+
+**Why**: The trpc package is specifically for API definitions. Server app only hosts the router, it doesn't define it.
+
+### Anti-Pattern 8: Root Project Imports
 
 **Don't**:
 
@@ -513,15 +969,35 @@ import { Button } from "@/core/components/ui/Button";
 
 // Within server
 import { authMiddleware } from "@/middleware/auth";
+
+// Within trpc package
+import { k8sClient } from "@/clients/k8s";
 ```
 
 ## Summary
 
-- Use `@/` for internal imports within an app
-- Use `@my-project/shared` for shared package imports
-- Place code in shared only if used by both client and server
-- Keep UI/React code in client, API/backend code in server
+- Use `@/` for internal imports within an app or package
+- Use `@my-project/shared` for shared package imports (types, models, utilities)
+- Use `@my-project/trpc` for tRPC package imports (routers, procedures, clients)
+- **tRPC routers and procedures** → `packages/trpc/`
+- **Shared types and business logic** → `packages/shared/`
+- **UI/React code** → `apps/client/`
+- **Server hosting (auth, cookies, sessions)** → `apps/server/`
 - Use barrel exports only for cohesive units (packages, K8s resources)
 - Avoid circular dependencies and cross-app imports
 - Always check tsconfig.json for correct import configuration
 - Follow pnpm for package management
+
+### Package Dependency Flow
+
+```
+apps/client  ──→  @my-project/trpc (client)  ──→  @my-project/shared
+apps/server  ──→  @my-project/trpc           ──→  @my-project/shared
+packages/trpc ──────────────────────────────────→  @my-project/shared
+```
+
+**Key Points**:
+- Server app imports from trpc package (for router and context)
+- Server app does NOT define API endpoints
+- tRPC package is where all API logic lives
+- Both client and server consume trpc package differently

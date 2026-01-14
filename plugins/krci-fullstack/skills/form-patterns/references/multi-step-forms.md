@@ -2,6 +2,8 @@
 
 Advanced patterns for implementing multi-step wizards with TanStack Form and Radix UI components.
 
+> **Migration in Progress**: Project is migrating from React Hook Form to TanStack Form. **All new forms must use TanStack Form**. Existing wizards (like CreateCodebaseWizard) use React Hook Form + Zustand and will be migrated over time.
+
 ## Basic Multi-Step Pattern
 
 ```typescript
@@ -223,10 +225,13 @@ const step2Schema = z.object({
 
 ## Real-World Examples
 
-**Check these implementations**:
+**Existing wizard implementations** (React Hook Form + Zustand):
 
-- Codebase creation wizard: `apps/client/src/modules/platform/codebases/components/ManageCodebase/`
-- Pipeline setup wizard: `apps/client/src/modules/platform/cdpipelines/components/ManageCDPipeline/`
+- Codebase creation wizard: `apps/client/src/modules/platform/codebases/pages/create/components/CreateCodebaseWizard/`
+- Stage creation wizard: `apps/client/src/modules/platform/cdpipelines/pages/stages/create/components/CreateStageWizard/`
+- Pipeline creation wizard: `apps/client/src/modules/platform/cdpipelines/pages/create/components/CreateCDPipelineWizard/`
+
+These serve as reference for wizard structure and UI patterns. When migrating, follow TanStack Form patterns documented above.
 
 ## Best Practices
 

@@ -131,6 +131,8 @@ Check `@/core/components` for reusable components before creating new ones:
 
 ### TypeScript Props
 
+**IMPORTANT**: Always use function declarations, not const arrow functions (Vite HMR compatibility).
+
 ```typescript
 interface ComponentProps {
   /** Primary resource data */
@@ -141,13 +143,13 @@ interface ComponentProps {
   className?: string;
 }
 
-export const Component: React.FC<ComponentProps> = ({
+export function Component({
   resource,
   onAction,
   className,
-}) => {
+}: ComponentProps) {
   // Implementation
-};
+}
 ```
 
 ### TailwindCSS Styling
@@ -155,7 +157,7 @@ export const Component: React.FC<ComponentProps> = ({
 ```typescript
 import { cn } from '@/core/utils/classname';
 
-const Component = ({ className }: { className?: string }) => {
+function Component({ className }: { className?: string }) {
   return (
     <div
       className={cn(
@@ -169,7 +171,7 @@ const Component = ({ className }: { className?: string }) => {
       Content
     </div>
   );
-};
+}
 ```
 
 ### Permission Integration
@@ -211,12 +213,13 @@ import { K8sResourceConfig } from "@my-project/shared";
 
 ## Guidelines
 
-1. **Layer Boundaries**: Respect three-layer architecture (core/k8s/modules)
-2. **Domain Boundaries**: Domain-specific code in modules, not core
-3. **Component Isolation**: Self-contained with own types/constants
-4. **Page/View Separation**: Separate page setup from content
-5. **Import Direction**: Modules import from core/k8s, never reverse
-6. **Reuse Before Create**: Check existing components first
+1. **Function Declarations**: **Always** use `function ComponentName()` instead of `const ComponentName = () =>` for Vite HMR compatibility
+2. **Layer Boundaries**: Respect three-layer architecture (core/k8s/modules)
+3. **Domain Boundaries**: Domain-specific code in modules, not core
+4. **Component Isolation**: Self-contained with own types/constants
+5. **Page/View Separation**: Separate page setup from content
+6. **Import Direction**: Modules import from core/k8s, never reverse
+7. **Reuse Before Create**: Check existing components first
 
 ## Additional Resources
 
