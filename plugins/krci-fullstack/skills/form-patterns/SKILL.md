@@ -1,284 +1,234 @@
 ---
 name: Form Patterns
-description: This skill should be used when the user asks to "create form", "implement form", "add validation", "React Hook Form", "Zod validation", "multi-step form", "form wizard", "stepper form", or mentions form implementation, field validation, or form state management.
-version: 0.1.0
+description: This skill should be used when the user asks to "create form", "implement form", "add validation", "Tanstack Form", "form validation", "multi-step form", "form wizard", "stepper form", or mentions form implementation, field validation, or form state management.
+version: 0.2.0
 ---
 
-Implement forms using React Hook Form with Zod validation, including multi-step wizards for complex resource creation workflows.
+Implement forms using Tanstack Form with type-safe field components and validation patterns.
+
+> **Migration in Progress**: The project is migrating from React Hook Form to TanStack Form. **All new forms must use TanStack Form**. Some existing complex wizards still use React Hook Form and will be migrated over time.
 
 ## Purpose
 
-Guide form implementation following portal's standardized patterns for validation, state management, and user experience.
+Guide form implementation following portal's standardized patterns using Tanstack Form for state management, validation, and user experience.
 
 ## Core Stack
 
-- **React Hook Form**: Form state management
-- **Zod**: Schema validation with TypeScript inference
-- **Radix UI + TailwindCSS**: Form field components from `@/core/components/ui/`
-- **Multi-Step**: Custom stepper components for complex forms
+- **Tanstack Form** (`@tanstack/react-form`): Form state management and validation
+- **Form Preset Components**: Reusable field components in `@/core/components/form/`
+  - `TextField`, `Select`, `SelectField`, `Autocomplete`, `SwitchField`
+- **FormField**: Wrapper component for consistent field layout with labels, tooltips, and error display
+- **Radix UI + TailwindCSS**: UI primitives for form controls
 
-## Architecture
+## Architecture Overview
 
-### Multi-Step Forms
+### Form Creation Pattern
 
-**Components**:
-
-- `FormProvider`: React Hook Form context wrapper
-- `StepperProvider`: Step navigation context
-- `FormTextField`: Standardized form field
-- `FormActions`: Navigation and validation logic
-
-**Principles**:
-
-- Centralized step navigation and validation
-- Partial validation per step
-- Automatic navigation to first error
-- Persistent state across steps
-
-## Implementation Pattern
-
-### 1. Define Schema
+Forms are created using `useForm` from Tanstack Form:
 
 ```typescript
-import { z } from 'zod';
+import { useForm } from "@tanstack/react-form";
 
-const codebaseSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  gitUrl: z.string().url('Must be valid URL'),
-  branch: z.string().optional(),
-});
+interface MyFormValues {
+  name: string;
+  email: string;
+}
 
-type CodebaseFormData = z.infer<typeof codebaseSchema>;
-```
-
-### 2. Create Form Provider
-
-```typescript
-const CodebaseForm = () => {
-  const methods = useForm<CodebaseFormData>({
-    resolver: zodResolver(codebaseSchema),
-    mode: 'onChange',
+export function MyFormComponent() {
+  const form = useForm<MyFormValues>({
+    defaultValues: {
+      name: "",
+      email: "",
+    },
+    onSubmit: async ({ value }) => {
+      await createResource(value);
+    },
   });
 
-  const onSubmit = async (data: CodebaseFormData) => {
-    await createCodebase(data);
-  };
-
   return (
-    <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)}>
-        <FormFields />
-        <FormActions />
-      </form>
-    </FormProvider>
+    <form onSubmit={(e) => {
+      e.preventDefault();
+      form.handleSubmit();
+    }}>
+      {/* Form fields using form.Field */}
+    </form>
   );
-};
+}
 ```
 
-### 3. Implement Fields
+### Form Preset Components
 
+The portal provides preset field components that integrate with Tanstack Form's `FieldApi`:
+
+- **TextField** - Text input fields
+- **Select** / **SelectField** - Dropdown select with options
+- **Autocomplete** - Searchable select with combobox
+- **SwitchField** - Toggle switch for boolean values
+
+**Usage:**
 ```typescript
-import { Input } from "@/core/components/ui/input";
-import { Label } from "@/core/components/ui/label";
-
-const FormFields = () => {
-  const { control } = useFormContext<CodebaseFormData>();
-
-  return (
-    <div className="space-y-4">
-      <Controller
-        name="name"
-        control={control}
-        render={({ field, fieldState: { error } }) => (
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              {...field}
-              invalid={!!error}
-              aria-invalid={!!error}
-            />
-            {error && <p className="text-sm text-destructive">{error.message}</p>}
-          </div>
-        )}
-      />
-      <Controller
-        name="gitUrl"
-        control={control}
-        render={({ field, fieldState: { error } }) => (
-          <div className="space-y-2">
-            <Label htmlFor="gitUrl">Git URL</Label>
-            <Input
-              id="gitUrl"
-              {...field}
-              invalid={!!error}
-              aria-invalid={!!error}
-            />
-            {error && <p className="text-sm text-destructive">{error.message}</p>}
-          </div>
-        )}
-      />
-    </div>
-  );
-};
+<form.Field name="username">
+  {(field) => (
+    <TextField
+      field={field}
+      label="Username"
+      placeholder="Enter username"
+    />
+  )}
+</form.Field>
 ```
 
-### 4. Add Actions
+See **`references/form-preset-components.md`** for detailed implementation patterns and creating custom presets.
 
+## Form Implementation Steps
+
+1. **Define Form Values Type** - Create TypeScript interface
+2. **Create Form Instance** - Use `useForm` hook
+3. **Implement Fields** - Use preset components with `form.Field`
+4. **Add Validation** - Field-level or form-level validators
+5. **Handle Submission** - Integrate with API (tRPC, K8s CRUD)
+
+See **`references/implementation-guide.md`** for complete step-by-step implementation with code examples.
+
+## Validation
+
+Tanstack Form supports three validation levels:
+
+**Field-Level Validation:**
 ```typescript
-import { Button } from "@/core/components/ui/button";
-
-const FormActions = () => {
-  const { formState: { isSubmitting, isValid } } = useFormContext();
-
-  return (
-    <div className="flex gap-2">
-      <Button type="submit" disabled={!isValid || isSubmitting}>
-        {isSubmitting ? 'Creating...' : 'Create'}
-      </Button>
-      <Button variant="outline" onClick={handleCancel}>
-        Cancel
-      </Button>
-    </div>
-  );
-};
+<form.Field
+  name="email"
+  validators={{
+    onChange: ({ value }) => {
+      if (!value) return "Email is required";
+      return undefined;
+    },
+  }}
+>
+  {(field) => <TextField field={field} label="Email" />}
+</form.Field>
 ```
 
-## Multi-Step Form Pattern
-
-### Stepper Setup
-
+**Async Validation:**
 ```typescript
-import { Stepper } from "@/core/components/ui/stepper";
-import { Button } from "@/core/components/ui/button";
-
-const steps = [
-  { label: 'Basic Info', fields: ['name', 'gitUrl'] },
-  { label: 'Configuration', fields: ['branch', 'type'] },
-  { label: 'Review', fields: [] },
-];
-
-const MultiStepForm = () => {
-  const [activeStep, setActiveStep] = useState(0);
-  const methods = useForm({ /* ... */ });
-
-  const validateStep = async (step: number) => {
-    const fieldsToValidate = steps[step].fields;
-    const result = await methods.trigger(fieldsToValidate);
-    return result;
-  };
-
-  const handleNext = async () => {
-    const isValid = await validateStep(activeStep);
-    if (isValid) {
-      setActiveStep(prev => prev + 1);
-    }
-  };
-
-  return (
-    <FormProvider {...methods}>
-      <Stepper steps={steps} currentStep={activeStep} />
-      {activeStep === 0 && <BasicInfoStep />}
-      {activeStep === 1 && <ConfigurationStep />}
-      {activeStep === 2 && <ReviewStep />}
-      <div className="flex gap-2">
-        <Button
-          variant="outline"
-          disabled={activeStep === 0}
-          onClick={() => setActiveStep(prev => prev - 1)}
-        >
-          Back
-        </Button>
-        <Button
-          onClick={activeStep === steps.length - 1 ? methods.handleSubmit(onSubmit) : handleNext}
-        >
-          {activeStep === steps.length - 1 ? 'Submit' : 'Next'}
-        </Button>
-      </div>
-    </FormProvider>
-  );
-};
+<form.Field
+  name="username"
+  validators={{
+    onChangeAsync: async ({ value }) => {
+      const exists = await checkUsernameExists(value);
+      return exists ? "Username already taken" : undefined;
+    },
+  }}
+  validatorOptions={{
+    onChangeAsyncDebounceMs: 500,
+  }}
+>
+  {(field) => <TextField field={field} label="Username" />}
+</form.Field>
 ```
 
-## Validation Patterns
-
-### Field-Level Validation
-
+**Form-Level Validation** (cross-field):
 ```typescript
-const schema = z.object({
-  email: z.string().email('Invalid email'),
-  age: z.number().min(18, 'Must be 18 or older'),
-  password: z.string().min(8, 'Min 8 characters'),
+const form = useForm({
+  validators: {
+    onChange: ({ value }) => {
+      if (value.password !== value.confirmPassword) {
+        return {
+          fields: {
+            confirmPassword: "Passwords must match",
+          },
+        };
+      }
+      return undefined;
+    },
+  },
 });
 ```
 
-### Custom Validation
+See **`references/validation-patterns.md`** for comprehensive validation examples and patterns.
+
+## Multi-Step Forms
+
+For wizards and multi-step forms, manage step state separately and validate specific fields per step:
 
 ```typescript
-const schema = z.object({
-  password: z.string(),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ['confirmPassword'],
-});
-```
+const [activeStep, setActiveStep] = React.useState(0);
 
-### Async Validation
-
-```typescript
-const validateUnique = async (value: string) => {
-  const exists = await checkExists(value);
-  return !exists || 'Already exists';
+const handleNext = async () => {
+  const isValid = await validateStep(activeStep);
+  if (isValid) {
+    setActiveStep((prev) => prev + 1);
+  }
 };
 ```
 
-## Common Patterns
+See **`references/multi-step-forms.md`** for complete multi-step form patterns with stepper UI integration.
 
-### Resource Creation Forms
+## Context Pattern
 
-- Use draft creators from shared package
-- Validate permissions before submission
-- Handle success/error feedback
-- Reset form on completion
+For complex forms spanning multiple components, share form instance via Context:
 
-### Filter Forms
+```typescript
+import { type ReactFormExtendedApi } from "@tanstack/react-form";
 
-- Real-time filtering (no submit button)
-- Integration with FilterProvider
-- Debounced input for performance
+export type FormApi = ReactFormExtendedApi<FormValues>;
+export const FormContext = React.createContext<FormApi | null>(null);
 
-### Configuration Forms
+export function MyForm() {
+  const form = useForm<FormValues>({ /* ... */ });
 
-- Single-step for simple configs
-- Real-time validation
-- Persist to settings/localStorage
+  return (
+    <FormContext.Provider value={form}>
+      <FormFields />
+      <FormActions />
+    </FormContext.Provider>
+  );
+}
+```
+
+## Integration with API
+
+### tRPC Integration
+
+```typescript
+const createMutation = trpc.codebases.create.useMutation();
+
+const form = useForm({
+  onSubmit: async ({ value }) => {
+    await createMutation.mutateAsync(value);
+  },
+});
+```
+
+### K8s CRUD Integration
+
+```typescript
+const { create, isPending } = useBasicCRUD({ config: k8sCodebaseConfig });
+
+const form = useForm({
+  onSubmit: async ({ value }) => {
+    const draft = createCodebaseDraft(value);
+    await create(draft);
+  },
+});
+```
 
 ## Best Practices
 
-1. **Schema-First**: Define Zod schema for type safety
-2. **Step Validation**: Validate only current step fields
-3. **Error Feedback**: Clear messages and navigation to errors
-4. **Loading States**: Show progress during submission
-5. **Accessibility**: ARIA labels, keyboard navigation
-6. **Mobile Support**: Responsive layouts
-7. **Dirty State**: Track unsaved changes
-8. **Reset Handling**: Clean up on close/cancel
-
-## Integration with Shared Package
-
-```typescript
-import { codebaseSchema, createCodebaseDraft } from "@my-project/shared";
-
-const onSubmit = async (data: CodebaseFormData) => {
-  // Use draft creator
-  const draft = createCodebaseDraft(data);
-
-  // Submit via tRPC
-  await trpc.codebases.create.mutate(draft);
-};
-```
+1. **Use Preset Components** - Leverage existing form presets from `@/core/components/form/` for consistency
+2. **Type Safety** - Always define explicit form values interfaces
+3. **Context for Complex Forms** - Share form instance via Context when spanning multiple components
+4. **Validation Strategy** - Field-level for simple validation, form-level for cross-field validation
+5. **Async Debouncing** - Always debounce async validation (300-500ms)
+6. **Loading States** - Use `form.state.isSubmitting` to show progress during submission
+7. **Error Handling** - Handle API errors gracefully with user feedback
+8. **Accessibility** - Preset components handle accessibility automatically
+9. **Function Declarations** - Use regular function declarations (not const arrow functions) for Vite HMR compatibility
+10. **Form State** - Leverage `form.state.isDirty`, `form.state.isValid` for UI decisions
 
 ## Additional Resources
 
-See **`references/multi-step-forms.md`** for detailed implementation of complex wizards with stepper context.
+- **`references/implementation-guide.md`** - Complete step-by-step form implementation with common patterns
+- **`references/validation-patterns.md`** - Comprehensive validation examples and Zod integration
+- **`references/form-preset-components.md`** - Detailed preset component usage and creating custom presets
+- **`references/multi-step-forms.md`** - Multi-step forms, wizards, and stepper patterns

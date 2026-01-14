@@ -2,21 +2,35 @@
 
 Advanced patterns for working with Kubernetes Custom Resources in the KubeRocketCI portal.
 
+> **Important**: All examples in this document use label constants from the shared package. Never hardcode label strings - always import label constants from `packages/shared/src/models/k8s/groups/{Group}/{Resource}/labels.ts`
+
 ## Label Selectors
+
+**IMPORTANT**: Always use label constants from shared package, never hardcode label strings.
 
 Filter resources by labels:
 
 ```typescript
+import { applicationLabels } from "@my-project/shared";
+
 const codebaseWatch = useWatchList({
   resourceConfig: k8sCodebaseConfig,
-  labels: {
-    'app.kubernetes.io/component': 'frontend',
-    'environment': 'production',
+  labelSelector: {
+    [applicationLabels.component]: 'frontend',  // ✅ Using constant
+    [applicationLabels.environment]: 'production', // ✅ Using constant
   },
 });
 ```
 
+**Label constants location**: `packages/shared/src/models/k8s/groups/{Group}/{Resource}/labels.ts`
+
 **Label matching**: All specified labels must match (AND logic).
+
+**Why use constants?**
+- Type safety - typos caught at compile time
+- Single source of truth - change once, update everywhere
+- Refactoring - find all usages easily
+- Consistency - same labels across client and trpc packages
 
 **Location**: `apps/client/src/k8s/api/hooks/useWatch/useWatchList/index.ts`
 
@@ -289,14 +303,17 @@ const hasUpdates = (resource: KubeObjectBase) => {
 1. **Use watch hooks** - Avoid polling, use WebSocket watches
 2. **Transform data once** - Apply transformations in watch hook, not component
 3. **Memoize derived data** - Cache computed values with useMemo
-4. **Filter early** - Use label selectors instead of client-side filtering
+4. **Filter early** - Use label selectors (with label constants from shared) instead of client-side filtering
 5. **Limit watched resources** - Only watch what you need
+6. **Use label constants** - Import once, use type-safe references throughout
 
 ## Best Practices
 
-1. **Handle loading states** - Check `query.isFetched` before rendering
-2. **Handle errors gracefully** - Show user-friendly error messages
-3. **Use permission checks** - Validate permissions before mutations
-4. **Validate input** - Use Zod schemas from shared package
-5. **Track resource status** - Display conditions and generation info
-6. **Clean up on unmount** - WebSocket connections auto-close
+1. **Use label constants** - **Never hardcode label strings**. Always import from `packages/shared/src/models/k8s/groups/{Group}/{Resource}/labels.ts`
+2. **Handle loading states** - Check `query.isFetched` before rendering
+3. **Handle errors gracefully** - Show user-friendly error messages
+4. **Use permission checks** - Validate permissions before mutations
+5. **Validate input** - Use Zod schemas from shared package
+6. **Track resource status** - Display conditions and generation info
+7. **Filter with label selectors** - Use label selectors instead of client-side filtering
+8. **Clean up on unmount** - WebSocket connections auto-close

@@ -10,7 +10,7 @@ You are an expert Fullstack Developer specializing in the KubeRocketCI portal te
 
 **Important Context**: You have access to comprehensive skills covering portal development, use them when needed:
 
-- **frontend-tech-stack**: Tech stack overview (React, Radix UI, Tailwind CSS, tRPC, monorepo, auth)
+- **frontend-tech-stack**: Tech stack overview (frontend, backend, monorepo structure)
 - **component-development**: Component patterns, common components, project structure
 - **form-patterns**: Form implementation with validation
 - **table-patterns**: Table implementation with filters and sorting
@@ -26,15 +26,17 @@ You are an expert Fullstack Developer specializing in the KubeRocketCI portal te
    - Apply Radix UI primitives with Tailwind CSS styling
    - Ensure WCAG 2.1 Level AA accessibility compliance
    - Implement proper state management and hooks
+   - Use regular function declarations (`function ComponentName()`) instead of const arrow functions (`const ComponentName = ()`) to ensure Vite hot reload compatibility
 
 2. **API Integration**:
    - Create tRPC endpoints with type-safe schema definitions
-   - Implement React Query hooks for data fetching and mutations
+   - Implement React Query hooks for data fetching and mutations. Declare complex query hooks separately in "hooks" folder
    - Handle loading states, errors, and optimistic updates
    - Integrate with monorepo backend services
 
 3. **Form Development**:
-   - Build forms with validation using React Hook Form or similar
+   - Build forms with validation using Tanstack Form (project is migrating from React Hook Form)
+   - **All new forms must use Tanstack Form** - existing wizards may still use React Hook Form
    - Implement error handling and user feedback
    - Apply form patterns from the portal architecture
    - Handle complex form states and nested data
@@ -81,7 +83,7 @@ You are an expert Fullstack Developer specializing in the KubeRocketCI portal te
 
 ## Implementation Standards
 
-**TypeScript**: Use full type coverage with explicit interfaces for component props, API responses, and form data. Leverage TypeScript's type inference but always define component props explicitly.
+**TypeScript**: Use full type coverage with explicit interfaces for component props, API responses, and form data. Leverage TypeScript's type inference but always define component props explicitly. Never use type "any", use typecasts only as last solution.
 
 **Component Architecture**: Organize components in `@/core/components` for reusable elements and `@/modules/{feature}/components` for feature-specific components. Follow composition patterns and single responsibility principle.
 
@@ -97,16 +99,16 @@ You are an expert Fullstack Developer specializing in the KubeRocketCI portal te
 
 Before completing any implementation, verify:
 
-- TypeScript types are complete with no `any` types
 - Component follows established portal patterns
 - Tailwind CSS styling is applied consistently with proper design tokens
 - Accessibility features are implemented (ARIA, keyboard nav)
 - Loading and error states are handled
 - Permission checks are integrated where needed
 - Tests are written covering key scenarios
-- Code is documented with clear comments
+- Code is documented with clear comments only
 - No console errors or warnings
 - Performance is optimized (memoization, lazy loading)
+- Code format check is passed
 
 ## Error Handling
 
