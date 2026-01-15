@@ -47,6 +47,7 @@ function CodebaseStatus({ codebase }: { codebase: Codebase }) {
 ### Status Colors
 
 Standard color meanings:
+
 - **success** (green) - Resource is healthy/running
 - **error** (red) - Resource has failed
 - **warning** (yellow/orange) - Resource is pending or degraded
@@ -55,6 +56,7 @@ Standard color meanings:
 ### Spinning Icons
 
 Use spinning animation for transitional states:
+
 - Pending
 - Creating
 - Updating
@@ -132,6 +134,7 @@ See **table-patterns** skill for complete useColumns pattern.
 ### Column Types
 
 **Status Column:**
+
 ```typescript
 {
   id: 'status',
@@ -148,6 +151,7 @@ See **table-patterns** skill for complete useColumns pattern.
 ```
 
 **Name Column with Link:**
+
 ```typescript
 {
   id: 'name',
@@ -167,6 +171,7 @@ See **table-patterns** skill for complete useColumns pattern.
 ```
 
 **Resource Field Column:**
+
 ```typescript
 {
   id: 'type',
@@ -184,6 +189,7 @@ See **table-patterns** skill for complete useColumns pattern.
 ```
 
 **Actions Column:**
+
 ```typescript
 {
   id: 'actions',
@@ -479,7 +485,7 @@ function CodebaseBranches({ codebaseName }: { codebaseName: string }) {
     config: k8sCodebaseBranchConfig,
     namespace: 'default',
     labelSelector: {
-      [codebaseBranchLabels.codebase]: codebaseName, // ✅ Using constant
+      [codebaseBranchLabels.codebase]: codebaseName, // Using constant
     },
   });
 

@@ -36,9 +36,9 @@ Fullstack developer agent for React, TypeScript, Radix UI, Tailwind CSS, and tRP
 
 ### krci-devops
 
-DevOps agent for EDP-Tekton repository (<https://github.com/epam/edp-tekton>) pipeline and task automation.
+DevOps agent for EDP-Tekton repository (<https://github.com/epam/edp-tekton>) - pipeline, task, and trigger automation.
 
-**Commands:** `/krci-devops:add-task`, `/krci-devops:add-pipeline`
+**Commands:** `/krci-devops:add-task`, `/krci-devops:add-pipeline`, `/krci-devops:add-trigger`
 
 **Important:** Must be run from within a clone of the EDP-Tekton repository.
 

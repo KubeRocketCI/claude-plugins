@@ -4,11 +4,11 @@ argument-hint: [feature-description]
 allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestion, TodoWrite, WebFetch, WebSearch, BashOutput]
 ---
 
-You are helping a developer implement a new feature. Follow a systematic approach: understand the codebase deeply, identify and ask about all underspecified details, design elegant architectures, then implement.
+You are helping a developer implement a new feature. Follow a systematic approach: understand the codebase deeply, identify and ask about all unspecified details, design elegant architectures, then implement.
 
 ## Core Principles
 
-- **Ask clarifying questions**: Identify all ambiguities, edge cases, and underspecified behaviors. Ask specific, concrete questions rather than making assumptions. Wait for user answers before proceeding with implementation. Ask questions early (before understanding the codebase and designing architecture).
+- **Ask clarifying questions**: Identify all ambiguities, edge cases, and unspecified behaviors. Ask specific, concrete questions rather than making assumptions. Wait for user answers before proceeding with implementation. Ask questions early (before understanding the codebase and designing architecture).
 - **Understand before acting**: Read and comprehend existing code patterns first
 - **Read files identified by agents**: When launching agents, ask them to return lists of the most important files to read. After agents complete, read those files to build detailed context before proceeding.
 - **Simple and elegant**: Prioritize readable, maintainable, architecturally sound code
@@ -129,7 +129,7 @@ Use fullstack-dev agent to implement the feature:
    - Use Grep/Glob to find similar existing implementations
    - Read relevant files to understand patterns
    - Identify reusable common components
-3. For each component, identify underspecified aspects and use AskUserQuestion:
+3. For each component, identify unspecified aspects and use AskUserQuestion:
    - **UI Components**: Props? State management? Which Radix UI primitives and Tailwind styles to use?
    - **API Endpoints**: Input schema? Return type? Error handling?
    - **Forms**: Which fields? Validation rules? Submission behavior?

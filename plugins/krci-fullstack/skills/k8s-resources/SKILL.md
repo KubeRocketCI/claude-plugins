@@ -287,7 +287,7 @@ const { data: branches } = useWatchList({
   config: k8sCodebaseBranchConfig,
   namespace: 'default',
   labelSelector: {
-    [codebaseBranchLabels.codebase]: codebaseName, // ✅ Using constant
+    [codebaseBranchLabels.codebase]: codebaseName, // Using constant
   },
 });
 ```

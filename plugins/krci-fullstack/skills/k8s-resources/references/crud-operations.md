@@ -59,6 +59,7 @@ await create(draft);
 ```
 
 **Why use draft creators:**
+
 - Handles Kubernetes resource structure (apiVersion, kind, metadata)
 - Applies default values
 - Ensures type safety
@@ -111,6 +112,7 @@ function CodebaseDetails({ name }: { name: string }) {
 ```
 
 **Watch features:**
+
 - Real-time WebSocket updates
 - Automatic re-rendering on changes
 - Built-in loading and error states
@@ -150,7 +152,7 @@ const { data: branches } = useWatchList({
   resourceConfig: k8sCodebaseBranchConfig,
   namespace: 'default',
   labelSelector: {
-    [codebaseBranchLabels.codebase]: codebaseName, // ✅ Using constant
+    [codebaseBranchLabels.codebase]: codebaseName, // Using constant
   },
 });
 ```
@@ -198,6 +200,7 @@ await patchMutation.mutateAsync({
 ```
 
 **Patch types:**
+
 - Strategic merge patch (default)
 - JSON merge patch
 - JSON patch

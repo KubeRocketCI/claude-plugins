@@ -117,6 +117,30 @@ edp-tekton/
 - Filename matches `metadata.name`
 - No version suffixes on tasks
 
+### Task Categories
+
+The repository contains **88 tasks** organized into **6 functional categories**:
+
+1. **Language-Specific Tasks** - Compile, build, test for specific languages
+   - Maven, Gradle, npm, pnpm, Python, Go, C, Ansible, Dotnet, Groovy
+
+2. **Quality & Analysis Tasks** - Code quality, linting, scanning
+   - Sonar, CodeNarc, helm-lint, docker-lint, docker-scan
+
+3. **VCS & Commit Tasks** - Git operations and status reporting
+   - git-clone, git-cli, github-set-status, gitlab-set-status, bitbucket-set-status, gerrit-notify
+
+4. **Build & Deployment Tasks** - Container builds and application deployment
+   - container-build (Kaniko), helm-push, helm-docs, deploy-helm, deploy-kustomize, update-cbis
+
+5. **Infrastructure & Utility Tasks** - Infrastructure management and versioning
+   - terraform, ansible-run, get-version, get-cache, save-cache, ecr-to-docker
+
+6. **Specialized Tasks** - Init, validation, autotests
+   - init-values, check-helm-chart-name, run-autotests, getversion variants
+
+For a complete task catalog with descriptions, see **`references/tasks.md`**.
+
 ## Onboarding Script Usage
 
 ### Script Location
@@ -126,7 +150,7 @@ Repository: <https://github.com/epam/edp-tekton>
 Location within repository:
 
 ```bash
-./charts/pipelines-library/scripts/onboarding-component.sh
+./hack/onboarding-component.sh
 ```
 
 **IMPORTANT**: This script is part of the EDP-Tekton repository and must be executed from within a clone of that repository.
@@ -136,7 +160,7 @@ Location within repository:
 **Command**:
 
 ```bash
-./charts/pipelines-library/scripts/onboarding-component.sh \
+./hack/onboarding-component.sh \
   --type task \
   -n <task-name>
 ```
@@ -145,10 +169,10 @@ Location within repository:
 
 ```bash
 # Create ansible-run task
-./charts/pipelines-library/scripts/onboarding-component.sh --type task -n ansible-run
+./hack/onboarding-component.sh --type task -n ansible-run
 
 # Create maven-build task
-./charts/pipelines-library/scripts/onboarding-component.sh --type task -n maven-build
+./hack/onboarding-component.sh --type task -n maven-build
 ```
 
 **Generated Output**:
@@ -163,7 +187,7 @@ Location within repository:
 **Build Pipeline Command**:
 
 ```bash
-./charts/pipelines-library/scripts/onboarding-component.sh \
+./hack/onboarding-component.sh \
   --type build-pipeline \
   -n <vcs>-<language>-<framework>-app-build-default \
   --vcs <vcs>
@@ -172,7 +196,7 @@ Location within repository:
 **Review Pipeline Command**:
 
 ```bash
-./charts/pipelines-library/scripts/onboarding-component.sh \
+./hack/onboarding-component.sh \
   --type review-pipeline \
   -n <vcs>-<language>-<framework>-app-review \
   --vcs <vcs>
@@ -182,13 +206,13 @@ Location within repository:
 
 ```bash
 # Create build pipeline
-./charts/pipelines-library/scripts/onboarding-component.sh \
+./hack/onboarding-component.sh \
   --type build-pipeline \
   -n gitlab-python-fastapi-app-build-default \
   --vcs gitlab
 
 # Create review pipeline
-./charts/pipelines-library/scripts/onboarding-component.sh \
+./hack/onboarding-component.sh \
   --type review-pipeline \
   -n gitlab-python-fastapi-app-review \
   --vcs gitlab
@@ -240,6 +264,100 @@ metadata:
     description: "Resource description"
     # Additional annotations
 ```
+
+## Workspace Patterns
+
+All pipelines in the repository use a consistent workspace organization pattern.
+
+### Primary Workspaces
+
+```yaml
+workspaces:
+  - name: shared-workspace    # Shared across all tasks
+  - name: ssh-creds          # Git credentials
+```
+
+### Workspace Subdirectories
+
+The `shared-workspace` is organized with subdirectories:
+
+- **`source/`** - Git repository source code (git-clone output)
+- **`cache/`** - Artifact cache (Maven .m2, npm cache, Go modules, etc.)
+
+### Usage in Tasks
+
+```yaml
+workspaces:
+  - name: source
+    workspace: shared-workspace
+    subPath: source           # References the source/ subdirectory
+```
+
+This pattern ensures:
+
+- Clean separation between source code and cache
+- Efficient cache reuse across pipeline runs
+- Consistent directory structure across all pipelines
+
+### Ephemeral Workspace Management
+
+- Each PipelineRun creates its own PVC (Persistent Volume Claim)
+- Size configured via `.Values.tekton.workspaceSize` (default: `5Gi`)
+- PVC automatically cleaned up after pipeline completion
+- Workspace is NOT shared between different PipelineRuns
+
+## VCS Provider Differences
+
+The repository supports **4 VCS providers**, each with specific characteristics:
+
+| Aspect | GitHub | GitLab | Gerrit | BitBucket |
+|--------|--------|--------|--------|-----------|
+| **Build Event Filter** | `merged == true` | `action: merge` | `status: NEW` | `pullrequest:fulfilled` |
+| **Interceptor Type** | ClusterInterceptor | ClusterInterceptor | CEL only | Custom ClusterInterceptor |
+| **Secret Name** | `ci-github` | `ci-gitlab` | `ci-gerrit` | `ci-bitbucket` |
+| **Status Reporting** | `github-set-status` | `gitlab-set-status` | `gerrit-notify` | `bitbucket-set-status` |
+| **Comment Triggering** | `/recheck`, `/ok-to-test` | `/recheck`, `/ok-to-test` | `recheck` comment | Not supported |
+
+### Parameter Enrichment
+
+The EDP Interceptor enriches webhook payloads with Codebase metadata:
+
+```
+VCS Webhook → EDP Interceptor → Enriched Extensions
+    ↓
+TriggerBinding extracts parameters:
+  - body.* (VCS-specific webhook data)
+  - extensions.* (EDP-enriched metadata)
+    ↓
+TriggerTemplate creates PipelineRun with:
+  - Dynamic pipeline name from extensions.pipelines.{type}
+  - Labels: codebase, pipelinetype, codebasebranch
+  - Parameters: git-source-url, CODEBASE_NAME, etc.
+```
+
+**Critical Extensions Parameters**:
+
+- `extensions.codebase` - Codebase resource name
+- `extensions.codebasebranch` - CodebaseBranch resource name
+- `extensions.pipelines.build` - Build pipeline name (dynamic)
+- `extensions.pipelines.review` - Review pipeline name (dynamic)
+- `extensions.pullRequest.*` - Normalized PR/MR metadata
+
+For VCS-specific trigger patterns, see **`references/vcs-differences.md`** (when available).
+
+## Supported Languages & Frameworks
+
+The repository contains **394 pipeline files** supporting **10+ languages**:
+
+- **Java**: java17, java21, java25 (Maven & Gradle)
+- **JavaScript/TypeScript**: npm, pnpm (angular, antora, express, next, react, vue)
+- **Python**: python3.8, flask, fastapi, ansible
+- **Go**: beego, gin, operatorsdk
+- **C/C++**: cmake, make
+- **C#/.NET**: dotnet3.1, dotnet6.0
+- **Others**: Groovy, OPA, Terraform, Docker, Helm, RPM, Autotests, CD, Security, GitOps
+
+For complete language and framework details, see **`references/languages.md`** (when available).
 
 ## Tekton Pipelines Best Practices
 
@@ -466,16 +584,16 @@ For complete standards reference including detailed Helm chart patterns, securit
 **Task Creation**:
 
 ```bash
-./charts/pipelines-library/scripts/onboarding-component.sh --type task -n <name>
+./hack/onboarding-component.sh --type task -n <name>
 ```
 
 **Pipeline Creation** (both build and review):
 
 ```bash
-./charts/pipelines-library/scripts/onboarding-component.sh \
+./hack/onboarding-component.sh \
   --type build-pipeline -n <vcs>-<lang>-<framework>-app-build-default --vcs <vcs>
 
-./charts/pipelines-library/scripts/onboarding-component.sh \
+./hack/onboarding-component.sh \
   --type review-pipeline -n <vcs>-<lang>-<framework>-app-review --vcs <vcs>
 ```
 
@@ -484,4 +602,58 @@ For complete standards reference including detailed Helm chart patterns, securit
 ```bash
 helm template charts/pipelines-library | yq
 yamllint .
+```
+
+## Common Task Composition Patterns
+
+Understanding how tasks are composed into pipelines helps in creating effective automation workflows.
+
+**Build Pipeline Pattern** (for merged commits):
+
+```
+init-values → get-version → get-cache
+    ↓
+[Language Tasks: compile → test → sonar]
+    ↓
+push-artifact (Maven/npm/PyPI)
+    ↓
+container-build (Kaniko) → save-cache → git-tag → update-cbis
+    ↓
+finally: report-status (JIRA, VCS)
+```
+
+**Review Pipeline Pattern** (for PRs/MRs):
+
+```
+init → get-cache
+    ↓
+[Language Tasks: compile → test → sonar]
+    ↓
+docker-lint → helm-lint → save-cache
+    ↓
+finally: set-review-status (success/failure to VCS)
+```
+
+**Key Differences**:
+
+| Aspect | Build Pipeline | Review Pipeline |
+|--------|---------------|-----------------|
+| Trigger | Merge to branch | PR/MR creation or update |
+| Versioning | `get-version` sets release version | No versioning |
+| Artifact Push | Pushes to registry | No push (validation only) |
+| Container Build | Builds and pushes image | Skipped |
+| Git Operations | Creates tag, updates CodebaseBranch | No git modifications |
+| Status Reporting | JIRA ticket update | VCS status update |
+
+**Task Ordering with runAfter**:
+
+```yaml
+tasks:
+  - name: init-values
+  - name: get-version
+    runAfter: [init-values]
+  - name: compile
+    runAfter: [get-version]
+  - name: test
+    runAfter: [compile]
 ```

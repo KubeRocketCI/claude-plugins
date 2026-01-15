@@ -67,7 +67,7 @@ charts/
         └── resources/
 ```
 
-- The onboarding script located at `charts/pipelines-library/scripts/onboarding-component.sh` is used to add new pipelines and tasks in line with the repository's structure.
+- The onboarding script located at `hack/onboarding-component.sh` is used to add new pipelines and tasks in line with the repository's structure.
 
 ### Pipelines
 

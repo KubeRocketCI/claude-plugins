@@ -16,8 +16,8 @@ import { applicationLabels } from "@my-project/shared";
 const codebaseWatch = useWatchList({
   resourceConfig: k8sCodebaseConfig,
   labelSelector: {
-    [applicationLabels.component]: 'frontend',  // ✅ Using constant
-    [applicationLabels.environment]: 'production', // ✅ Using constant
+    [applicationLabels.component]: 'frontend',  // Using constant
+    [applicationLabels.environment]: 'production', // Using constant
   },
 });
 ```
@@ -27,6 +27,7 @@ const codebaseWatch = useWatchList({
 **Label matching**: All specified labels must match (AND logic).
 
 **Why use constants?**
+
 - Type safety - typos caught at compile time
 - Single source of truth - change once, update everywhere
 - Refactoring - find all usages easily

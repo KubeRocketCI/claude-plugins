@@ -154,6 +154,7 @@ apps/client/src/k8s/
 - WebSocket connection state
 
 **Example - Status Icons (UI logic in client)**:
+
 ```typescript
 // apps/client/src/k8s/api/groups/KRCI/Codebase/utils/getCodebaseStatusIcon.ts
 export const getCodebaseStatusIcon = (codebase: Codebase) => {
@@ -171,6 +172,7 @@ export const getCodebaseStatusIcon = (codebase: Codebase) => {
 **What belongs in shared k8s**:
 
 **Resource Configurations**:
+
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts
 export const k8sCodebaseConfig = {
@@ -182,6 +184,7 @@ export const k8sCodebaseConfig = {
 ```
 
 **TypeScript Types & Interfaces**:
+
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/Codebase/types.ts
 export interface Codebase extends K8sResource {
@@ -191,6 +194,7 @@ export interface Codebase extends K8sResource {
 ```
 
 **Zod Schemas**:
+
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/Codebase/schema.ts
 export const codebaseSchema = z.object({
@@ -201,6 +205,7 @@ export const codebaseSchema = z.object({
 ```
 
 **Business Logic Utilities**:
+
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/Codebase/utils.ts
 export const createCodebaseDraft = (data: CodebaseFormData): Codebase => {
@@ -214,6 +219,7 @@ export const createCodebaseDraft = (data: CodebaseFormData): Codebase => {
 ```
 
 **Resource-Specific Labels** (separate `labels.ts` file):
+
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/Codebase/labels.ts
 export const codebaseLabels = {
@@ -233,6 +239,7 @@ export const applicationLabels = {
 ```
 
 **Label Usage in Config**:
+
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts
 import { codebaseLabels } from "./labels.js";
@@ -253,6 +260,7 @@ export const k8sCodebaseConfig = {
 | `packages/shared/src/models/k8s/` | **Resource definitions & business logic** | Configs, types, schemas, draft creators, **label constants** |
 
 **Resource Structure in Shared**:
+
 ```
 packages/shared/src/models/k8s/groups/{Group}/{Resource}/
 ├── constants.ts    # Resource config, enums, constants
@@ -263,6 +271,7 @@ packages/shared/src/models/k8s/groups/{Group}/{Resource}/
 ```
 
 **Rule of thumb**:
+
 - If it's about **how resources are displayed or fetched** → Client k8s module
 - If it's about **what resources are and how they're structured** → Shared package
 - **All label keys** (including standard K8s labels like `app.kubernetes.io/*`) → Shared package in `labels.ts`
@@ -294,6 +303,7 @@ The server app is a **pure hosting application** that:
 - Hosts the tRPC router from `@my-project/trpc` package
 
 **Server does NOT contain**:
+
 - ❌ API endpoint definitions (those are in trpc package)
 - ❌ Business logic (in shared or trpc packages)
 - ❌ tRPC procedures (in trpc package)
@@ -558,7 +568,7 @@ export class K8sService {
 **Server App Examples**:
 
 ```typescript
-// ✅ Fastify server setup (in apps/server/src/config/development.ts)
+// Fastify server setup (in apps/server/src/config/development.ts)
 export class LocalFastifyServer {
   private fastify: FastifyInstance;
 
@@ -807,7 +817,7 @@ export const getCodebaseStatusIcon = (codebase: Codebase) => {
 export const useCodebaseWatch = () => useWatchList({ /* ... */ });
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // apps/client/src/k8s/api/groups/KRCI/Codebase/utils/getStatusIcon.ts
@@ -842,7 +852,7 @@ export const k8sCodebaseConfig = {
 export const createCodebaseDraft = (data: FormData) => ({ /* ... */ });
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts
@@ -879,7 +889,7 @@ const { data: apps } = useWatchList({
 });
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // packages/shared/src/models/k8s/groups/KRCI/CodebaseBranch/labels.ts
@@ -899,7 +909,7 @@ import { codebaseBranchLabels } from "@my-project/shared";
 const { data: branches } = useWatchList({
   config: k8sCodebaseBranchConfig,
   labelSelector: {
-    [codebaseBranchLabels.codebase]: codebaseName, // ✅ Type-safe constant
+    [codebaseBranchLabels.codebase]: codebaseName, // Type-safe constant
   },
 });
 ```
@@ -943,7 +953,7 @@ export const k8sRouter = createTRPCRouter({ /* ... */ });
 export const k8sRouter = createTRPCRouter({ /* ... */ });
 ```
 
-✅ **Do**:
+**Do**:
 
 ```typescript
 // packages/trpc/src/routers/k8s.ts  ← tRPC routers belong in trpc package
@@ -997,6 +1007,7 @@ packages/trpc ──────────────────────
 ```
 
 **Key Points**:
+
 - Server app imports from trpc package (for router and context)
 - Server app does NOT define API endpoints
 - tRPC package is where all API logic lives

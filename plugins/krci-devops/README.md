@@ -12,6 +12,7 @@ The KRCI DevOps plugin provides specialized automation for onboarding and managi
 
 - **Automated Pipeline Onboarding**: Generate build and review pipelines following KRCI naming conventions
 - **Task Creation**: Onboard new Tekton Tasks with proper Helm templating
+- **Trigger Configuration**: Create Tekton Triggers for VCS webhook integration (GitHub, GitLab, Gerrit, BitBucket)
 - **Standards Compliance**: Enforce EDP-Tekton best practices and conventions
 - **Repository Validation**: Ensure proper directory structure and script availability
 
@@ -25,14 +26,12 @@ The KRCI DevOps plugin provides specialized automation for onboarding and managi
 
 - `/krci-devops:add-task` - Onboard a new Tekton Task to the repository
 - `/krci-devops:add-pipeline` - Onboard new Tekton Pipelines (Build and Review)
+- `/krci-devops:add-trigger` - Create Tekton Triggers for VCS webhook integration
 
 ### Skills
 
 - **edp-tekton-standards**: Comprehensive standards for Tekton pipelines, tasks, Helm charts, and repository structure
-
-### Scripts
-
-- **generate-pipeline.py**: Helper utility for pipeline generation
+- **edp-tekton-triggers**: Complete guide to Tekton Triggers, EventListeners, interceptor chains, and VCS webhook integration
 
 ## Prerequisites
 
@@ -109,6 +108,22 @@ The agent will:
 4. Generate review pipeline: `gitlab-python-fastapi-app-review`
 5. Validate naming conventions
 6. Verify file creation
+
+### Create Triggers for VCS Webhooks
+
+```bash
+/krci-devops:add-trigger github build
+```
+
+The agent will:
+
+1. Verify you're in the EDP-Tekton repository
+2. Load EDP-Tekton standards and triggers skills
+3. Create EventListener for GitHub (if needed)
+4. Create Trigger with interceptor chain (VCS validation → CEL filter → EDP enrichment)
+5. Create TriggerBinding for parameter extraction
+6. Create TriggerTemplate for PipelineRun scaffolding
+7. Provide webhook configuration instructions
 
 ## Naming Conventions
 
