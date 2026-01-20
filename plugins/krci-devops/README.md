@@ -66,12 +66,6 @@ edp-tekton/
 cc plugin add krci-devops
 ```
 
-### Local Development
-
-```bash
-cc --plugin-dir /Users/Sergiy_Kulanov/my_projects/edp/plugins/claude-plugins/plugins/krci-devops
-```
-
 ## Usage
 
 **IMPORTANT**: Navigate to the EDP-Tekton repository before running commands:

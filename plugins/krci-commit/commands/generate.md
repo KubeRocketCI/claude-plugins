@@ -4,7 +4,7 @@ allowed-tools: [Read, Grep, Bash]
 model: haiku
 ---
 
-Check for staged changes by running `git diff --cached`.
+Check for staged changes by running `!git diff --cached`.
 
 If there are NO staged files (empty output):
 

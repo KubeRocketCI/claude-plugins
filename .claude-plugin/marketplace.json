@@ -60,6 +60,19 @@
       "author": {
         "name": "KubeRocketCI Team"
       }
+    },
+    {
+      "name": "krci-architect",
+      "source": "./plugins/krci-architect",
+      "description": "KubeRocketCI Architect agent - Technical architecture planning, design validation, and cross-component coordination for the KRCI ecosystem",
+      "version": "0.1.0",
+      "category": "architecture",
+      "keywords": ["kuberocketci", "architect", "planning", "design", "architecture", "coordination", "multi-repo", "technical-design"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
     }
   ]
 }
