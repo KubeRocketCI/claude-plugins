@@ -17,7 +17,7 @@
       "category": "development",
       "keywords": ["kuberocketci", "golang", "go", "kubernetes", "operator", "crd"],
       "license": "Apache-2.0",
-      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
         "name": "KubeRocketCI Team"
       }
@@ -30,7 +30,7 @@
       "category": "development",
       "keywords": ["kuberocketci", "git", "commit", "conventional-commits", "automation"],
       "license": "Apache-2.0",
-      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
         "name": "KubeRocketCI Team"
       }
@@ -43,7 +43,7 @@
       "category": "development",
       "keywords": ["kuberocketci", "react", "typescript", "radix-ui", "tailwind", "frontend", "trpc", "fullstack-dev", "portal"],
       "license": "Apache-2.0",
-      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
         "name": "KubeRocketCI Team"
       }
@@ -56,7 +56,7 @@
       "category": "devops",
       "keywords": ["kuberocketci", "devops", "tekton", "pipelines", "helm", "kubernetes", "automation", "edp-tekton"],
       "license": "Apache-2.0",
-      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
         "name": "KubeRocketCI Team"
       }
@@ -69,7 +69,7 @@
       "category": "architecture",
       "keywords": ["kuberocketci", "architect", "planning", "design", "architecture", "coordination", "multi-repo", "technical-design"],
       "license": "Apache-2.0",
-      "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
         "name": "KubeRocketCI Team"
       }

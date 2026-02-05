@@ -6,7 +6,7 @@
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"
   },
-  "homepage": "https://github.com/KubeRocketCI/kuberocketai",
+  "homepage": "https://github.com/KubeRocketCI/claude-plugins",
   "repository": "https://github.com/KubeRocketCI/claude-plugins",
   "license": "Apache-2.0",
   "keywords": [

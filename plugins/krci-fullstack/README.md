@@ -188,7 +188,7 @@ The `fullstack-dev` agent activates when you're working on portal features. It h
 This plugin is part of the KubeRocketCI ecosystem. For issues or contributions:
 
 - Repository: <https://github.com/KubeRocketCI/claude-plugins>
-- Documentation: <https://github.com/KubeRocketCI/kuberocketai>
+- Documentation: <https://github.com/KubeRocketCI/claude-plugins>
 
 ## License
 

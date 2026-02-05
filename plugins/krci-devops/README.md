@@ -162,4 +162,4 @@ Apache-2.0
 
 - Repository: <https://github.com/KubeRocketCI/claude-plugins>
 - Issues: <https://github.com/KubeRocketCI/claude-plugins/issues>
-- Homepage: <https://github.com/KubeRocketCI/kuberocketai>
+- Homepage: <https://github.com/KubeRocketCI/claude-plugins>
