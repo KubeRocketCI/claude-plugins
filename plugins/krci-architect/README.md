@@ -50,6 +50,16 @@ Guided 6-phase workflow for planning feature implementations.
 5. **Architecture Design** - Create implementation plan
 6. **Agent Delegation** - Delegate work to specialized agents
 
+#### `/krci-architect:bootstrap-workspace`
+Create a workspace with KubeRocketCI repositories for feature development.
+
+**Usage:**
+```bash
+/krci-architect:bootstrap-workspace feature-github
+```
+
+Interactively selects repositories to clone, creates a workspace directory, and clones the selected repos. Also available as a standalone bash script at `scripts/bootstrap-workspace.sh`.
+
 #### `/krci-architect:technical-review`
 Validates architectural designs against KRCI reference architecture.
 
