@@ -15,6 +15,7 @@ claude plugin install krci-godev
 claude plugin install krci-fullstack
 claude plugin install krci-devops
 claude plugin install krci-commit
+claude plugin install krci-architect
 ```
 
 ## Available Plugins
@@ -41,6 +42,16 @@ DevOps agent for EDP-Tekton repository (<https://github.com/epam/edp-tekton>) - 
 **Commands:** `/krci-devops:add-task`, `/krci-devops:add-pipeline`, `/krci-devops:add-trigger`
 
 **Important:** Must be run from within a clone of the EDP-Tekton repository.
+
+### krci-architect
+
+Technical architect agent for architecture planning, design validation, and cross-component coordination.
+
+**Commands:** `/krci-architect:plan-feature`, `/krci-architect:bootstrap-workspace`, `/krci-architect:technical-review`
+
+- **plan-feature**: Guided 6-phase workflow for planning multi-repository features
+- **bootstrap-workspace**: Clone selected KubeRocketCI repositories into a workspace directory
+- **technical-review**: Validate designs against KRCI reference architecture
 
 ### krci-commit
 
