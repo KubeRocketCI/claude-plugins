@@ -6,12 +6,12 @@ Detailed descriptions of all platform components, their responsibilities, and in
 
 ### CD Pipeline Operator
 
-**Repository**: edp-cd-pipeline-operator
-**GitHub**: <https://github.com/epam/edp-cd-pipeline-operator>
-**Language**: Go
-**Purpose**: Manages CD pipelines and deployment workflows
+Repository: edp-cd-pipeline-operator
+GitHub: <https://github.com/epam/edp-cd-pipeline-operator>
+Language: Go
+Purpose: Manages CD pipelines and deployment workflows
 
-**Key Responsibilities:**
+Key Responsibilities:
 
 - Define and manage CD Pipeline custom resources
 - Integrate with Argo CD for GitOps deployment
@@ -19,13 +19,12 @@ Detailed descriptions of all platform components, their responsibilities, and in
 - Trigger CD pipelines based on events
 - Manage environment-specific configurations
 
-**CRDs:**
+CRDs:
 
 - `CDPipeline`: Defines continuous delivery pipeline
 - `Stage`: Represents deployment environment (dev, qa, prod)
-- `PipelineRun`: Execution instance of CD pipeline
 
-**Integration Points:**
+Integration Points:
 
 - Argo CD: Creates/updates Applications for deployment
 - Tekton: Receives build artifacts from CI pipelines
@@ -34,71 +33,67 @@ Detailed descriptions of all platform components, their responsibilities, and in
 
 ### Codebase Operator
 
-**Repository**: edp-codebase-operator
-**GitHub**: <https://github.com/epam/edp-codebase-operator>
-**Language**: Go
-**Purpose**: Manages application codebases and Git integration
+Repository: edp-codebase-operator
+GitHub: <https://github.com/epam/edp-codebase-operator>
+Language: Go
+Purpose: Manages application codebases and Git integration
 
-**Key Responsibilities:**
+Key Responsibilities:
 
 - Scaffold new applications from templates
 - Manage Git repository integration
 - Handle versioning and branching strategies
-- Manage Jira integration for issue tracking
-- Coordinate with Git servers (GitHub, GitLab, Gerrit, Bitbucket)
+- Coordinate with Git servers (GitHub, GitLab, Bitbucket)
 
-**CRDs:**
+CRDs:
 
 - `Codebase`: Represents application or library codebase
 - `CodebaseBranch`: Manages Git branches
 - `GitServer`: Defines Git server configuration
-- `JiraServer`: Configures Jira integration
 
-**Integration Points:**
+Integration Points:
 
 - Git Servers: Creates/manages repositories
 - Tekton: Triggers pipelines on codebase changes
-- Jira: Links commits to issues
 - Portal: Provides codebase management UI
 
 ## CI/CD Components
 
 ### Tekton
 
-**Repository**: edp-tekton
-**GitHub**: <https://github.com/epam/edp-tekton>
-**Type**: Helm chart with custom tasks and pipelines
-**Purpose**: Kubernetes-native CI/CD framework
+Repository: edp-tekton
+GitHub: <https://github.com/epam/edp-tekton>
+Type: Helm chart with custom tasks and pipelines
+Purpose: Kubernetes-native CI/CD framework
 
-**Structure:**
+Structure:
 
-- **Tasks**: Reusable units of work (build, test, scan, push)
-- **Pipelines**: Workflows composing multiple tasks
-- **Triggers**: Event-driven pipeline activation
-- **Interceptors**: Request processing and filtering
+- Tasks: Reusable units of work (build, test, scan, push)
+- Pipelines: Workflows composing multiple tasks
+- Triggers: Event-driven pipeline activation
+- Interceptors: Request processing and filtering
 
-**Key Pipelines:**
+Key Pipelines:
 
-- **build**: Build application artifacts
-- **review**: Validate pull/merge requests
-- **deploy**: Deploy applications to environments
+- build: Build application artifacts
+- review: Validate pull/merge requests
+- deploy: Deploy applications to environments
 
-**Common Tasks:**
+Common Tasks:
 
 - `git-clone`: Clone source repository
 - `build-image`: Build container image
 - `sonar-scanner`: Run SonarQube analysis
 - `push-to-registry`: Push image to registry
-- `helm-deploy`: Deploy via Helm
 
-**Trigger Types:**
+Trigger Types:
 
 - GitHub webhooks
 - GitLab webhooks
 - Gerrit webhooks
 - Bitbucket webhooks
 
-**Interceptor Chain**:
+Interceptor Chain:
 
 1. CEL Interceptor: Filter and transform events
 2. GitHub/GitLab/Gerrit Interceptor: Extract metadata
@@ -106,18 +101,17 @@ Detailed descriptions of all platform components, their responsibilities, and in
 
 ### Argo CD
 
-**Type**: Deployment tool (installed separately)
-**Purpose**: GitOps continuous delivery
+Type: Deployment tool (installed separately)
+Purpose: GitOps continuous delivery
 
-**Usage in KRCI:**
+Usage in KRCI:
 
-- **Operational Workloads**: Cluster add-ons, infrastructure (recommended: dedicated instance)
-- **Business Workloads**: Applications deployed by CD Pipeline Operator
-- **Production**: Dedicated Argo CD instance in production cluster (pull model)
+- Operational Workloads: Cluster add-ons
+- Business Workloads: Applications deployed by ArgoCD managed by CD Pipeline Operator
 
-**Integration:**
+Integration:
 
-- CD Pipeline Operator creates `Application` resources
+- CD Pipeline Operator creates `ApplicationSet` resources
 - Git repository contains deployment manifests
 - Argo CD synchronizes cluster state with Git
 
@@ -125,12 +119,12 @@ Detailed descriptions of all platform components, their responsibilities, and in
 
 ### KubeRocketCI Portal
 
-**Repository**: krci-portal (edp-headlamp)
-**GitHub**: <https://github.com/epam/edp-headlamp>
-**Technology**: React, TypeScript, Radix UI, Tailwind CSS, tRPC
-**Purpose**: Central UI for platform interaction
+Repository: krci-portal
+GitHub: <https://github.com/KubeRocketCI/krci-portal>
+Technology: React, TypeScript, Radix UI, Tailwind CSS, tRPC
+Purpose: Central UI for platform interaction
 
-**Key Features:**
+Key Features:
 
 - Codebase management (create, view, configure)
 - CD pipeline visualization
@@ -139,50 +133,38 @@ Detailed descriptions of all platform components, their responsibilities, and in
 - User and permission management
 - Configuration management
 
-**Architecture:**
+Architecture:
 
-- **Frontend**: React with Radix UI components, Tailwind CSS styling
-- **Backend**: tRPC API for type-safe communication
-- **State Management**: React Query for server state
-- **Routing**: React Router with role-based access
-- **Authentication**: Keycloak OIDC integration
-
-**Component Structure:**
-
-```
-src/
-├── components/     - Reusable UI components
-├── pages/          - Page-level components
-├── routes/         - Routing configuration
-├── api/            - tRPC API routes
-├── hooks/          - Custom React hooks
-└── utils/          - Utility functions
-```
+- Frontend: React with Radix UI components, Tailwind CSS styling
+- Backend: tRPC API for type-safe communication
+- State Management: React Query for server state
+- Routing: React Router with role-based access
+- Authentication: Keycloak OIDC integration
 
 ## Authentication and Security
 
 ### Keycloak Operator
 
-**Repository**: edp-keycloak-operator
-**GitHub**: <https://github.com/epam/edp-keycloak-operator>
-**Language**: Go
-**Purpose**: Manages Keycloak realms, clients, and users
+Repository: edp-keycloak-operator
+GitHub: <https://github.com/epam/edp-keycloak-operator>
+Language: Go
+Purpose: Manages Keycloak realms, clients, and users
 
-**Key Responsibilities:**
+Key Responsibilities:
 
 - Configure Keycloak realms
 - Create OAuth clients for platform tools
 - Manage groups and role mappings
 - Synchronize platform resources with Keycloak
 
-**CRDs:**
+CRDs:
 
 - `KeycloakRealm`: Keycloak realm configuration
 - `KeycloakClient`: OAuth client for platform tools
 - `KeycloakRealmGroup`: Group definitions
 - `KeycloakRealmRole`: Role definitions
 
-**Integration:**
+Integration:
 
 - Authenticates all platform tools (Portal, SonarQube, Nexus, etc.)
 - Provides OIDC for Kubernetes API access
@@ -192,19 +174,19 @@ src/
 
 ### SonarQube Operator
 
-**Repository**: edp-sonar-operator
-**GitHub**: <https://github.com/epam/edp-sonar-operator>
-**Language**: Go
-**Purpose**: Manages SonarQube instances and projects
+Repository: edp-sonar-operator
+GitHub: <https://github.com/epam/edp-sonar-operator>
+Language: Go
+Purpose: Manages SonarQube instances and projects
 
-**Key Responsibilities:**
+Key Responsibilities:
 
 - Deploy SonarQube instances
 - Create and configure projects
 - Manage quality gates
 - Integrate with Keycloak
 
-**CRDs:**
+CRDs:
 
 - `Sonar`: SonarQube instance
 - `SonarQualityGate`: Quality gate configuration
@@ -212,19 +194,19 @@ src/
 
 ### Nexus Operator
 
-**Repository**: edp-nexus-operator
-**GitHub**: <https://github.com/epam/edp-nexus-operator>
-**Language**: Go
-**Purpose**: Manages Nexus Repository instances
+Repository: edp-nexus-operator
+GitHub: <https://github.com/epam/edp-nexus-operator>
+Language: Go
+Purpose: Manages Nexus Repository instances
 
-**Key Responsibilities:**
+Key Responsibilities:
 
 - Deploy Nexus instances
 - Configure repositories (Maven, npm, Docker, etc.)
 - Manage cleanup policies
 - Integrate with Keycloak
 
-**CRDs:**
+CRDs:
 
 - `Nexus`: Nexus instance
 - `NexusRepository`: Repository configuration
@@ -233,10 +215,12 @@ src/
 
 ### GitFusion
 
-**Repository**: gitfusion
-**Purpose**: Unified Git interface for multiple VCS providers
+Repository: gitfusion
+GitHub: <https://github.com/KubeRocketCI/gitfusion>
+Language: Go
+Purpose: Unified Git interface for multiple VCS providers
 
-**Capabilities:**
+Capabilities:
 
 - Abstracts Git operations across GitHub, GitLab, Gerrit, Bitbucket
 - Provides consistent API for Git interactions
@@ -244,21 +228,24 @@ src/
 
 ### KRCI Cache
 
-**Repository**: krci-cache
-**Purpose**: Caching layer for improved performance
+Repository: krci-cache
+GitHub: <https://github.com/KubeRocketCI/krci-cache>
+Language: Go
+Purpose: Caching layer for CI/CD pipelines artifacts and dependencies
 
-**Features:**
+Features:
 
 - Dependency caching for builds
-- Layer caching for container images
 - Shared cache across pipeline runs
 
 ### Tekton Custom Tasks
 
-**Repository**: tekton-custom-task
-**Purpose**: Custom Tekton task implementations
+Repository: tekton-custom-task
+GitHub: <https://github.com/KubeRocketCI/tekton-custom-task>
+Language: Go
+Purpose: Custom Tekton task implementations
 
-**Examples:**
+Examples:
 
 - Advanced security scanning
 - Custom deployment strategies
@@ -271,8 +258,7 @@ src/
 Operators communicate via Kubernetes resources:
 
 - Codebase Operator creates codebases
-- CD Pipeline Operator references codebases
-- Gerrit Operator creates projects based on codebases
+- CD Pipeline Operator references codebases and creates cdpipelines with stages and Argo CD Applications
 
 ### Operator to Portal
 
@@ -294,10 +280,10 @@ Tekton pipelines interact with operators:
 
 Tools integrate via:
 
-- **Keycloak**: OIDC authentication
-- **Webhooks**: Event notifications
-- **APIs**: Programmatic access
-- **Kubernetes**: Shared infrastructure
+- Keycloak: OIDC authentication
+- Webhooks: Event notifications
+- APIs: Programmatic access
+- Kubernetes: Shared infrastructure
 
 ## Component Lifecycle
 
@@ -305,9 +291,9 @@ Tools integrate via:
 
 Components installed via:
 
-1. **Core Platform**: edp-install Helm chart
-2. **Optional Operators**: Individual Helm charts
-3. **Cluster Add-ons**: edp-cluster-add-ons repository
+1. Core Platform: edp-install Helm chart. GitHub: <https://github.com/epam/edp-install>
+2. Optional Operators: Individual Helm charts
+3. Cluster Add-ons: edp-cluster-add-ons repository. GitHub: <https://github.com/epam/edp-cluster-add-ons>
 
 ### Upgrade
 
@@ -322,19 +308,19 @@ Upgrades follow:
 
 Configuration managed through:
 
-- **CRDs**: Declarative component configuration
-- **ConfigMaps**: Application settings
-- **Secrets**: Sensitive data
-- **Portal UI**: User-friendly configuration interface
+- CRDs: Declarative component configuration
+- ConfigMaps: Application settings
+- Secrets: Sensitive data
+- Portal UI: User-friendly configuration interface
 
 ## Monitoring Components
 
 Components emit:
 
-- **Metrics**: Prometheus-format metrics
-- **Logs**: Structured JSON logs to OpenSearch
-- **Traces**: OpenTelemetry traces
-- **Events**: Kubernetes events for state changes
+- Metrics: Prometheus-format metrics
+- Logs: Structured JSON logs to OpenSearch
+- Traces: OpenTelemetry traces
+- Events: Kubernetes events for state changes
 
 Monitor via:
 

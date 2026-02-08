@@ -191,21 +191,21 @@ When validating technical designs against KRCI reference architecture:
 
 ### Must Have
 
-- [ ] Works on any Kubernetes distribution (cloud-agnostic)
-- [ ] Integrates with Keycloak for unified auth (OIDC)
-- [ ] Includes SAST and code quality checks (security quality gates)
-- [ ] Uses Argo CD deployment patterns (GitOps)
-- [ ] Production workloads in dedicated cluster (production isolation)
+- Works on any Kubernetes distribution (cloud-agnostic)
+- Integrates with Keycloak for unified auth (OIDC)
+- Includes SAST and code quality checks (security quality gates)
+- Uses Argo CD deployment patterns (GitOps)
+- Production workloads in dedicated cluster (production isolation)
 
 ### Should Have
 
-- [ ] Properly integrates with Tekton, Argo CD, operators, portal
-- [ ] Includes Prometheus metrics, OpenSearch logging
-- [ ] Proper artifact storage and verification
-- [ ] Migration path for breaking changes
+- Properly integrates with Tekton, Argo CD, operators, portal
+- Includes Prometheus metrics, OpenSearch logging
+- Proper artifact storage and verification
+- Migration path for breaking changes
 
 ### Consider
 
-- [ ] OpenTelemetry tracing support
-- [ ] Multi-cluster deployment patterns
-- [ ] Environment-specific configuration management
+- OpenTelemetry tracing support
+- Multi-cluster deployment patterns
+- Environment-specific configuration management

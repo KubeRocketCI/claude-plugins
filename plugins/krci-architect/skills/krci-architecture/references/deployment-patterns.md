@@ -45,10 +45,9 @@ dev → test → UAT → staging → production
 
 ```
 - Cluster 1: Platform components (operators, portal, Tekton)
-- Cluster 2: Development workloads
-- Cluster 3: QA/UAT workloads
-- Cluster 4: Staging environment
-- Cluster 5: Production environment (isolated, dedicated Argo CD)
+- Cluster 2: Development workloads (DEV/QA/UAT)
+- Cluster 3: Staging environment (isolated, dedicated Prod Argo CD)
+- Cluster 4: Production environment (isolated, dedicated Prod Argo CD)
 ```
 
 **Option 3: Fully Isolated (High Security)**
@@ -58,8 +57,8 @@ dev → test → UAT → staging → production
 - Cluster 2: Development
 - Cluster 3: Testing
 - Cluster 4: UAT
-- Cluster 5: Staging
-- Cluster 6: Production (isolated, dedicated Argo CD)
+- Cluster 5: Staging (isolated, dedicated Prod Argo CD)
+- Cluster 6: Production (isolated, dedicated Prod Argo CD)
 ```
 
 ## GitOps Deployment Models
@@ -105,55 +104,13 @@ dev → test → UAT → staging → production
 - Production Argo CD only accesses Git (read-only)
 - Meets high security requirements
 
-**Disadvantages**:
-
-- Requires Argo CD in each production cluster
-- More complex configuration
-
-**Implementation**:
-
-```yaml
-# In platform cluster - CD Pipeline Operator
-apiVersion: v2.edp.epam.com/v1
-kind: CDPipeline
-metadata:
-  name: my-app-prod
-spec:
-  deploymentType: pull
-  applications:
-    - name: my-app
-      gitSource:
-        url: https://git.example.com/deployments/my-app-prod.git
-        branch: main
-```
-
-```yaml
-# In production cluster - Argo CD Application
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: my-app-prod
-spec:
-  source:
-    repoURL: https://git.example.com/deployments/my-app-prod.git
-    targetRevision: main
-    path: manifests/
-  destination:
-    server: https://kubernetes.default.svc
-    namespace: my-app-prod
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
-```
-
 ## Multi-Cluster Architecture
 
 ### Hub-and-Spoke Pattern
 
 **Platform Cluster (Hub)**:
 
-- Runs KRCI operators (Codebase, CD Pipeline, Gerrit, Keycloak)
+- Runs KRCI operators (Codebase, CD Pipeline, Keycloak)
 - Hosts KubeRocketCI Portal
 - Executes Tekton pipelines
 - Stores artifacts
@@ -246,46 +203,7 @@ Staging validated → Change management approval → Manual trigger → Update G
 
 ## Configuration Management
 
-### Environment-Specific Configuration
-
-**Pattern**:
-
-```
-manifests/
-├── base/                    # Common configuration
-│   ├── deployment.yaml
-│   ├── service.yaml
-│   └── kustomization.yaml
-└── overlays/
-    ├── dev/                 # Development overrides
-    │   ├── replicas.yaml
-    │   ├── resources.yaml
-    │   └── kustomization.yaml
-    ├── staging/             # Staging overrides
-    │   └── kustomization.yaml
-    └── production/          # Production overrides
-        ├── replicas.yaml
-        ├── resources.yaml
-        ├── ingress.yaml
-        └── kustomization.yaml
-```
-
-**Using Kustomize**:
-
-```yaml
-# base/kustomization.yaml
-resources:
-  - deployment.yaml
-  - service.yaml
-
-# overlays/production/kustomization.yaml
-bases:
-  - ../../base
-patchesStrategicMerge:
-  - replicas.yaml
-  - resources.yaml
-  - ingress.yaml
-```
+TODO: krci-giops
 
 ### Secret Management
 

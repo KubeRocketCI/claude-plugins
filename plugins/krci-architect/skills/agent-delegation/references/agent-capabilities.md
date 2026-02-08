@@ -9,8 +9,8 @@ Consolidated reference for all specialized KRCI agent capabilities.
 
 **Commands**:
 
-- `/krci-fullstack:implement-feature` - 5-phase guided workflow for portal features
-- `/krci-fullstack:fix-issue` - 5-phase debugging and bug fixing workflow
+- `/krci-fullstack:implement-feature` - guided workflow for portal features
+- `/krci-fullstack:fix-issue` - guided debugging and bug fixing workflow
 
 **Capabilities**:
 
@@ -64,15 +64,6 @@ Consolidated reference for all specialized KRCI agent capabilities.
 - React Testing Library component tests
 - Test coverage requirements
 - Mocking patterns
-
-**Key Files krci-fullstack Knows**:
-
-- `src/components/` - Reusable components
-- `src/pages/` - Page components
-- `src/routes/` - Routing configuration
-- `src/api/` - tRPC routes
-- `src/hooks/` - Custom hooks
-- `src/utils/` - Utilities
 
 ---
 
@@ -130,13 +121,6 @@ Consolidated reference for all specialized KRCI agent capabilities.
 - Resource naming
 - Label conventions
 
-**Key Files krci-devops Knows**:
-
-- `charts/pipelines-library/templates/pipelines/` - Pipeline definitions
-- `charts/pipelines-library/templates/tasks/` - Task definitions
-- `charts/pipelines-library/templates/triggers/` - Trigger definitions
-- `scripts/` - Onboarding automation scripts
-
 ---
 
 ## krci-godev Agent
@@ -190,14 +174,6 @@ Consolidated reference for all specialized KRCI agent capabilities.
 - RBAC configuration
 - Webhook implementation (validation/mutation)
 - Metrics and observability
-
-**Key Files krci-godev Knows**:
-
-- `api/v*/` - CRD definitions
-- `controllers/` - Reconciliation logic
-- `pkg/` - Business logic packages
-- `config/crd/` - CRD manifests
-- `config/rbac/` - RBAC configuration
 
 ---
 

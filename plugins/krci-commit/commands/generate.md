@@ -38,7 +38,6 @@ If there ARE staged files:
 - `test` - Adding or updating tests
 - `chore` - Maintenance tasks, dependency updates
 - `perf` - Performance improvements
-- `ci` - CI/CD pipeline changes
 - `build` - Build system or external dependency changes
 - `revert` - Revert a previous commit
 
@@ -52,6 +51,7 @@ If there ARE staged files:
 
 **Body requirements:**
 
+- Maximum 200 characters
 - Explain WHY the change was made
 - Explain WHAT it implements or addresses
 - Focus on the reason and impact, not the files changed
