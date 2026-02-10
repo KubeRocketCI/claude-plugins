@@ -1,6 +1,6 @@
 ---
 name: Agent Delegation
-description: This skill should be used when coordinating work across multiple KRCI repositories, delegating implementation tasks to specialized agents, or when the user asks about "krci-fullstack agent", "krci-devops agent", "krci-godev agent", "delegate to agent", "multi-repository coordination", or mentions using Task tool with KRCI agents.
+description: This skill should be used when coordinating work across multiple KRCI repositories, delegating implementation tasks to specialized agents, or when the user asks about "krci-fullstack agent", "krci-devops agent", "krci-godev agent", "delegate to agent", "multi-repository coordination", "spawn agent for implementation", "parallel agent delegation", "which agent handles", "agent capabilities", or mentions using Task tool with KRCI agents.
 ---
 
 # KRCI Agent Delegation
@@ -48,7 +48,8 @@ KubeRocketCI has three specialized agents for different domains. Understanding w
 
 **Domain**: Tekton pipelines and DevOps automation
 **Color**: Blue
-**Repository**: edp-tekton (Tekton pipelines, tasks, Helm charts)
+**Primary Repository**: edp-tekton (Tekton pipelines, tasks, Helm charts)
+**Note**: edp-tekton also contains Go-based interceptors. For Go interceptor work, delegate to **krci-godev** instead.
 
 **Expertise**:
 
@@ -77,9 +78,10 @@ KubeRocketCI has three specialized agents for different domains. Understanding w
 
 ### krci-godev Agent
 
-**Domain**: Kubernetes operator development
+**Domain**: Go development and Kubernetes operators
 **Color**: Blue
-**Repositories**: edp-codebase-operator, edp-cd-pipeline-operator
+**Primary Repositories**: edp-codebase-operator, edp-cd-pipeline-operator
+**Extended Repositories**: edp-keycloak-operator, edp-sonar-operator, edp-nexus-operator, gitfusion, krci-cache, tekton-custom-task, edp-tekton (Go interceptors only)
 
 **Expertise**:
 
@@ -92,10 +94,10 @@ KubeRocketCI has three specialized agents for different domains. Understanding w
 
 **When to Delegate**:
 
-- Kubernetes operator modifications
+- Kubernetes operator modifications (any KRCI operator)
 - CRD schema updates
 - Controller reconciliation logic
-- Operator integration with K8s API
+- Go service development (gitfusion, krci-cache)
 - Go code review and refactoring
 - Custom Resource implementation
 
@@ -105,6 +107,8 @@ KubeRocketCI has three specialized agents for different domains. Understanding w
 - "Implement controller for new custom resource"
 - "Update CD Pipeline operator promotion logic"
 - "Add validation webhook for CRD"
+- "Modify Keycloak operator realm configuration"
+- "Update GitFusion service to support new VCS provider"
 
 ## Delegation Patterns
 
@@ -265,6 +269,10 @@ Each agent loads relevant skills automatically. Reference these in delegation:
 - go-coding-standards
 - operator-best-practices
 
+### Utility Plugins
+
+**krci-commit**: Generates conventional commit messages from staged changes. Not an agent -- invoked via `/krci-commit:generate`. Useful after implementation work is complete.
+
 **Reference in delegation**:
 
 ```
@@ -282,103 +290,16 @@ After agent completes:
 4. **Coordinate integration**: Ensure cross-agent work integrates
 5. **Document decisions**: Capture key architectural choices
 
-## Common Multi-Repository Scenarios
-
-### New CRD + Portal UI
-
-**Repositories**: Operator + Portal
-**Agents**: krci-godev + krci-fullstack
-
-**Sequence**:
-
-1. krci-godev: Design and implement CRD
-2. krci-fullstack: Create UI consuming CRD
-
-**Integration**: Portal uses exact CRD schema (group, version, kind, fields)
-
-### New Pipeline + Portal Integration
-
-**Repositories**: edp-tekton + Portal
-**Agents**: krci-devops + krci-fullstack
-
-**Sequence**:
-
-1. krci-devops: Create Tekton pipeline
-2. krci-fullstack: Add UI to trigger/monitor pipeline
-
-**Integration**: Portal triggers pipeline via Tekton API, monitors PipelineRun status
-
-### Operator Logic + Pipeline Task
-
-**Repositories**: Operator + edp-tekton
-**Agents**: krci-godev + krci-devops
-
-**Sequence**:
-
-1. krci-godev: Implement operator controller logic
-2. krci-devops: Create Tekton task calling operator functionality
-
-**Integration**: Task uses kubectl to create Custom Resources managed by operator
-
-## Delegation Checklist
-
-Before delegating to an agent:
-
-- Clearly understand which repository/domain the work belongs to
-- Identify all integration points with other components
-- Design data contracts (CRDs, APIs, data formats)
-- Determine delegation sequence (serial or parallel)
-- Prepare comprehensive context for agent
-- Specify expected deliverables
-- Reference relevant patterns or examples
-
-After agent completes:
-
-- Review agent output thoroughly
-- Verify integration points are compatible
-- Check alignment with KRCI architecture
-- Identify any follow-up work needed
-- Document architectural decisions made
-
 ## When NOT to Delegate
 
-**Handle Directly** (don't delegate) when:
+Handle directly (without delegation) for: cross-cutting architectural decisions, research and investigation, high-level planning, design validation against KRCI architecture, and trivial updates.
 
-- **Cross-cutting design**: Architectural decisions spanning all components
-- **Research**: Investigating patterns or best practices
-- **Planning**: High-level implementation strategy
-- **Validation**: Reviewing designs against KRCI architecture
-- **Simple changes**: Trivial updates not requiring specialized knowledge
-
-**Delegate** when:
-
-- **Implementation details**: Writing actual code for a component
-- **Domain-specific work**: Requires specialized knowledge (React patterns, Tekton syntax, Go idioms)
-- **Complex features**: Multi-step implementation within one repository
-- **Testing**: Component-specific testing strategies
+Delegate when: writing actual code for a component, domain-specific work requiring specialized knowledge, complex multi-step implementation within one repository, or component-specific testing.
 
 ## Additional Resources
 
-### Reference Files
+For detailed agent capabilities, cross-agent integration patterns, delegation decision tree, common multi-repository scenarios, and delegation checklists:
 
-For detailed agent capabilities and patterns:
-
-- **`references/agent-capabilities.md`** - Consolidated reference for all KRCI specialized agent capabilities including:
-  - krci-fullstack agent capabilities (portal, React, tRPC)
-  - krci-devops agent capabilities (Tekton, pipelines, triggers)
-  - krci-godev agent capabilities (Go, operators, CRDs)
-  - Cross-agent integration patterns
-  - Delegation decision tree
-  - Common delegation patterns
-
-## When to Use This Skill
-
-Load this skill when:
-
-- Planning features spanning multiple repositories
-- Coordinating implementation across portal, operators, and pipelines
-- Deciding which agent should handle specific work
-- Designing multi-agent workflows
-- Ensuring integration between agent deliverables
+- **`references/agent-capabilities.md`** - Consolidated reference for all KRCI specialized agent capabilities
 
 Combine with krci-architecture skill for complete feature planning that delegates implementation to specialized agents.

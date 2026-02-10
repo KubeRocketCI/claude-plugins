@@ -71,7 +71,9 @@ Structure:
 - Tasks: Reusable units of work (build, test, scan, push)
 - Pipelines: Workflows composing multiple tasks
 - Triggers: Event-driven pipeline activation
-- Interceptors: Request processing and filtering
+- Interceptors: Go-based request processing and filtering (webhook validation, event transformation, pipeline routing)
+
+Note: edp-tekton is a mixed-language repository. Pipeline/task YAML and Helm charts are handled by the krci-devops agent. Go-based interceptors and custom logic are handled by the krci-godev agent.
 
 Key Pipelines:
 
@@ -284,6 +286,66 @@ Tools integrate via:
 - Webhooks: Event notifications
 - APIs: Programmatic access
 - Kubernetes: Shared infrastructure
+
+## Platform Installation
+
+### edp-install
+
+Repository: edp-install
+GitHub: <https://github.com/epam/edp-install>
+Type: Helm chart
+Purpose: Core platform installation chart
+
+Key Responsibilities:
+
+- Install and configure all KRCI platform operators
+- Manage CRD lifecycle (install, upgrade)
+- Configure inter-component dependencies
+- Provide values-based customization for all platform components
+- Support upgrade paths between platform versions
+
+Structure:
+
+- Main Helm chart with sub-charts for each operator
+- Values file configures component features, replicas, resources
+- CRD templates for all custom resources
+- RBAC and ServiceAccount templates
+
+### edp-cluster-add-ons
+
+Repository: edp-cluster-add-ons
+GitHub: <https://github.com/epam/edp-cluster-add-ons>
+Type: Helm charts / ArgoCD Applications
+Purpose: Cluster add-ons management using ArgoCD app-of-apps pattern
+
+Key Responsibilities:
+
+- Deploy supporting tools (SonarQube, Nexus, Keycloak, etc.)
+- Manage ArgoCD Application definitions for each add-on
+- Provide standardized configuration for cluster tooling
+- Support optional add-on installation via feature flags
+
+Structure:
+
+- ArgoCD app-of-apps pattern: root Application references child Applications
+- Each add-on has its own directory with Helm values
+- Supports customization per environment/cluster
+- Integrates with Keycloak for SSO across all tools
+
+### KubeRocketCI Documentation
+
+Repository: docs (krci-docs)
+GitHub: <https://github.com/KubeRocketCI/docs>
+Type: Documentation
+Purpose: Official KubeRocketCI platform documentation
+
+Key Responsibilities:
+
+- User guides and getting started documentation
+- API references for CRDs and operators
+- Architecture decision records (ADRs)
+- Deployment and configuration guides
+- Troubleshooting and FAQ
 
 ## Component Lifecycle
 

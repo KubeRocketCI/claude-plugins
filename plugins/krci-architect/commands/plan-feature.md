@@ -1,7 +1,7 @@
 ---
 description: Guided workflow for planning KubeRocketCI feature implementation across multiple repositories
 argument-hint: [feature-description]
-allowed-tools: Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, AskUserQuestion, Skill, TaskCreate, TaskUpdate, TaskList
+allowed-tools: [Read, Grep, Glob, Bash, WebSearch, WebFetch, Task, AskUserQuestion, Skill, TaskCreate, TaskUpdate, TaskList]
 ---
 
 Plan a comprehensive feature implementation for the KubeRocketCI platform using a structured 6-phase workflow.

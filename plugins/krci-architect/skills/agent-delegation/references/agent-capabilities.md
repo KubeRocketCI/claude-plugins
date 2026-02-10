@@ -69,7 +69,8 @@ Consolidated reference for all specialized KRCI agent capabilities.
 
 ## krci-devops Agent
 
-**Primary Repository**: edp-tekton
+**Primary Repository**: edp-tekton (pipelines, tasks, triggers, Helm charts)
+**Shared Repository**: edp-tekton Go interceptors are handled by krci-godev
 **Skills**: edp-tekton-standards, edp-tekton-triggers
 
 **Commands**:
@@ -121,11 +122,19 @@ Consolidated reference for all specialized KRCI agent capabilities.
 - Resource naming
 - Label conventions
 
+**Extended Repository Coverage**:
+
+The krci-devops agent also handles Helm-based platform repositories:
+
+- **edp-cluster-add-ons**: ArgoCD app-of-apps pattern for cluster add-ons (Helm charts, ArgoCD applications)
+- **edp-install**: Platform installation Helm chart (chart structure, values configuration, installation and upgrade procedures)
+
 ---
 
 ## krci-godev Agent
 
 **Primary Repositories**: edp-codebase-operator, edp-cd-pipeline-operator
+**Extended Repositories**: edp-keycloak-operator, edp-sonar-operator, edp-nexus-operator, gitfusion, krci-cache, tekton-custom-task, edp-tekton (Go interceptors only)
 **Skills**: go-coding-standards, operator-best-practices
 
 **Commands**:
@@ -174,6 +183,18 @@ Consolidated reference for all specialized KRCI agent capabilities.
 - RBAC configuration
 - Webhook implementation (validation/mutation)
 - Metrics and observability
+
+**Extended Repository Coverage**:
+
+The krci-godev agent handles ALL Go-based KRCI repositories, not just the two primary operators:
+
+- **edp-keycloak-operator**: Keycloak realm, client, group, and role CRDs with reconciliation
+- **edp-sonar-operator**: SonarQube instance, quality gate, and quality profile CRDs
+- **edp-nexus-operator**: Nexus instance and repository CRDs
+- **gitfusion**: Go service providing unified Git interface across GitHub, GitLab, Gerrit, Bitbucket
+- **krci-cache**: Go service providing CI/CD pipeline dependency caching
+- **tekton-custom-task**: Go implementations of custom Tekton tasks (security scanning, custom deployment strategies)
+- **edp-tekton (Go interceptors)**: Go-based Tekton interceptors for webhook processing, event filtering, and pipeline routing. Pipeline YAML/Helm content is handled by krci-devops
 
 ---
 
@@ -321,6 +342,81 @@ Is this portal/UI work?
 
 1. **krci-godev**: Update operator to set specific status condition
 2. **krci-devops**: Create trigger watching for status condition
+
+---
+
+## Common Multi-Repository Scenarios
+
+### Pattern 1: New CRD + Portal UI
+
+**Repositories**: Operator + Portal
+**Agents**: krci-godev + krci-fullstack
+
+**Sequence**:
+
+1. krci-godev: Design and implement CRD
+2. krci-fullstack: Create UI consuming CRD
+
+**Integration**: Portal uses exact CRD schema (group, version, kind, fields)
+
+### Pattern 2: New Pipeline + Portal Integration
+
+**Repositories**: edp-tekton + Portal
+**Agents**: krci-devops + krci-fullstack
+
+**Sequence**:
+
+1. krci-devops: Create Tekton pipeline
+2. krci-fullstack: Add UI to trigger/monitor pipeline
+
+**Integration**: Portal triggers pipeline via Tekton API, monitors PipelineRun status
+
+### Pattern 3: Operator Logic + Pipeline Task
+
+**Repositories**: Operator + edp-tekton
+**Agents**: krci-godev + krci-devops
+
+**Sequence**:
+
+1. krci-godev: Implement operator controller logic
+2. krci-devops: Create Tekton task calling operator functionality
+
+**Integration**: Task uses kubectl to create Custom Resources managed by operator
+
+### Pattern 4: Full Stack (All Three Agents)
+
+**Repositories**: Operator + edp-tekton + Portal
+**Agents**: krci-godev + krci-devops + krci-fullstack
+
+**Sequence**:
+
+1. krci-godev: Add CRD field or controller logic (defines data contract)
+2. krci-devops (parallel): Create pipeline task using CRD
+3. krci-fullstack (parallel): Create portal UI consuming CRD
+
+**Integration**: CRD schema is the shared contract between all three components
+
+---
+
+## Delegation Checklist
+
+Before delegating to an agent:
+
+- Clearly understand which repository/domain the work belongs to
+- Identify all integration points with other components
+- Design data contracts (CRDs, APIs, data formats)
+- Determine delegation sequence (serial or parallel)
+- Prepare comprehensive context for agent
+- Specify expected deliverables
+- Reference relevant patterns or examples
+
+After agent completes:
+
+- Review agent output thoroughly
+- Verify integration points are compatible
+- Check alignment with KRCI architecture
+- Identify any follow-up work needed
+- Document architectural decisions made
 
 ---
 

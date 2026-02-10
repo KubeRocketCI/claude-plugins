@@ -1,7 +1,7 @@
 ---
 description: Validate architectural design against KRCI reference architecture and DevSecOps principles
 argument-hint: [design-document-path]
-allowed-tools: Read, Grep, WebSearch, Skill, AskUserQuestion, TaskCreate, TaskUpdate, TaskList
+allowed-tools: [Read, Grep, WebSearch, Skill, AskUserQuestion, TaskCreate, TaskUpdate, TaskList]
 ---
 
 Validate a technical design document against KubeRocketCI reference architecture, DevSecOps principles, and best practices.

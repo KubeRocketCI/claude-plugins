@@ -1,7 +1,7 @@
 ---
 description: Create a workspace with KubeRocketCI repositories for feature development
 argument-hint: <workspace-name>
-allowed-tools: Bash, AskUserQuestion
+allowed-tools: [Bash, AskUserQuestion]
 ---
 
 Bootstrap a new workspace directory for KubeRocketCI feature development by cloning selected repositories.
@@ -17,8 +17,8 @@ If no workspace name was provided (empty $ARGUMENTS), use AskUserQuestion to ask
 Use AskUserQuestion with multiSelect: true to ask the user which repositories to clone:
 
 ```
-question: "Which KubeRocketCI repositories do you need for this feature?"
-header: "Repositories"
+question: "Which core KubeRocketCI repositories do you need?"
+header: "Core repos"
 multiSelect: true
 options:
   - label: "edp-tekton"
@@ -31,21 +31,38 @@ options:
     description: "CD Pipeline Operator (Go, promotion logic)"
 ```
 
-Include a second question in the same AskUserQuestion call if more repos may be needed:
+Include a second question in the same AskUserQuestion call for additional repos:
 
 ```
 question: "Any additional repositories?"
 header: "More repos"
 multiSelect: true
 options:
+  - label: "edp-keycloak-operator"
+    description: "Keycloak Operator (Go, OIDC, realms)"
+  - label: "edp-sonar-operator"
+    description: "SonarQube Operator (Go, quality gates)"
+  - label: "edp-nexus-operator"
+    description: "Nexus Operator (Go, artifact storage)"
+  - label: "None"
+    description: "No additional operators needed"
+```
+
+Include a third question for supporting repositories:
+
+```
+question: "Any supporting repositories?"
+header: "Supporting"
+multiSelect: true
+options:
   - label: "edp-cluster-add-ons"
     description: "Cluster Add-ons (Helm charts, ArgoCD apps)"
-  - label: "krci-docs"
-    description: "KubeRocketCI Documentation"
+  - label: "edp-install"
+    description: "Platform Installation Chart (Helm)"
   - label: "gitfusion"
-    description: "GitFusion service"
+    description: "GitFusion service (Go, multi-VCS)"
   - label: "None"
-    description: "No additional repositories needed"
+    description: "No supporting repositories needed"
 ```
 
 ## Step 2: Clone Repositories

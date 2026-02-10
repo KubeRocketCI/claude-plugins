@@ -203,7 +203,41 @@ Staging validated → Change management approval → Manual trigger → Update G
 
 ## Configuration Management
 
-TODO: krci-giops
+### GitOps Configuration
+
+KubeRocketCI uses GitOps principles for configuration management across environments:
+
+**Application Configuration**:
+
+- Environment-specific values stored in Git repositories
+- Argo CD synchronizes configuration from Git to target clusters
+- Helm values files per environment (values-dev.yaml, values-staging.yaml, values-prod.yaml)
+- ConfigMaps and Secrets generated from Git-stored templates
+
+**Platform Configuration**:
+
+- edp-install Helm chart values define platform component configuration
+- edp-cluster-add-ons manages tool configuration via ArgoCD Applications
+- Each environment cluster has its own values overlay
+- Changes tracked through Git commits with audit trail
+
+**Configuration Promotion**:
+
+```
+1. Developer modifies configuration in Git
+2. PR review and approval
+3. Merge triggers Argo CD sync to target environment
+4. Argo CD applies configuration changes
+5. Validation confirms successful rollout
+```
+
+**Best Practices**:
+
+- Store all configuration in Git (single source of truth)
+- Use Helm values overlays for environment differences
+- Never store secrets in Git (use External Secrets Operator)
+- Tag configuration versions alongside application versions
+- Use branch-per-environment or directory-per-environment strategy
 
 ### Secret Management
 

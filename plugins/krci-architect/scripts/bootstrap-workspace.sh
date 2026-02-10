@@ -9,10 +9,16 @@
 #   edp-cd-pipeline-operator  - CD Pipeline Operator (Go)
 #   edp-cluster-add-ons       - Cluster Add-ons (Helm)
 #   edp-codebase-operator     - Codebase Operator (Go)
+#   edp-install               - Platform Installation Chart (Helm)
+#   edp-keycloak-operator     - Keycloak Operator (Go)
+#   edp-nexus-operator        - Nexus Operator (Go)
+#   edp-sonar-operator        - SonarQube Operator (Go)
 #   edp-tekton                - Tekton Pipelines & Tasks
+#   gitfusion                 - GitFusion service (Go)
+#   krci-cache                - Pipeline Cache service (Go)
 #   krci-docs                 - KubeRocketCI Documentation
 #   krci-portal               - KubeRocketCI Portal (React/TypeScript)
-#   gitfusion                 - GitFusion service
+#   tekton-custom-task        - Custom Tekton Tasks (Go)
 #
 # Example:
 #   ./bootstrap-workspace.sh feature-github edp-tekton krci-portal edp-codebase-operator
@@ -25,10 +31,16 @@ repo_url() {
     edp-cd-pipeline-operator) echo "git@github.com:epam/edp-cd-pipeline-operator.git" ;;
     edp-cluster-add-ons)      echo "git@github.com:epam/edp-cluster-add-ons.git" ;;
     edp-codebase-operator)    echo "git@github.com:epam/edp-codebase-operator.git" ;;
+    edp-install)              echo "git@github.com:epam/edp-install.git" ;;
+    edp-keycloak-operator)    echo "git@github.com:epam/edp-keycloak-operator.git" ;;
+    edp-nexus-operator)       echo "git@github.com:epam/edp-nexus-operator.git" ;;
+    edp-sonar-operator)       echo "git@github.com:epam/edp-sonar-operator.git" ;;
     edp-tekton)               echo "git@github.com:epam/edp-tekton.git" ;;
+    gitfusion)                echo "git@github.com:KubeRocketCI/gitfusion.git" ;;
+    krci-cache)               echo "git@github.com:KubeRocketCI/krci-cache.git" ;;
     krci-docs)                echo "git@github.com:KubeRocketCI/docs.git" ;;
     krci-portal)              echo "git@github.com:KubeRocketCI/krci-portal.git" ;;
-    gitfusion)                echo "git@github.com:KubeRocketCI/gitfusion.git" ;;
+    tekton-custom-task)       echo "git@github.com:KubeRocketCI/tekton-custom-task.git" ;;
     *) return 1 ;;
   esac
 }
@@ -40,10 +52,16 @@ usage() {
   echo "  edp-cd-pipeline-operator"
   echo "  edp-cluster-add-ons"
   echo "  edp-codebase-operator"
+  echo "  edp-install"
+  echo "  edp-keycloak-operator"
+  echo "  edp-nexus-operator"
+  echo "  edp-sonar-operator"
   echo "  edp-tekton"
   echo "  gitfusion"
+  echo "  krci-cache"
   echo "  krci-docs"
   echo "  krci-portal"
+  echo "  tekton-custom-task"
   exit 1
 }
 

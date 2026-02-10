@@ -1,7 +1,7 @@
 {
   "name": "krci-architect",
   "description": "KubeRocketCI Technical Architect agent - Expert architecture planning, technical design validation, and cross-component coordination for the KRCI ecosystem",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "author": {
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"
