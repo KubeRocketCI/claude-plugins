@@ -1,14 +1,14 @@
 ---
 description: Validate architectural design against KRCI reference architecture and DevSecOps principles
 argument-hint: [design-document-path]
-allowed-tools: Read, Grep, WebSearch, TodoWrite, Skill
+allowed-tools: Read, Grep, WebSearch, Skill, AskUserQuestion, TaskCreate, TaskUpdate, TaskList
 ---
 
 Validate a technical design document against KubeRocketCI reference architecture, DevSecOps principles, and best practices.
 
 ## Design Document
 
-Document to review: @$1
+Document to review: $ARGUMENTS
 
 ## Review Instructions
 
@@ -17,13 +17,12 @@ Execute this structured validation process:
 ### Setup
 
 1. Load the krci-architecture skill using the Skill tool
-2. Create todo list for review phases using TodoWrite:
+2. Create task list for review phases:
    - Read and understand design
    - Validate KRCI architecture alignment
    - Check DevSecOps compliance
    - Review best practices
    - Generate recommendations
-3. Mark first phase as in_progress
 
 ### Phase 1: Understand Design
 
@@ -34,7 +33,8 @@ Execute this structured validation process:
    - Data flow
    - Technology choices
 3. Document understanding of proposed solution
-4. Mark phase as completed, move to next
+4. **CHECKPOINT**: Use AskUserQuestion to confirm understanding of the design and ask if there is additional context before proceeding to validation
+5. **WAIT for user confirmation**
 
 ### Phase 2: KRCI Architecture Alignment
 
@@ -61,7 +61,7 @@ Execute this structured validation process:
    - ✅ Aspects that align well
    - ⚠️ Areas of concern or risk
    - ❌ Critical issues requiring changes
-6. Mark phase as completed, move to next
+6. Update task progress
 
 ### Phase 3: DevSecOps Compliance
 
@@ -84,7 +84,7 @@ Execute this structured validation process:
    - Security strengths
    - Security risks or gaps
    - Required security improvements
-5. Mark phase as completed, move to next
+5. Update task progress
 
 ### Phase 4: Best Practices Review
 
@@ -110,7 +110,7 @@ Execute this structured validation process:
    - Testing strategy adequate?
    - Documentation planned?
 5. Document best practices findings
-6. Mark phase as completed, move to next
+6. Update task progress
 
 ### Phase 5: Generate Recommendations
 
@@ -128,7 +128,7 @@ Execute this structured validation process:
    - Actions needed before implementation
    - Areas requiring further investigation
    - Stakeholders to consult
-5. Mark all phases as completed
+5. Mark all tasks as completed
 
 ## Validation Report Format
 
