@@ -320,3 +320,21 @@ yamllint .
 - (Optional) Integrate the pipelines into your application flow or App of Apps.
 - (Optional) Run validation: `/krci-devops:validate` (when available)
 </post_implementation>
+
+## Quality Review
+
+<quality_review>
+After pipelines are created and validated, launch **3 code-reviewer agents in parallel** using the Task tool to review the generated pipeline YAML:
+
+- Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, and code elegance. Focus on readability and maintainability."
+- Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
+- Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
+
+After all 3 agents complete:
+
+1. Consolidate findings — merge and deduplicate issues, sort by severity
+2. Filter to only issues with confidence >= 80
+3. Present unified review report to the user
+4. Ask the user how to proceed: "Fix all issues now" / "Fix critical only" / "Proceed as-is"
+5. Address issues based on user decision
+</quality_review>

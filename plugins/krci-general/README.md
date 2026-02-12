@@ -1,12 +1,14 @@
-# krci-commit
+# krci-general
 
-Generate conventional commit messages for KubeRocketCI platform by analyzing staged git changes.
+General-purpose KubeRocketCI development utilities for common workflows across the platform.
 
 ## Overview
 
-This Claude Code plugin helps developers create high-quality, consistent conventional commit messages by automatically analyzing staged changes and generating appropriate commit messages following the conventional commits specification.
+This Claude Code plugin consolidates general-purpose development utilities used across KubeRocketCI projects. It provides tools for commit message generation, code review, and other cross-cutting development tasks.
 
 ## Features
+
+### Commit Message Generation
 
 - Analyzes only staged files (`git diff --cached`)
 - Generates conventional commit messages with appropriate types (feat, fix, docs, refactor, etc.)
@@ -15,18 +17,26 @@ This Claude Code plugin helps developers create high-quality, consistent convent
 - Uses Haiku model for fast, cost-effective generation
 - Output in code block format for easy copy-paste
 
+### Code Review
+
+- Launches 3 parallel review agents with different focuses (simplicity, bugs, conventions)
+- Confidence-based filtering (only reports issues with confidence >= 80)
+- Reviews unstaged changes by default, or specific files/scope
+- Produces unified report grouped by severity (Critical vs Important)
+- Used standalone via `/krci-general:review` or automatically by lead agent commands (implement-feature, fix-issue, etc.)
+
 ## Installation
 
 Install from the KubeRocketCI marketplace:
 
 ```bash
-claude plugin install krci-commit
+claude plugin install krci-general
 ```
 
 Or install locally:
 
 ```bash
-claude plugin install --local /path/to/krci-commit
+claude plugin install --local /path/to/krci-general
 ```
 
 ## Usage
@@ -42,7 +52,7 @@ git add .
 Then in Claude Code:
 
 ```
-/krci-commit:generate
+/krci-general:commit
 ```
 
 The command will:
@@ -65,6 +75,27 @@ You can then:
 
 - Copy the message and commit manually: `git commit -m "..."`
 - Ask Claude to commit for you: "Please commit with this message"
+
+### Code Review
+
+Review your code changes:
+
+```
+/krci-general:review
+```
+
+Or review a specific file or scope:
+
+```
+/krci-general:review src/app.ts
+```
+
+The command will:
+
+1. Launch 3 code-reviewer agents in parallel (simplicity, bugs, conventions)
+2. Consolidate and deduplicate findings
+3. Present a unified report sorted by severity
+4. Offer to fix issues if any are found
 
 ## Conventional Commit Format
 

@@ -33,7 +33,7 @@ Use fullstack-dev agent to implement the feature:
 
 **Actions**:
 
-1. Create todo list with all 5 phases using TodoWrite
+1. Create todo list with all 7 phases using TodoWrite
 2. If feature description from $ARGUMENTS is clear:
    - Summarize your understanding
    - Identify feature type (component, API, routing, table, form, permissions, or combination)
@@ -284,7 +284,45 @@ Use fullstack-dev agent to implement the feature:
 
 ---
 
-## Phase 6: Summary & Next Steps
+## Phase 6: Quality Review
+
+**Goal**: Ensure code is correct, secure, and follows project conventions
+
+**Actions**:
+
+1. Mark Phase 6 as in_progress in TodoWrite
+2. Launch **3 code-reviewer agents in parallel** using the Task tool, each with a different review focus:
+   - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, and code elegance. Focus on readability and maintainability."
+   - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
+   - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
+3. After all 3 agents complete, consolidate findings:
+   - Merge and deduplicate issues reported by multiple agents
+   - Sort by severity (Critical first, then Important)
+   - Filter to only issues with confidence >= 80
+4. Present unified review report to user
+5. Use AskUserQuestion to ask:
+
+   ```
+   Code review found [N] issues:
+   - [Critical count] critical
+   - [Important count] important
+
+   [Issue details with file:line and fix suggestions]
+
+   How would you like to proceed?
+   ```
+
+   Options: "Fix all issues now" / "Fix critical only" / "Proceed as-is"
+
+6. Address issues based on user decision
+
+**Output**: Code reviewed and issues addressed
+
+**Mark Phase 6 complete in TodoWrite**, then proceed to Phase 7.
+
+---
+
+## Phase 7: Summary & Next Steps
 
 **Goal**: Document what was created and suggest next steps
 
@@ -333,6 +371,7 @@ Use fullstack-dev agent to implement the feature:
 2. After Phase 2: Approve component plan
 3. During Phase 3: Resolve all design ambiguities
 4. After Phase 5: Confirm completion and quality
+5. After Phase 6: Decide on review findings
 
 ### Skills to Load by Phase
 
@@ -350,6 +389,7 @@ Skills are loaded **dynamically based on feature needs** identified in Phase 2:
   - k8s-resources (if K8s UIs)
   - auth-integration.md reference (if auth features only)
 - **Phase 5**: testing-standards (for writing tests)
+- **Phase 6**: code-reviewer agents launched via Task tool (krci-general:code-reviewer)
 
 ### Quality Standards
 

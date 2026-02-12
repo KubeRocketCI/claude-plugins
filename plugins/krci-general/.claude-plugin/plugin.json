@@ -1,7 +1,7 @@
 {
-  "name": "krci-commit",
+  "name": "krci-general",
   "version": "0.1.0",
-  "description": "Generate conventional commit messages for KubeRocketCI platform by analyzing staged git changes",
+  "description": "General-purpose KubeRocketCI development utilities including commit message generation and code review",
   "author": {
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/KubeRocketCI/claude-plugins",
   "repository": "https://github.com/KubeRocketCI/claude-plugins",
   "license": "Apache-2.0",
-  "keywords": ["kuberocketci", "git", "commit", "conventional-commits", "automation"]
+  "keywords": ["kuberocketci", "git", "commit", "conventional-commits", "code-review", "utilities"]
 }

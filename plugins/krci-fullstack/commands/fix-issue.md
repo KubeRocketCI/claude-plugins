@@ -10,7 +10,7 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 1. **Use fullstack-dev agent to fix the issue:**
    - The fullstack-dev agent will diagnose and fix `$ARGUMENTS`
-   - Agent will follow structured phases: Issue Discovery → Impact Analysis → Fix Planning → Implementation → Verification
+   - Agent will follow structured phases: Issue Discovery → Impact Analysis → Fix Planning → Implementation → Verification → Quality Review
    - Agent will load skills dynamically based on what components are affected
    - Agent will use TodoWrite to track all phases
    - Agent will focus on ONE issue at a time for clarity and testability
@@ -23,7 +23,7 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 **Actions**:
 
-1. Create todo list with all 5 phases using TodoWrite
+1. Create todo list with all 7 phases using TodoWrite
 2. Parse issue description from $ARGUMENTS:
    - What is the observable problem?
    - Is it frontend (layout, styles, rendering) or backend (API, data, logic)?
@@ -301,7 +301,45 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 ---
 
-## Phase 6: Summary & Documentation
+## Phase 6: Quality Review
+
+**Goal**: Ensure fix is correct, secure, and doesn't introduce new issues
+
+**Actions**:
+
+1. Mark Phase 6 as in_progress in TodoWrite
+2. Launch **3 code-reviewer agents in parallel** using the Task tool, each with a different review focus:
+   - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, and code elegance. Focus on readability and maintainability."
+   - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
+   - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
+3. After all 3 agents complete, consolidate findings:
+   - Merge and deduplicate issues reported by multiple agents
+   - Sort by severity (Critical first, then Important)
+   - Filter to only issues with confidence >= 80
+4. Present unified review report to user
+5. Use AskUserQuestion to ask:
+
+   ```
+   Code review found [N] issues:
+   - [Critical count] critical
+   - [Important count] important
+
+   [Issue details with file:line and fix suggestions]
+
+   How would you like to proceed?
+   ```
+
+   Options: "Fix all issues now" / "Fix critical only" / "Proceed as-is"
+
+6. Address issues based on user decision
+
+**Output**: Code reviewed and issues addressed
+
+**Mark Phase 6 complete in TodoWrite**, then proceed to Phase 7.
+
+---
+
+## Phase 7: Summary & Documentation
 
 **Goal**: Document what was fixed and provide commit message
 
@@ -364,6 +402,7 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 2. After Phase 2: Review impact analysis and risk
 3. After Phase 3: Approve fix strategy
 4. After Phase 5: Confirm fix is complete
+5. After Phase 6: Decide on review findings
 
 ### Skills to Load by Phase
 
@@ -380,6 +419,7 @@ Skills are loaded **dynamically based on affected components** identified in Pha
   - routing-permissions (if routes/RBAC)
   - k8s-resources (if K8s UIs)
 - **Phase 5**: testing-standards (if writing tests for logic bugs)
+- **Phase 6**: code-reviewer agents launched via Task tool (krci-general:code-reviewer)
 
 ### Quality Standards for Fixes
 

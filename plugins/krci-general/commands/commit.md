@@ -39,6 +39,7 @@ If there ARE staged files:
 - `chore` - Maintenance tasks, dependency updates
 - `perf` - Performance improvements
 - `build` - Build system or external dependency changes
+- `ci` - CI/CD configuration changes
 - `revert` - Revert a previous commit
 
 **Subject line requirements:**

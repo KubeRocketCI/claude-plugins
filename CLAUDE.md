@@ -25,7 +25,7 @@ The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing 5 i
 | **krci-fullstack** | agent + 2 commands + 8 skills | React/TypeScript/Radix UI portal development |
 | **krci-devops** | agent + 3 commands + 2 skills | Tekton pipeline/task/trigger automation |
 | **krci-godev** | agent + 2 commands + 2 skills | Go operator and CRD development |
-| **krci-commit** | 1 command | Conventional commit message generation |
+| **krci-general** | 1 agent + 2 commands | General-purpose utilities (code review, commit message generation) |
 
 ## Plugin Component Conventions
 
