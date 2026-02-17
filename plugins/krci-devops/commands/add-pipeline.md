@@ -14,7 +14,7 @@ allowed-tools: [Read, Grep, Glob, Bash, Skill, Task, AskUserQuestion]
 2. **Ask user about additional requirements using AskUserQuestion:**
    - Question 1: "Do you want to create triggers for these pipelines?"
      - Options: "Yes, create triggers" / "No, pipelines only"
-     - If YES: Note that trigger creation is planned for Phase 2 (future)
+     - If YES: After pipeline creation, recommend running `/krci-devops:add-trigger <vcs> build` and `/krci-devops:add-trigger <vcs> review`
 
    - Question 2: "Does your language/framework need to be enabled in values.yaml?"
      - Options: "Yes, check feature flags" / "No, already enabled" / "Not sure"
@@ -39,8 +39,8 @@ allowed-tools: [Read, Grep, Glob, Bash, Skill, Task, AskUserQuestion]
       - Build: `{vcs}-{language}-{framework}-app-build-default`
       - Review: `{vcs}-{language}-{framework}-app-review`
    3. Execute onboarding script TWICE:
-      - `./hack/onboarding-component.sh --type build --vcs {vcs} --name {build-pipeline-name}`
-      - `./hack/onboarding-component.sh --type review --vcs {vcs} --name {review-pipeline-name}`
+      - `./hack/onboarding-component.sh --type build-pipeline --vcs {vcs} --name {build-pipeline-name}`
+      - `./hack/onboarding-component.sh --type review-pipeline --vcs {vcs} --name {review-pipeline-name}`
    4. The script generates COMPLETE, functional pipeline files (no placeholders):
       - Build: `./charts/pipelines-library/templates/pipelines/{build-pipeline-name}.yaml`
       - Review: `./charts/pipelines-library/templates/pipelines/{review-pipeline-name}.yaml`

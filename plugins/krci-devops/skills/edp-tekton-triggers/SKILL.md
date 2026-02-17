@@ -1,6 +1,6 @@
 ---
 name: KRCI EDP-Tekton Triggers
-description: This skill should be used when working with Tekton Triggers, EventListeners, TriggerBindings, TriggerTemplates, webhook integration, VCS event handling, interceptor configuration, or trigger setup for GitHub, GitLab, Gerrit, or BitBucket.
+description: This skill should be used when the user asks to "create trigger for GitHub", "configure webhook", "set up EventListener", "debug webhook not triggering", "PipelineRun not created", or mentions Tekton Triggers, EventListeners, TriggerBindings, TriggerTemplates, webhook integration, VCS event handling, interceptor configuration, or trigger setup for GitHub, GitLab, Gerrit, or BitBucket.
 ---
 
 # EDP-Tekton Triggers: Webhook-Driven CI/CD
@@ -16,6 +16,8 @@ Guide implementation of Tekton Triggers that respond to VCS webhooks (GitHub, Gi
 **Repository**: <https://github.com/epam/edp-tekton>
 
 **CRITICAL**: All trigger components must be created within the EDP-Tekton repository's trigger structure.
+
+**Repository Scale**: 41 trigger-related files organized by VCS provider (GitHub, GitLab, Gerrit, BitBucket) across build and review trigger types.
 
 ## Trigger Architecture Overview
 
@@ -162,28 +164,7 @@ Filters webhook events based on conditions.
 | Gerrit | `body.type == 'patchset-created'` |
 | BitBucket | `body.pullrequest.state in ['OPEN', 'MERGED']` |
 
-**Comment Retriggering** (optional):
-
-Some triggers support re-triggering via PR/MR comments:
-
-| Provider | Comment Pattern | Supported |
-|----------|----------------|-----------|
-| GitHub | `/recheck`, `/ok-to-test` | Yes |
-| GitLab | `/recheck`, `/ok-to-test` | Yes |
-| Gerrit | `recheck` | Yes |
-| BitBucket | N/A | ❌ No |
-
-**Example (GitHub review with comment)**:
-
-```yaml
-- ref:
-    name: cel
-  params:
-    - name: filter
-      value: >
-        (body.action in ['opened', 'synchronize', 'reopened']) ||
-        (body.action == 'created' && body.comment.body.matches('/(recheck|ok-to-test)'))
-```
+**Comment Retriggering**: GitHub, GitLab, and Gerrit support re-triggering via `/recheck` or `/ok-to-test` comments (BitBucket does not). See VCS reference files for CEL filter examples including comment patterns.
 
 ### Stage 3: EDP Enrichment Interceptor
 
@@ -261,31 +242,9 @@ params:
     value: $(extensions.pullRequest.headSha)
 ```
 
-### Example: GitHub Build Binding
+### Binding Example Summary
 
-```yaml
-apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerBinding
-metadata:
-  name: github-binding-build
-spec:
-  params:
-    # From webhook body
-    - name: git-source-url
-      value: $(body.repository.clone_url)
-    - name: git-source-revision
-      value: $(body.pull_request.base.ref)
-    - name: gitsha
-      value: $(body.pull_request.merge_commit_sha)
-
-    # From EDP extensions
-    - name: CODEBASE_NAME
-      value: $(extensions.codebase)
-    - name: CODEBASEBRANCH_NAME
-      value: $(extensions.codebasebranch)
-    - name: PIPELINE_NAME
-      value: $(extensions.pipelines.build)    # DYNAMIC!
-```
+A GitHub build binding extracts `git-source-url` from `body.repository.clone_url`, revision from `body.pull_request.base.ref`, and commit SHA from `body.pull_request.merge_commit_sha`. EDP extensions provide `CODEBASE_NAME`, `CODEBASEBRANCH_NAME`, and critically, `PIPELINE_NAME` from `extensions.pipelines.build` (dynamic).
 
 For complete VCS-specific binding examples, see:
 
@@ -327,38 +286,7 @@ spec:
 
 **NEVER hardcode pipeline names**. Pipeline names come from CodebaseBranch.Spec.Pipelines.{type} and vary per codebase.
 
-**3. Workspace Configuration**:
-
-```yaml
-workspaces:
-  - name: shared-workspace
-    volumeClaimTemplate:
-      spec:
-        accessModes: [ReadWriteOnce]
-        resources:
-          requests:
-            storage: {{ .Values.tekton.workspaceSize }}
-  - name: ssh-creds
-    secret:
-      secretName: ci-{{ .Values.vcs.provider }}
-```
-
-Each PipelineRun gets ephemeral PVC (auto-cleaned after completion).
-
-**4. Parameters**:
-
-```yaml
-params:
-  - name: git-source-url
-    value: $(tt.params.git-source-url)
-  - name: git-source-revision
-    value: $(tt.params.git-source-revision)
-  - name: CODEBASE_NAME
-    value: $(tt.params.CODEBASE_NAME)
-  - name: CODEBASEBRANCH_NAME
-    value: $(tt.params.CODEBASEBRANCH_NAME)
-  # ... all parameters from TriggerBinding
-```
+**3. Workspace & Parameters**: Each PipelineRun gets an ephemeral PVC (`shared-workspace` via `volumeClaimTemplate`, size from `.Values.tekton.workspaceSize`) and git credentials from `ci-{{ .Values.vcs.provider }}` secret. All parameters from TriggerBinding are passed through to the PipelineRun. See VCS reference files for full YAML examples.
 
 ### Build vs Review Templates
 
@@ -376,127 +304,9 @@ params:
 
 ## EventListener Configuration
 
-### Basic Structure
+EventListeners receive VCS webhook POST requests and route them to Triggers. Each VCS provider has one EventListener named `el-{provider}` (e.g., `el-github`), running with the `tekton` ServiceAccount. The EventListener creates a Kubernetes Service that must be exposed externally (via Ingress, Route, or LoadBalancer).
 
-```yaml
-apiVersion: triggers.tekton.dev/v1beta1
-kind: EventListener
-metadata:
-  name: el-github
-spec:
-  serviceAccountName: tekton
-  triggers:
-    - name: github-build
-      interceptors: [...]
-      bindings:
-        - ref: github-binding-build
-      template:
-        ref: github-build-template
-
-    - name: github-review
-      interceptors: [...]
-      bindings:
-        - ref: github-binding-review
-      template:
-        ref: github-review-template
-```
-
-### Service Exposure
-
-EventListener creates a Kubernetes Service that must be exposed:
-
-**OpenShift (Route - automatic)**:
-
-```bash
-oc get route el-github
-# Returns: https://el-github-{namespace}.{cluster-domain}
-```
-
-**Kubernetes (Ingress - manual)**:
-
-```yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: el-github
-spec:
-  rules:
-    - host: el-github.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: el-github
-                port:
-                  number: 8080
-```
-
-**Alternative**: LoadBalancer service
-
-```yaml
-spec:
-  serviceType: LoadBalancer
-```
-
-## VCS Webhook Configuration
-
-After deploying EventListener, configure VCS to send webhooks.
-
-### GitHub
-
-**Steps**:
-
-1. Get EventListener URL: `https://el-github-{namespace}.{cluster}`
-2. Go to: Repository → Settings → Webhooks → Add webhook
-3. Configure:
-   - Payload URL: EventListener URL
-   - Content type: `application/json`
-   - Secret: Token from `ci-github` secret
-   - Events: `push`, `pull_request`
-4. Save
-
-### GitLab
-
-**Steps**:
-
-1. Get EventListener URL
-2. Go to: Project → Settings → Webhooks
-3. Configure:
-   - URL: EventListener URL
-   - Secret token: Token from `ci-gitlab` secret
-   - Trigger: `Push events`, `Merge request events`
-4. Add webhook
-
-### Gerrit
-
-**Steps**:
-
-1. Install stream-events plugin (if not installed)
-2. Configure gerrit.config:
-
-   ```ini
-   [event]
-     stream-events = group-name
-   ```
-
-3. EventListener receives events via SSH stream
-4. See `references/vcs-gerrit.md` for SSH configuration
-
-### BitBucket
-
-**Steps**:
-
-1. Get EventListener URL
-2. Go to: Repository → Repository settings → Webhooks
-3. Configure:
-   - Title: EDP Tekton
-   - URL: EventListener URL
-   - Events: `Repository push`, `Pull request created/updated`
-4. Save
-
-For detailed VCS-specific configuration, see respective reference files.
+For full EventListener YAML examples, see VCS reference files (e.g., `references/vcs-github.md`). For service exposure and webhook setup, see **`references/operations.md`**.
 
 ## Critical Facts & Best Practices
 
@@ -554,77 +364,7 @@ secretName: ci-{{ .Values.vcs.provider }}
 - Test parameter extraction (check PipelineRun params)
 - Test pipeline execution (check PipelineRun status)
 
-## Troubleshooting
-
-### Issue: PipelineRun Not Created
-
-**Check**:
-
-1. EventListener logs: `kubectl logs -l eventlistener=el-{vcs}`
-2. Webhook delivery in VCS (recent deliveries section)
-3. Interceptor chain errors in logs
-4. Codebase resource exists and GitUrlPath matches
-5. CodebaseBranch resource exists for the branch
-
-### Issue: Wrong Pipeline Executed
-
-**Check**:
-
-1. TriggerTemplate uses `$(tt.params.PIPELINE_NAME)` (not hardcoded)
-2. CodebaseBranch.Spec.Pipelines.{type} has correct pipeline name
-3. TriggerBinding extracts `PIPELINE_NAME` from `extensions.pipelines.{type}`
-
-### Issue: Webhook Returns 401/403
-
-**Check**:
-
-1. VCS secret exists: `ci-{provider}`
-2. Secret has correct token/credentials
-3. Interceptor references correct secret
-4. Token has required permissions in VCS
-
-### Issue: EDP Enrichment Fails
-
-**Check**:
-
-1. Codebase CR exists in cluster
-2. Codebase.Spec.GitUrlPath matches webhook repository (lowercase)
-3. CodebaseBranch CR exists for branch
-4. EDP Interceptor pod is running
-5. Timeout (<3 seconds) not exceeded
-
-## Parameter Flow Summary
-
-Complete flow from webhook to PipelineRun:
-
-```
-1. VCS Webhook
-   └─> body.* (repository, pull_request, commit, etc.)
-
-2. VCS Validation Interceptor
-   └─> Validates signature/token, parses payload
-
-3. CEL Filter Interceptor
-   └─> Filters events (merged commits, PR updates, etc.)
-
-4. EDP Enrichment Interceptor
-   └─> Adds extensions.* (codebase, codebasebranch, pipelines.build, pipelines.review)
-
-5. TriggerBinding
-   └─> Extracts parameters from body.* and extensions.*
-   └─> Outputs: git-source-url, CODEBASE_NAME, PIPELINE_NAME, etc.
-
-6. TriggerTemplate
-   └─> Creates PipelineRun with:
-       - pipelineRef.name: $(tt.params.PIPELINE_NAME)  # DYNAMIC!
-       - workspaces: shared-workspace (ephemeral PVC), ssh-creds (secret)
-       - params: All parameters from TriggerBinding
-
-7. PipelineRun
-   └─> Executes pipeline with tasks
-```
-
-For detailed parameter mappings per VCS, see `references/parameter-flow.md`.
+For troubleshooting common issues (PipelineRun not created, wrong pipeline, 401/403 errors, enrichment failures) and complete parameter flow summary, see **`references/operations.md`**.
 
 ## Additional Resources
 
@@ -638,61 +378,10 @@ For detailed parameter mappings per VCS, see `references/parameter-flow.md`.
 **Parameter Flow Details**:
 
 - Complete parameter mapping: `references/parameter-flow.md`
+- Operations guide (webhook setup, troubleshooting, quick reference): `references/operations.md`
 
 **Tekton Triggers Documentation**:
 
 - Official docs: <https://tekton.dev/docs/triggers/>
 - Interceptors: <https://tekton.dev/docs/triggers/interceptors/>
 - CEL expressions: <https://github.com/google/cel-spec>
-
-## Quick Reference
-
-**Create EventListener**:
-
-```bash
-# Location: charts/pipelines-library/templates/triggers/{vcs}/eventlistener.yaml
-# Name: el-{vcs}
-# ServiceAccount: tekton
-```
-
-**Create Trigger**:
-
-```bash
-# Location: charts/pipelines-library/templates/triggers/{vcs}/trigger-{type}.yaml
-# Name: {vcs}-{type}
-# Interceptors: [VCS validation, CEL filter, EDP enrichment]
-```
-
-**Create TriggerBinding**:
-
-```bash
-# Location: charts/pipelines-library/templates/triggers/{vcs}/triggerbinding-{type}.yaml
-# Name: {vcs}-binding-{type}
-# Params: Extract from body.* and extensions.*
-```
-
-**Create TriggerTemplate**:
-
-```bash
-# Location: charts/pipelines-library/templates/triggers/{vcs}/tt-{type}.yaml
-# Name: {vcs}-{type}-template or tt-{type}
-# Creates: PipelineRun with DYNAMIC pipeline name
-```
-
-**Deploy & Test**:
-
-```bash
-# Deploy chart
-helm upgrade --install edp-tekton charts/pipelines-library
-
-# Get EventListener URL
-kubectl get route el-{vcs}  # OpenShift
-kubectl get svc el-{vcs}    # Kubernetes
-
-# Check logs
-kubectl logs -l eventlistener=el-{vcs}
-
-# Test webhook
-# Create PR/MR in VCS and check PipelineRun creation
-kubectl get pipelineruns
-```

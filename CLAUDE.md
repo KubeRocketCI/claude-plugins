@@ -23,7 +23,7 @@ The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing 5 i
 |--------|-----------|--------|
 | **krci-architect** | agent + 3 commands + 2 skills + scripts | Cross-repo architecture planning, workspace provisioning |
 | **krci-fullstack** | agent + 2 commands + 8 skills | React/TypeScript/Radix UI portal development |
-| **krci-devops** | agent + 3 commands + 2 skills | Tekton pipeline/task/trigger automation |
+| **krci-devops** | agent + 4 commands + 3 skills | Tekton pipeline/task/trigger automation, GitLab CI components |
 | **krci-godev** | agent + 2 commands + 2 skills | Go operator and CRD development |
 | **krci-general** | 1 agent + 2 commands | General-purpose utilities (code review, commit message generation) |
 

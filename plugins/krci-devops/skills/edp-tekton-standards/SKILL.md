@@ -1,6 +1,6 @@
 ---
 name: KRCI EDP-Tekton Standards
-description: This skill should be used when the user asks to "onboard Tekton pipeline", "create new task", "add pipeline to EDP-Tekton", "follow pipeline naming conventions", "configure Helm chart for Tekton", "use onboarding script", or mentions Tekton best practices, EDP-Tekton repository structure, pipeline/task organization, Helm templating, KRCI standards, or automation workflows.
+description: This skill should be used when the user asks to "onboard Tekton pipeline", "create new task", "add pipeline to EDP-Tekton", "follow pipeline naming conventions", "configure Helm chart for Tekton", "use onboarding script", "configure Tekton workspaces", "check supported languages", or mentions Tekton best practices, EDP-Tekton repository structure, pipeline/task organization, Helm templating, KRCI standards, or automation workflows.
 ---
 
 # EDP-Tekton Standards and Best Practices
@@ -21,10 +21,12 @@ Guide implementation of Tekton resources following KRCI's established patterns f
 
 ### EDP-Tekton Repository Layout
 
-Repository: <https://github.com/epam/edp-tekton>
+**Repository Scale**: 394 pipeline files across 10+ languages, 88 tasks in 6 categories, 41 trigger files for 4 VCS providers, 2 Helm charts (pipelines-library and common-library).
 
 ```text
 edp-tekton/
+├── hack/
+│   └── onboarding-component.sh      # Primary automation tool
 ├── charts/
 │   ├── common-library/              # Shared Helm template fragments
 │   │   ├── Chart.yaml
@@ -34,8 +36,7 @@ edp-tekton/
 │       ├── Chart.yaml
 │       ├── values.yaml
 │       ├── scripts/
-│       │   ├── onboarding-component.sh    # Primary automation tool
-│       │   └── tekton-prune.sh
+│       │   └── tekton-prune.sh      # Maintenance helper
 │       ├── tests/                   # pytest-based tests
 │       └── templates/
 │           ├── pipelines/           # Pipeline manifests
@@ -62,8 +63,8 @@ edp-tekton/
 
 **Scripts Directory** (`charts/pipelines-library/scripts/`):
 
-- `onboarding-component.sh` - Primary automation tool
-- Helper scripts for maintenance
+- Helper scripts for maintenance (e.g., `tekton-prune.sh`)
+- Primary automation tool is at `hack/onboarding-component.sh`
 
 ## Naming Conventions
 
@@ -265,6 +266,8 @@ metadata:
     # Additional annotations
 ```
 
+For chart validation, testing, and version management, see `references/standards.md`.
+
 ## Workspace Patterns
 
 All pipelines in the repository use a consistent workspace organization pattern.
@@ -343,7 +346,7 @@ TriggerTemplate creates PipelineRun with:
 - `extensions.pipelines.review` - Review pipeline name (dynamic)
 - `extensions.pullRequest.*` - Normalized PR/MR metadata
 
-For VCS-specific trigger patterns, see **`references/vcs-differences.md`** (when available).
+For VCS-specific trigger patterns, load the **edp-tekton-triggers** skill which contains per-VCS reference files.
 
 ## Supported Languages & Frameworks
 
@@ -357,106 +360,9 @@ The repository contains **394 pipeline files** supporting **10+ languages**:
 - **C#/.NET**: dotnet3.1, dotnet6.0
 - **Others**: Groovy, OPA, Terraform, Docker, Helm, RPM, Autotests, CD, Security, GitOps
 
-For complete language and framework details, see **`references/languages.md`** (when available).
+For complete language and framework details, see **`references/languages.md`**.
 
-## Tekton Pipelines Best Practices
-
-### General Principles
-
-- Declarative configuration aligned with GitOps
-- Resource limits and requests defined
-- RBAC with least privilege principle
-- Namespace isolation for pipelines
-- Labels and annotations for discovery
-- Secret management best practices
-
-### Pipeline Structure
-
-**Components**:
-
-- Task definitions with proper ordering
-- Workspace declarations for data sharing
-- Parameter definitions with defaults
-- `runAfter` policies for dependencies
-- Conditional execution with `when` clauses
-
-**Example Pattern**:
-
-```yaml
-apiVersion: tekton.dev/v1
-kind: Pipeline
-metadata:
-  name: github-java-springboot-app-build-default
-spec:
-  params:
-    - name: git-source-url
-      type: string
-    - name: git-source-revision
-      type: string
-      default: "main"
-  workspaces:
-    - name: shared-workspace
-  tasks:
-    - name: fetch-repository
-      taskRef:
-        name: git-clone
-      workspaces:
-        - name: output
-          workspace: shared-workspace
-      params:
-        - name: url
-          value: $(params.git-source-url)
-    - name: build
-      taskRef:
-        name: maven-build
-      runAfter:
-        - fetch-repository
-      workspaces:
-        - name: source
-          workspace: shared-workspace
-```
-
-### Task Structure
-
-**Components**:
-
-- Step definitions with container images
-- Resource requests and limits
-- Workspace declarations
-- Parameter inputs
-- Result outputs
-
-**Example Pattern**:
-
-```yaml
-apiVersion: tekton.dev/v1
-kind: Task
-metadata:
-  name: maven-build
-spec:
-  params:
-    - name: goals
-      type: array
-      default: ["clean", "package"]
-  workspaces:
-    - name: source
-      description: The workspace consisting of maven project
-  steps:
-    - name: mvn-build
-      image: maven:3.8-openjdk-11
-      workingDir: $(workspaces.source.path)
-      command:
-        - mvn
-      args:
-        - "$(params.goals[*])"
-      resources:
-        requests:
-          memory: "1Gi"
-          cpu: "500m"
-        limits:
-          memory: "2Gi"
-          cpu: "1000m"
-```
+For detailed pipeline and task YAML structure examples, composition patterns, and best practices, see **`references/standards.md`**.
 
 ## Validation Requirements
 
@@ -529,131 +435,4 @@ yamllint .
 - Preserve onboarding script-generated structure
 - Document custom additions clearly
 
-## Testing and Maintenance
-
-### Chart Validation
-
-**Linting**:
-
-```bash
-# Helm chart lint
-helm lint charts/pipelines-library
-
-# YAML lint
-yamllint charts/pipelines-library/templates/
-```
-
-**Template Rendering**:
-
-```bash
-# Render templates to verify output
-helm template charts/pipelines-library
-
-# Render and validate with yq
-helm template charts/pipelines-library | yq
-```
-
-**Pytest Tests**:
-
-```bash
-# Run tests (if pytest framework configured)
-pytest charts/pipelines-library/tests
-```
-
-### Version Management
-
-- Follow semantic versioning for chart versions
-- Update `Chart.yaml` version with changes
-- Document breaking changes in CHANGELOG
-- Define dependencies clearly in `Chart.yaml`
-
-### Update Process
-
-1. Review upstream changes via changelogs
-2. Validate using linting and tests
-3. Increment chart version following semver
-4. Conduct diff analysis for breaking changes
-5. Plan rollback strategies
-
-## Additional Resources
-
-For complete standards reference including detailed Helm chart patterns, security practices, and operational guidelines, see **`references/standards.md`**.
-
-## Quick Reference
-
-**Task Creation**:
-
-```bash
-./hack/onboarding-component.sh --type task -n <name>
-```
-
-**Pipeline Creation** (both build and review):
-
-```bash
-./hack/onboarding-component.sh \
-  --type build-pipeline -n <vcs>-<lang>-<framework>-app-build-default --vcs <vcs>
-
-./hack/onboarding-component.sh \
-  --type review-pipeline -n <vcs>-<lang>-<framework>-app-review --vcs <vcs>
-```
-
-**Validation**:
-
-```bash
-helm template charts/pipelines-library | yq
-yamllint .
-```
-
-## Common Task Composition Patterns
-
-Understanding how tasks are composed into pipelines helps in creating effective automation workflows.
-
-**Build Pipeline Pattern** (for merged commits):
-
-```
-init-values → get-version → get-cache
-    ↓
-[Language Tasks: compile → test → sonar]
-    ↓
-push-artifact (Maven/npm/PyPI)
-    ↓
-container-build (Kaniko) → save-cache → git-tag → update-cbis
-    ↓
-finally: report-status (JIRA, VCS)
-```
-
-**Review Pipeline Pattern** (for PRs/MRs):
-
-```
-init → get-cache
-    ↓
-[Language Tasks: compile → test → sonar]
-    ↓
-docker-lint → helm-lint → save-cache
-    ↓
-finally: set-review-status (success/failure to VCS)
-```
-
-**Key Differences**:
-
-| Aspect | Build Pipeline | Review Pipeline |
-|--------|---------------|-----------------|
-| Trigger | Merge to branch | PR/MR creation or update |
-| Versioning | `get-version` sets release version | No versioning |
-| Artifact Push | Pushes to registry | No push (validation only) |
-| Container Build | Builds and pushes image | Skipped |
-| Git Operations | Creates tag, updates CodebaseBranch | No git modifications |
-| Status Reporting | JIRA ticket update | VCS status update |
-
-**Task Ordering with runAfter**:
-
-```yaml
-tasks:
-  - name: init-values
-  - name: get-version
-    runAfter: [init-values]
-  - name: compile
-    runAfter: [get-version]
-  - name: test
-    runAfter: [compile]
-```
+For testing, maintenance, chart validation, quick reference commands, and common task composition patterns, see **`references/standards.md`**.

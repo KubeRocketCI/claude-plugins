@@ -131,7 +131,7 @@ EventListener connects via SSH to receive events:
 env:
   - name: GERRIT_SSH_KEY
     valueFrom:
-      secretKeyFrom:
+      secretKeyRef:
         name: ci-gerrit
         key: ssh-privatekey
 ```
