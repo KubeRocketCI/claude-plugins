@@ -8,12 +8,11 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 **CRITICAL: Follow this workflow to diagnose and fix the portal issue:**
 
-1. **Use fullstack-dev agent to fix the issue:**
-   - The fullstack-dev agent will diagnose and fix `$ARGUMENTS`
-   - Agent will follow structured phases: Issue Discovery → Impact Analysis → Fix Planning → Implementation → Verification → Quality Review
-   - Agent will load skills dynamically based on what components are affected
-   - Agent will use TodoWrite to track all phases
-   - Agent will focus on ONE issue at a time for clarity and testability
+1. **Follow structured phases to fix the issue:** `$ARGUMENTS`
+   - Phases: Issue Discovery → Impact Analysis → Fix Planning → Implementation → Verification → Quality Review
+   - Load skills dynamically based on what components are affected
+   - Use TodoWrite to track all phases
+   - Focus on ONE issue at a time for clarity and testability
 
 ---
 
@@ -21,31 +20,47 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 **Goal**: Thoroughly understand the issue, reproduce it, and identify root cause
 
+**Load relevant knowledge skills BEFORE exploring the codebase.** Analyze the issue description first, then load skills that provide context needed for efficient diagnosis. This prevents wasting time rediscovering patterns already documented in skills.
+
+**Decide which skills to load based on the issue description:**
+- **frontend-tech-stack** — if the issue involves project structure, architecture, auth flow, monorepo setup, or you need to understand how the portal is organized
+- **api-integration** — if the issue involves API calls, tRPC, data fetching, error handling, or backend integration
+- **component-development** — if the issue involves UI components, layouts, or component patterns
+- **routing-permissions** — if the issue involves navigation, routes, redirects, or RBAC
+- **form-patterns** — if the issue involves forms, validation, or form state
+- **table-patterns** — if the issue involves data tables, columns, or table rendering
+- **filter-patterns** — if the issue involves filtering, search, or filter state
+- **k8s-resources** — if the issue involves Kubernetes resource display or K8s API integration
+
+**CRITICAL**: Load skills BEFORE using Grep/Glob/Read to explore. Only load skills relevant to the issue — not all of them.
+
 **Actions**:
 
-1. Create todo list with all 7 phases using TodoWrite
-2. Parse issue description from $ARGUMENTS:
+1. Read the issue description from $ARGUMENTS to understand the problem area and determine which skills to load
+2. Load relevant skills based on the issue type
+3. Create todo list with all 7 phases using TodoWrite
+4. Analyze the issue in detail:
    - What is the observable problem?
    - Is it frontend (layout, styles, rendering) or backend (API, data, logic)?
    - When does it occur? (user action, page load, specific data)
    - Expected vs actual behavior
-3. If issue description is unclear or missing critical details, use AskUserQuestion to ask:
+5. If issue description is unclear or missing critical details, use AskUserQuestion to ask:
    - Can you describe what you're seeing vs what you expect?
    - Which page/component is affected?
    - Are there any console errors or network failures?
    - Can you provide steps to reproduce?
    - When did this issue start appearing?
-4. **Reproduce the issue** (if possible):
-   - Use Grep/Glob to locate relevant files
+6. **Reproduce the issue** (if possible):
+   - Use knowledge from loaded skills to locate relevant files quickly
    - Read component/API code to understand current behavior
    - Trace data flow through the application
    - Look for obvious bugs, typos, logic errors
    - Check console for errors, warnings, or failed requests
-5. **Identify root cause**:
+7. **Identify root cause**:
    - Is it a logic bug, typo, missing validation, styling issue, or data problem?
    - Which specific files/functions are causing the issue?
    - Are there related issues that might have same root cause?
-6. Summarize diagnosis using AskUserQuestion to confirm:
+8. Summarize diagnosis using AskUserQuestion to confirm:
 
    ```
    I've diagnosed the issue:
@@ -116,21 +131,20 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 **Goal**: Determine fix strategy and load relevant skills for proper implementation
 
-**MUST load skills** using Skill tool based on affected components:
+**Load any additional skills** not yet loaded that are needed for the fix, based on Phase 2 impact analysis.
 
-1. **Load krci-fullstack:frontend-tech-stack skill** (if any components - provides monorepo/tech stack context)
+Some skills may already be loaded from Phase 1. Only load skills that are newly relevant based on deeper understanding of the issue:
 
-2. **Load krci-fullstack:component-development skill** (if UI components affected - provides project structure)
+- Load krci-fullstack:frontend-tech-stack (if not loaded in Phase 1 and now needed)
+- Load krci-fullstack:api-integration (if not loaded in Phase 1 and now needed)
+- Load krci-fullstack:component-development (if UI components affected - provides project structure)
+- Load krci-fullstack:form-patterns (if forms affected)
+- Load krci-fullstack:table-patterns (if tables affected)
+- Load krci-fullstack:filter-patterns (if filters affected)
+- Load krci-fullstack:routing-permissions (if routes/RBAC affected)
+- Load krci-fullstack:k8s-resources (if K8s UIs affected)
 
-3. **Load pattern-specific skills** based on Phase 2 impact analysis:
-   - Load krci-fullstack:form-patterns (if forms affected)
-   - Load krci-fullstack:table-patterns (if tables affected)
-   - Load krci-fullstack:filter-patterns (if filters affected)
-   - Load krci-fullstack:api-integration (if APIs affected)
-   - Load krci-fullstack:routing-permissions (if routes/RBAC affected)
-   - Load krci-fullstack:k8s-resources (if K8s UIs affected)
-
-**CRITICAL**: Load ONLY skills needed for fixing this specific issue. DO NOT SKIP this phase.
+**CRITICAL**: Do NOT re-load skills already loaded in Phase 1. Only load what's newly needed. DO NOT SKIP this phase.
 
 **Actions**:
 
@@ -406,18 +420,19 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 ### Skills to Load by Phase
 
-Skills are loaded **dynamically based on affected components** identified in Phase 2:
+Skills are loaded **as early as possible** to provide context before exploration. Analyze the issue first, then load what's relevant:
 
-- **Phase 2**: Identify which components are affected (no loading yet)
-- **Phase 3**: Load skills for affected components:
-  - frontend-tech-stack (if any components - tech stack and monorepo)
-  - component-development (if UI components - project structure)
-  - form-patterns (if forms)
-  - table-patterns (if tables)
-  - filter-patterns (if filters)
-  - api-integration (if APIs)
-  - routing-permissions (if routes/RBAC)
-  - k8s-resources (if K8s UIs)
+- **Phase 1** (before exploration): Analyze issue description and load relevant skills:
+  - frontend-tech-stack — if issue involves architecture, project structure, auth flow
+  - api-integration — if issue involves APIs, tRPC, data fetching, error handling
+  - component-development — if issue involves UI components, layouts
+  - routing-permissions — if issue involves routes, redirects, RBAC
+  - form-patterns — if issue involves forms, validation
+  - table-patterns — if issue involves tables
+  - filter-patterns — if issue involves filtering
+  - k8s-resources — if issue involves K8s resources
+- **Phase 2**: Identify affected components (no loading unless new areas discovered)
+- **Phase 3**: Load any additional skills newly identified as relevant from Phase 2 analysis (do NOT re-load skills from Phase 1)
 - **Phase 5**: testing-standards (if writing tests for logic bugs)
 - **Phase 6**: code-reviewer agents launched via Task tool (krci-general:code-reviewer)
 

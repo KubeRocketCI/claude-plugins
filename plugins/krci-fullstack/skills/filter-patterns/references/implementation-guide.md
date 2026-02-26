@@ -93,8 +93,10 @@ Create `index.tsx` with filter form fields:
 
 ```typescript
 import React from "react";
-import { TextField, Select, SelectOption } from "@/core/components/form";
+import type { SelectOption } from "@/core/components/form";
 import { Button } from "@/core/components/ui/button";
+import { Label } from "@/core/components/ui/label";
+import { X } from "lucide-react";
 import { ENTITY_FILTER_NAMES } from "./constants";
 import { useEntityFilter } from "./hooks/useFilter";
 
@@ -115,57 +117,39 @@ export const EntityFilter = () => {
   const { form, reset } = useEntityFilter();
 
   return (
-    <div className="flex items-start gap-4">
+    <>
       {/* Search Field */}
-      <div className="w-64">
-        <form.Field name={ENTITY_FILTER_NAMES.SEARCH}>
-          {(field) => (
-            <TextField
-              field={field}
-              label="Search"
-              placeholder="Search by name or label:value"
-            />
-          )}
-        </form.Field>
+      <div className="col-span-3">
+        <form.AppField name={ENTITY_FILTER_NAMES.SEARCH}>
+          {(field) => <field.FormTextField label="Search" placeholder="Search by name or label:value" />}
+        </form.AppField>
       </div>
 
       {/* Status Select */}
-      <div className="w-48">
-        <form.Field name={ENTITY_FILTER_NAMES.STATUS}>
-          {(field) => (
-            <Select
-              field={field}
-              label="Status"
-              options={statusOptions}
-              placeholder="Select status"
-            />
-          )}
-        </form.Field>
+      <div className="col-span-3">
+        <form.AppField name={ENTITY_FILTER_NAMES.STATUS}>
+          {(field) => <field.FormSelect label="Status" options={statusOptions} placeholder="Select status" />}
+        </form.AppField>
       </div>
 
       {/* Type Select */}
-      <div className="w-48">
-        <form.Field name={ENTITY_FILTER_NAMES.TYPE}>
-          {(field) => (
-            <Select
-              field={field}
-              label="Type"
-              options={typeOptions}
-              placeholder="Select type"
-            />
-          )}
-        </form.Field>
+      <div className="col-span-3">
+        <form.AppField name={ENTITY_FILTER_NAMES.TYPE}>
+          {(field) => <field.FormSelect label="Type" options={typeOptions} placeholder="Select type" />}
+        </form.AppField>
       </div>
 
       {/* Clear Button - Show only when form is dirty */}
       {form.state.isDirty && (
-        <div className="mt-4">
-          <Button variant="outline" onClick={reset} size="sm">
-            Clear Filters
+        <div className="col-span-1 flex flex-col gap-2">
+          <Label> </Label>
+          <Button variant="secondary" onClick={reset} size="sm" className="mt-0.5">
+            <X size={16} />
+            Clear
           </Button>
         </div>
       )}
-    </div>
+    </>
   );
 };
 ```
@@ -249,58 +233,48 @@ export const EntityList = () => {
 
 ## Form Components Reference
 
-### TextField (Text Input)
+### FormTextField (Text Input)
 
 ```typescript
-<form.Field name={FILTER_NAMES.SEARCH}>
-  {(field) => (
-    <TextField
-      field={field}
-      label="Search"
-      placeholder="Type to search..."
-    />
-  )}
-</form.Field>
+<form.AppField name={FILTER_NAMES.SEARCH}>
+  {(field) => <field.FormTextField label="Search" placeholder="Type to search..." />}
+</form.AppField>
 ```
 
-### Select (Dropdown)
+### FormSelect (Dropdown)
 
 ```typescript
-import { Select, SelectOption } from "@/core/components/form";
+import type { SelectOption } from "@/core/components/form";
 
 const options: SelectOption[] = [
   { label: "All", value: "all" },
   { label: "Option 1", value: "option1" },
 ];
 
-<form.Field name={FILTER_NAMES.TYPE}>
-  {(field) => (
-    <Select
-      field={field}
-      label="Type"
-      options={options}
-      placeholder="Select type"
-    />
-  )}
-</form.Field>
+<form.AppField name={FILTER_NAMES.TYPE}>
+  {(field) => <field.FormSelect label="Type" options={options} placeholder="Select type" />}
+</form.AppField>
 ```
 
-### Autocomplete (Searchable Dropdown)
+### FormCombobox (Searchable Multi/Single Select)
 
 ```typescript
-import { Autocomplete } from "@/core/components/form";
+import type { SelectOption } from "@/core/components/form";
 
-<form.Field name={FILTER_NAMES.NAME}>
-  {(field) => (
-    <Autocomplete
-      field={field}
-      label="Name"
-      options={nameOptions}
-      placeholder="Select or type"
-      multiple={false}
-    />
-  )}
-</form.Field>
+const nameOptions: SelectOption[] = [
+  { label: "Name 1", value: "name1" },
+  { label: "Name 2", value: "name2" },
+];
+
+{/* Single select */}
+<form.AppField name={FILTER_NAMES.NAME}>
+  {(field) => <field.FormCombobox label="Name" options={nameOptions} placeholder="Select or type" />}
+</form.AppField>
+
+{/* Multi select */}
+<form.AppField name={FILTER_NAMES.NAMES}>
+  {(field) => <field.FormCombobox label="Names" options={nameOptions} placeholder="Select multiple" multiple />}
+</form.AppField>
 ```
 
 ## FilterProvider API

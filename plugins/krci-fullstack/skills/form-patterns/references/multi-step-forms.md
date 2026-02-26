@@ -1,244 +1,321 @@
 # Multi-Step Form Patterns
 
-Advanced patterns for implementing multi-step wizards with TanStack Form and Radix UI components.
+Provider-based multi-step wizards with TanStack Form.
 
-> **Migration in Progress**: Project is migrating from React Hook Form to TanStack Form. **All new forms must use TanStack Form**. Existing wizards (like CreateCodebaseWizard) use React Hook Form + Zustand and will be migrated over time.
+## Architecture
 
-## Basic Multi-Step Pattern
+**Three Providers:**
+1. **FormProvider** - Wraps `useAppForm`, provides form instance
+2. **StepperProvider** - Manages step navigation and validation
+3. **FormGuideProvider** - (Optional) Help sidebar with contextual guidance
 
-```typescript
-const [step, setStep] = useState(0);
-const steps = ['Basic Info', 'Configuration', 'Review'];
+**Pattern**: Single form instance across all steps, partial validation per step.
 
-// Single form instance, multiple views
-const form = useForm({
-  defaultValues: { /* all steps */ },
-  onSubmit: async ({ value }) => {
-    // Submit all data at once
-  },
-});
+---
 
-// Render current step
-{step === 0 && <StepOne form={form} />}
-{step === 1 && <StepTwo form={form} />}
-{step === 2 && <StepThree form={form} />}
+## File Structure
+
+```
+CreateResourceWizard/
+├── index.tsx                    # Providers wrapper
+├── constants.ts                 # FORM_PARTS, WIZARD_GUIDE_STEPS
+├── names.ts                     # Field name constants (NAMES)
+├── schema.ts                    # Zod schema with superRefine
+├── providers/
+│   ├── form/
+│   │   ├── provider.tsx        # FormProvider with useAppForm
+│   │   ├── hooks.ts            # useWizardForm() custom hook
+│   │   └── context.ts          # Form context
+│   └── stepper/                # Step navigation provider
+└── components/
+    ├── steps/                  # Step components
+    │   ├── MethodStep.tsx
+    │   ├── ConfigStep.tsx
+    │   └── ReviewStep.tsx
+    └── fields/                 # Reusable field components
+        ├── FieldA/
+        └── FieldB/
 ```
 
-**Key Principle**: Single form instance, render different field groups per step.
+---
+
+## Constants Pattern
+
+### Field Names
+
+```typescript
+// names.ts
+export const NAMES = {
+  name: "name",
+  type: "type",
+  // UI-only fields
+  ui_creationMethod: "ui_creationMethod",
+  ui_creationTemplate: "ui_creationTemplate",
+} as const;
+```
+
+### Step Groupings
+
+```typescript
+// constants.ts
+export const FORM_PARTS = {
+  METHOD: ["ui_creationMethod", "ui_creationTemplate", "type"],
+  CONFIG: ["name", "gitServer", "repositoryUrl"],
+  REVIEW: [], // No editable fields
+} as const;
+
+export const WIZARD_GUIDE_STEPS = [
+  { title: "Choose Method", target: ".method-step" },
+  { title: "Configure", target: ".config-step" },
+  { title: "Review", target: ".review-step" },
+];
+```
+
+---
+
+## Provider Setup
+
+### Form Provider
+
+```typescript
+// providers/form/provider.tsx
+export const FormProvider: React.FC<PropsWithChildren> = ({ children }) => {
+  const form = useAppForm<FormValues>({
+    defaultValues: getDefaults(),
+    onSubmit: async (values) => {
+      await submitResource(values);
+    },
+  });
+
+  return <FormContext.Provider value={form}>{children}</FormContext.Provider>;
+};
+
+// providers/form/hooks.ts
+export const useWizardForm = () => {
+  const form = useContext(FormContext);
+  if (!form) throw new Error("Must be used within FormProvider");
+  return form;
+};
+```
+
+### Main Wrapper
+
+```typescript
+// index.tsx
+export const CreateResourceWizard = () => (
+  <FormGuideProvider steps={WIZARD_GUIDE_STEPS}>
+    <FormProvider>
+      <StepperProvider>
+        <WizardContent />
+      </StepperProvider>
+    </FormProvider>
+  </FormGuideProvider>
+);
+```
+
+---
 
 ## Step Validation
 
-Validate current step before proceeding:
+Validate specific fields before allowing navigation:
 
 ```typescript
 const handleNext = async () => {
-  // Validate current step fields
-  const fields = getCurrentStepFields(step);
-  const hasErrors = fields.some(field =>
-    form.getFieldMeta(field)?.errors.length > 0
+  const fieldsToValidate = FORM_PARTS[currentStep];
+
+  const results = await Promise.all(
+    fieldsToValidate.map(field => form.validateField(field))
   );
+
+  const hasErrors = results.some(r => r.length > 0);
 
   if (!hasErrors) {
-    setStep(step + 1);
-  } else {
-    // Trigger validation display
-    fields.forEach(field => form.validateField(field));
+    setStep(prev => prev + 1);
   }
 };
 ```
 
-## Stepper Component Integration
+---
 
-Use portal's Stepper UI component:
-
-```typescript
-import { Stepper } from "@/core/components/ui/stepper";
-
-<Stepper
-  steps={steps.map((label, index) => ({
-    label,
-    status: index < step ? 'completed' : index === step ? 'current' : 'upcoming',
-  }))}
-  currentStep={step}
-/>
-```
-
-**Location**: `apps/client/src/core/components/ui/stepper/`
-
-## Step Navigation
+## Step Components
 
 ```typescript
-const canGoNext = () => {
-  const currentStepFields = getCurrentStepFields(step);
-  return currentStepFields.every(field =>
-    !form.getFieldMeta(field)?.errors.length
-  );
-};
-
-const canGoBack = () => step > 0;
-const isLastStep = () => step === steps.length - 1;
-
-<div className="flex justify-between mt-6">
-  <Button
-    variant="outline"
-    onClick={() => setStep(step - 1)}
-    disabled={!canGoBack()}
-  >
-    Back
-  </Button>
-
-  {!isLastStep() ? (
-    <Button onClick={handleNext} disabled={!canGoNext()}>
-      Next
-    </Button>
-  ) : (
-    <Button onClick={form.handleSubmit}>
-      Submit
-    </Button>
-  )}
-</div>
-```
-
-## Conditional Steps
-
-Skip steps based on previous answers:
-
-```typescript
-const getNextStep = (currentStep: number) => {
-  const values = form.getValues();
-
-  if (currentStep === 0 && values.type === 'simple') {
-    return 2; // Skip step 1 for simple type
-  }
-
-  return currentStep + 1;
-};
-```
-
-## State Persistence
-
-Save draft to localStorage:
-
-```typescript
-useEffect(() => {
-  const values = form.getValues();
-  localStorage.setItem('form-draft', JSON.stringify(values));
-}, [form.state.values]);
-
-// Restore on mount
-useEffect(() => {
-  const draft = localStorage.getItem('form-draft');
-  if (draft) {
-    form.setValues(JSON.parse(draft));
-  }
-}, []);
-```
-
-## Review Step Pattern
-
-Display all entered data before submission:
-
-```typescript
-const ReviewStep = ({ form }: { form: FormApi<T> }) => {
-  const values = form.getValues();
+// components/steps/MethodStep.tsx
+export const MethodStep: React.FC = () => {
+  const form = useWizardForm();
 
   return (
     <div className="space-y-4">
-      <h3>Review Your Submission</h3>
+      <form.AppField name={NAMES.ui_creationMethod}>
+        {(field) => (
+          <field.FormRadioGroup
+            label="Creation Method"
+            options={methodOptions}
+          />
+        )}
+      </form.AppField>
 
+      {/* Conditional fields based on method */}
+      {form.store.state.values.ui_creationMethod === "template" && (
+        <form.AppField name={NAMES.ui_creationTemplate}>
+          {(field) => (
+            <field.FormRadioGroup
+              label="Select Template"
+              options={templates}
+            />
+          )}
+        </form.AppField>
+      )}
+    </div>
+  );
+};
+```
+
+---
+
+## Navigation Controls
+
+```typescript
+const Navigation: React.FC = () => {
+  const { step, setStep, steps } = useStepper();
+  const form = useWizardForm();
+
+  const isLastStep = step === steps.length - 1;
+
+  return (
+    <div className="flex justify-between mt-6">
+      <Button
+        variant="outline"
+        onClick={() => setStep(prev => prev - 1)}
+        disabled={step === 0}
+      >
+        Back
+      </Button>
+
+      {isLastStep ? (
+        <Button onClick={() => form.handleSubmit()}>
+          Submit
+        </Button>
+      ) : (
+        <Button onClick={handleNext}>
+          Next
+        </Button>
+      )}
+    </div>
+  );
+};
+```
+
+---
+
+## Review Step
+
+Display all values before submission:
+
+```typescript
+export const ReviewStep: React.FC = () => {
+  const form = useWizardForm();
+  const values = form.store.state.values;
+
+  return (
+    <div className="space-y-4">
+      <h3>Review Your Configuration</h3>
       <Card>
         <CardContent>
           <dl className="space-y-2">
             <dt className="font-semibold">Name</dt>
             <dd>{values.name}</dd>
 
-            <dt className="font-semibold">Configuration</dt>
-            <dd>{values.config}</dd>
+            <dt className="font-semibold">Type</dt>
+            <dd>{values.type}</dd>
           </dl>
         </CardContent>
       </Card>
-
-      <Button onClick={() => setStep(0)}>Edit</Button>
+      <Button variant="outline" onClick={() => setStep(0)}>
+        Edit
+      </Button>
     </div>
   );
 };
 ```
 
-## Progress Indicator
+---
 
-Show completion percentage:
+## Conditional Steps
 
-```typescript
-const progress = ((step + 1) / steps.length) * 100;
-
-<div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-  <div
-    className="bg-blue-600 h-2 rounded-full transition-all"
-    style={{ width: `${progress}%` }}
-  />
-</div>
-```
-
-## Error Recovery
-
-Handle submission errors:
+Skip steps based on previous selections:
 
 ```typescript
-const [submitError, setSubmitError] = useState<string | null>(null);
+const getNextStep = (currentStep: number): number => {
+  const values = form.store.state.values;
 
-const handleSubmit = async (values: T) => {
-  try {
-    await submitForm(values);
-  } catch (error) {
-    setSubmitError(error.message);
-    // Go back to relevant step based on error
-    const errorStep = getStepForError(error);
-    setStep(errorStep);
+  if (currentStep === 0 && values.type === "simple") {
+    return 2; // Skip advanced config step
+  }
+
+  return currentStep + 1;
+};
+
+const handleNext = async () => {
+  const isValid = await validateCurrentStep();
+  if (isValid) {
+    const nextStep = getNextStep(step);
+    setStep(nextStep);
   }
 };
 ```
 
-## Step-Specific Validation
+---
 
-Different validation per step:
+## FormGuide Integration
+
+Add help sidebar to wizard:
 
 ```typescript
-const step1Schema = z.object({
-  name: z.string().min(3),
-  description: z.string(),
-});
+import { FormGuideProvider } from "@/core/providers/FormGuide";
 
-const step2Schema = z.object({
-  config: z.object({ /* ... */ }),
-});
+const HELP_CONFIG = {
+  steps: [
+    {
+      title: "Choose Method",
+      content: "Select how you want to create your resource...",
+    },
+    // ...
+  ],
+};
 
-// In step component
-<form.Field
-  name="name"
-  validators={{
-    onChange: step1Schema.shape.name,
-  }}
->
-  {(field) => <Input field={field} />}
-</form.Field>
+<FormGuideProvider steps={WIZARD_GUIDE_STEPS} helpConfig={HELP_CONFIG}>
+  <YourWizard />
+</FormGuideProvider>
 ```
 
-## Real-World Examples
+**Details**: See `~/.claude/.../memory/form-guide.md`
 
-**Existing wizard implementations** (React Hook Form + Zustand):
-
-- Codebase creation wizard: `apps/client/src/modules/platform/codebases/pages/create/components/CreateCodebaseWizard/`
-- Stage creation wizard: `apps/client/src/modules/platform/cdpipelines/pages/stages/create/components/CreateStageWizard/`
-- Pipeline creation wizard: `apps/client/src/modules/platform/cdpipelines/pages/create/components/CreateCDPipelineWizard/`
-
-These serve as reference for wizard structure and UI patterns. When migrating, follow TanStack Form patterns documented above.
+---
 
 ## Best Practices
 
 1. **Single form instance** - Don't create separate forms per step
-2. **Validate on step change** - Check fields before allowing next
-3. **Save drafts** - Persist state to prevent data loss
-4. **Clear navigation** - Always show which step user is on
-5. **Review before submit** - Let users verify all data
-6. **Handle errors gracefully** - Return to relevant step on error
-7. **Conditional logic** - Skip irrelevant steps based on input
+2. **Field name constants** - Use `NAMES` object, prefix UI fields with `ui_`
+3. **Step groupings** - Define `FORM_PARTS` for partial validation
+4. **Custom hook** - Wrap form in provider, access via `useWizardForm()`
+5. **Reusable fields** - Extract complex fields to components
+6. **Review step** - Always show summary before submission
+7. **Conditional validation** - Fields validate based on other field values
+
+---
+
+## Real Examples
+
+- **CreateCodebaseWizard**: `/modules/platform/codebases/pages/create/components/CreateCodebaseWizard/`
+- **CreateStageWizard**: `/modules/platform/cdpipelines/pages/stages/create/components/CreateStageWizard/`
+
+See `references/real-examples.md` for specific patterns.
+
+---
+
+## Provider References
+
+- **Stepper**: `/core/providers/Stepper/`
+- **FormGuide**: `/core/providers/FormGuide/`
+- **Pattern docs**: `~/.claude/.../memory/form-guide.md`

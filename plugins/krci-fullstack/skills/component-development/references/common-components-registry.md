@@ -4,301 +4,121 @@ Quick reference for reusable components in the KubeRocketCI portal. Always check
 
 ## UI Primitives (`@/core/components/ui/`)
 
-Built with Radix UI + TailwindCSS + CVA (Class Variance Authority).
+Built with Radix UI + TailwindCSS + CVA (Class Variance Authority). These are standalone UI components without form integration.
 
-### Form Controls
+### Form Input Primitives
+
+- **input** - Basic text input
+- **input-password** - Password input with visibility toggle
+- **input-editable** - Inline editable input
+- **textarea** - Multi-line text input
+- **textarea-password** - Multi-line password input
+- **combobox** - Searchable select dropdown
+- **combobox-with-input** - Combobox with text input
+- **combobox-multiple-with-input** - Multi-select combobox with input
+- **select** - Dropdown selection (use with `<SelectTrigger>`, `<SelectContent>`, `<SelectItem>`)
+- **checkbox** - Checkbox input
+- **checkbox-group-with-buttons** - Checkbox group with button styling
+- **radio-group** - Radio button group
+- **radio-group-with-buttons** - Radio group with button styling
+- **tile-radio-group** - Radio group with tile/card styling
+- **toggle-button-group** - Toggle button group
+- **switch** - Toggle switch
+
+### Action Components
 
 - **button** - Primary action component with variants (default, destructive, outline, secondary, ghost, link)
-- **input** - Text input field with validation states
-- **input-editable** - Inline editable text input
-- **input-password** - Password input with show/hide toggle
-- **textarea** - Multi-line text input
-- **textarea-password** - Password textarea with show/hide toggle
-- **select** - Dropdown selection component
-- **checkbox** - Boolean checkbox input
-- **radio-group** - Single selection from options
-- **radio-group-with-buttons** - Radio group styled as buttons
-- **tile-radio-group** - Radio group as tile cards
-- **switch** - Toggle switch component
-- **combobox-with-input** - Searchable single select dropdown
-- **combobox-multiple-with-input** - Searchable multi-select dropdown
-- **form-field** - Form field wrapper with label, tooltip, and error display
-- **form-field-group** - Groups multiple form fields together
-- **label** - Form field label component
 
-### Overlays
+Note: For TanStack Form-integrated components (FormTextField, FormCombobox, etc.), see TanStack Form Components below.
 
-- **dialog** - Modal dialogs with DialogHeader, DialogContent, DialogFooter, DialogBody
+### Overlay & Modal Components
+
+- **dialog** - Modal dialogs with DialogHeader, DialogContent, DialogFooter
 - **sheet** - Side panel overlay
 - **popover** - Floating content container
-- **tooltip** - Hover information display
+- **tooltip** - Hover information
 - **command** - Command palette/search interface
+- **dropdown-menu** - Dropdown menu with items
 
-### Navigation
+### Navigation & Layout
 
-- **tabs** - Tabbed interface component
+- **tabs** - Tabbed interface
 - **accordion** - Collapsible sections
-- **sidebar** - Navigation sidebar with SidebarInset, SidebarMenu components
-- **breadcrumb** - Navigation breadcrumb trail
-- **collapsible** - Collapsible content section
-
-### Display
-
-- **card** - Content container with CardHeader, CardContent, CardFooter
-- **badge** - Status indicator or tag
-- **chip** - Small tag/label component
-- **alert** - Notification/message display
-- **table-pagination** - Pagination controls for tables
-- **stepper** - Multi-step progress indicator
-- **skeleton** - Loading placeholder skeleton
-- **progress** - Progress bar indicator
-- **avatar** - User avatar display
+- **sidebar** - Navigation sidebar components
+- **breadcrumb** - Breadcrumb navigation
 - **separator** - Visual divider line
+
+### Display & Feedback
+
+- **card** - Content container
+- **badge** - Status indicator
+- **chip** - Compact label/tag component
+- **alert** - Notification/message display
+- **avatar** - User avatar component
 - **title-status** - Title with status indicator
-- **toggle-button-group** - Group of toggle buttons
+- **LoadingSpinner** - Loading spinner indicator
+- **LoadingProgressBar** - Linear progress bar
+- **progress** - Progress bar component
+- **skeleton** - Loading placeholder skeleton
 
-### Loading States
+### Data Display
 
-- **LoadingSpinner** - Circular loading spinner
-- **LoadingProgressBar** - Linear progress bar for loading
+- **table** - Data table with sorting/filtering
+- **table-pagination** - Table pagination controls
+- **stepper** - Multi-step progress indicator
 
-## Layout Components (`@/core/components/`)
+### Form Layout
 
-- **PageLayout** - Main application layout with Header and Sidebar
-- **DetailsPageWrapper** - Wrapper for detail pages with error boundary
-- **BasicLayout** - Basic page layout structure
-- **BorderedSection** - Content section with border styling
-- **Section** - Semantic content section
-- **SubSection** - Nested content section
-- **TabPanel** - Content panel for tab views
-- **TabSection** - Section with tab header
-- **HorizontalScrollContainer** - Container with horizontal scrolling
+- **form-field** - Form field wrapper with label and error
+- **form-field-group** - Group multiple form fields
+- **label** - Form label component
 
-## Data Display Components
+### Utility Components
 
-- **DataGrid** - Grid layout for displaying data items with pagination and filtering (card-based layout)
-- **Table / DataTable** - Advanced data table with sorting, filtering, column management (see table-patterns skill for `useColumns` hook pattern)
-- **InfoColumns** - Display information in labeled columns with grid layout
-- **NameValueTable** - Key-value pair table display
-- **KubernetesDetails** - Display Kubernetes resource details
-- **ResourceQuotas** - Display resource quota information with CircleProgress and RQItem
-- **PipelinePreview** - Preview pipeline configuration
-- **ResponsiveChips** - Responsive chip/tag container
+- **collapsible** - Collapsible content container
 
-## Actions & Interactions
+## TanStack Form Components (`@/core/components/form/`)
 
-- **ActionsInlineList** - Horizontal list of action buttons with icons
-- **ActionsMenuList** - Dropdown menu of actions
-- **Confirm** - Confirmation dialog component
-- **DeleteKubeObject** - Dialog for deleting Kubernetes objects with name confirmation
-- **ConfirmResourcesUpdates** - Dialog for confirming resource updates (in dialogs/)
+Form-integrated components with built-in validation and error handling via TanStack Form. Used with `form.AppField` render prop pattern.
 
-## Form Components (`@/core/components/form/`)
+### Form Field Components
 
-Tanstack Form preset components that integrate with `FieldApi`:
+All components accessed via `field.Component` inside `form.AppField`:
 
-- **TextField** - Text input field for forms
-- **Select** - Dropdown select for forms with options
-- **SelectField** - Alternative select implementation for forms
-- **Autocomplete** - Searchable combobox with single/multiple selection
-- **NamespaceAutocomplete** - Specialized autocomplete for namespace selection
-- **SwitchField** - Toggle switch for boolean form fields
+- **FormTextField** - Text input with label and error handling
+- **FormTextFieldPassword** - Password input with toggle visibility
+- **FormTextarea** - Multi-line text input
+- **FormTextareaPassword** - Multi-line password input
+- **FormSelect** - Single-select dropdown (takes `SelectOption[]`)
+- **FormCombobox** - Searchable multi/single select (takes `SelectOption[]`, supports `multiple` prop)
+- **FormCheckbox** - Single checkbox with label
+- **FormCheckboxGroup** - Group of checkboxes (takes `FormCheckboxOption[]`)
+- **FormSwitch** - Toggle switch
+- **FormSwitchRich** - Enhanced switch with description
+- **FormRadioGroup** - Radio button group (takes `FormRadioOption[]`)
 
-See `form-patterns` skill for usage patterns.
+### Form Action Components
 
-## Editors & Code Components
+Accessed via `form.AppForm`:
 
-- **CodeEditor** - Monaco-based code editor with YAML/JSON support and syntax highlighting
-- **EditorYAML** - Specialized YAML editor
-- **Terminal** - xterm.js terminal with search, download, copy features
-- **KubeConfigPreview** - Preview Kubernetes config files
+- **FormSubmitButton** - Submit button with loading state
+- **FormResetButton** - Reset form to default values
 
-## Status & Feedback Components
+### Usage Pattern
 
-- **StatusIcon** - Display resource status with icon and color
-- **EmptyList** - Empty state for lists/tables with call-to-action
-- **ErrorBoundary** - Error boundary wrapper component
-- **ErrorContent** - Error message display with details
-- **CriticalError** - Critical error page component
-- **Snackbar** - Toast notification component
-- **NoDataWidgetWrapper** - Wrapper for widgets with no data state
+```typescript
+import { useAppForm } from "@/core/components/form";
 
-## Kubernetes-Specific Components
+const form = useAppForm({ defaultValues: { name: "" } });
 
-- **DeleteKubeObject** - Kubernetes object deletion dialog
-- **KubernetesDetails** - Kubernetes resource details display
-- **ResourceQuotas** - Resource quota visualization
-- **Namespaces** - Namespace selector/display
-- **ResourceIconLink** - Link with Kubernetes resource icon
-
-## Utility Components
-
-- **ButtonWithPermission** - Button with integrated RBAC permission checking
-- **ConditionalWrapper** - Conditionally wrap children with a component
-- **CopyButton** - Copy text to clipboard with feedback
-- **LoadingWrapper** - Show loading state or children based on condition
-- **TooltipWithLinkList** - Tooltip containing list of links
-- **TextWithTooltip** - Text with tooltip on hover
-- **ScrollCopyText** - Scrollable text with copy functionality
-- **QuickLink** - Quick action link component
-- **LearnMoreLink** - "Learn more" link with consistent styling
-- **RefPortal** - Portal component using ref for positioning
-- **SvgBase64Icon** - Display SVG icons from base64 strings
-
-## Navigation Components
-
-### Sidebar (`@/core/components/sidebar/`)
-
-- **SidebarMenuContent** - Sidebar menu container
-- **SidebarMenuItem** - Individual sidebar menu item
-- **SidebarMenuItemWithHover** - Menu item with hover state
-- **SidebarSubGroupMenuItem** - Nested submenu item
-
-### Other Navigation
-
-- **Header** - Application header bar
-- **nav-main** - Main navigation component
-- **cluster-switcher** - Switch between Kubernetes clusters
-- **ThemeSwitcher** - Toggle light/dark theme
-
-## Sprites & Icons
-
-- **K8sRelatedIconsSVGSprite** - SVG sprite sheet for Kubernetes-related icons
-
-## Finding Components
-
-**Check locations in order**:
-
-1. `apps/client/src/core/components/ui/` - UI primitives (Radix UI based)
-2. `apps/client/src/core/components/form/` - Tanstack Form preset components
-3. `apps/client/src/core/components/` - Specialized components
-4. `apps/client/src/modules/platform/{feature}/components/` - Feature-specific
-
-**Naming Convention**:
-
-- UI primitives: lowercase kebab-case (button, dialog, input)
-- Form presets: PascalCase (TextField, SelectField, Autocomplete)
-- Specialized: PascalCase (ButtonWithPermission, EmptyList, DataGrid)
-
-## Component Usage Examples
-
-### ActionsInlineList
-Display action buttons in a horizontal row:
-```tsx
-<ActionsInlineList
-  actions={[
-    { name: "Edit", Icon: <PencilIcon />, action: handleEdit },
-    { name: "Delete", Icon: <TrashIcon />, action: handleDelete, disabled: { status: true, reason: "No permission" } },
-  ]}
-/>
+<form.AppField name="name">
+  {(field) => <field.FormTextField label="Name" placeholder="Enter name" />}
+</form.AppField>
 ```
 
-### DataGrid
-Display items in a card-based grid with pagination:
-```tsx
-<DataGrid
-  data={items}
-  isLoading={isLoading}
-  renderItem={(item) => <ItemCard {...item} />}
-  filterFunction={(item) => item.status === 'active'}
-  showPagination={true}
-  rowsPerPage={9}
-  emptyListComponent={<EmptyList missingItemName="items" />}
-/>
-```
+For detailed patterns, see the **form-patterns** and **filter-patterns** skills.
 
-### DataTable
-Display items in a table with sorting and filtering. **Always use with `useColumns` hook**:
-```tsx
-// hooks/useColumns.tsx
-export function useColumns(): TableColumn<Item>[] {
-  const { loadSettings } = useTableSettings(TABLE.ITEMS.id);
-  const tableSettings = loadSettings();
-
-  return React.useMemo(() => [
-    {
-      id: "name",
-      label: "Name",
-      data: {
-        columnSortableValuePath: "metadata.name",
-        render: ({ data }) => <span>{data.metadata.name}</span>,
-      },
-      cell: {
-        isFixed: true,
-        baseWidth: 30,
-        ...getSyncedColumnData(tableSettings, "name"),
-      },
-    },
-    // more columns...
-  ], [tableSettings]);
-}
-
-// index.tsx
-import { useColumns } from "./hooks/useColumns";
-
-export function ItemList() {
-  const columns = useColumns();
-  const itemsWatch = useItemsWatchList();
-
-  return (
-    <DataTable
-      id={TABLE.ITEMS.id}
-      name="Items"
-      columns={columns}
-      data={itemsWatch.data.array}
-      isLoading={!itemsWatch.query.isFetched}
-      emptyListComponent={<EmptyList missingItemName="items" />}
-    />
-  );
-}
-```
-
-See `table-patterns` skill for complete implementation guide.
-
-### CodeEditor
-Monaco-based code editor:
-```tsx
-<CodeEditor
-  content={yamlObject}
-  onChange={(text, json, error) => handleChange(json)}
-  language="yaml"
-  height={500}
-  readOnly={false}
-/>
-```
-
-### Terminal
-Interactive terminal display:
-```tsx
-<Terminal
-  content={logContent}
-  height={600}
-  enableSearch={true}
-  enableDownload={true}
-  enableCopy={true}
-  showToolbar={true}
-/>
-```
-
-### InfoColumns
-Display information in labeled columns:
-```tsx
-<InfoColumns
-  gridItems={[
-    { label: "Name", content: <span>{name}</span>, colSpan: 2 },
-    { label: "Status", content: <StatusIcon status={status} />, colSpan: 2 },
-  ]}
-  gridCols={4}
-/>
-```
-
-### LoadingWrapper
-Conditional loading state:
-```tsx
-<LoadingWrapper isLoading={isLoading} variant="spinner">
-  <YourContent />
-</LoadingWrapper>
-```
+## Permission Components (`@/core/components/`)
 
 ### ButtonWithPermission
 Button with RBAC integration:
@@ -311,6 +131,64 @@ Button with RBAC integration:
   Create Resource
 </ButtonWithPermission>
 ```
+
+**Location**: `apps/client/src/core/components/ButtonWithPermission/`
+
+## Status & Feedback Components
+
+### StatusIcon
+
+Display resource status with appropriate icon and color.
+
+**Location**: `apps/client/src/core/components/StatusIcon/`
+
+### EmptyList
+
+Empty state component for lists/tables.
+
+```typescript
+<EmptyList
+  missingItemName="codebases"
+  linkText="Create your first codebase"
+  handleClick={() => setDialog(CREATE_DIALOG)}
+/>
+```
+
+**Location**: `apps/client/src/core/components/EmptyList/`
+
+## Utility Components
+
+### ConditionalWrapper
+
+Conditionally wrap children with a component.
+
+**Location**: `apps/client/src/core/components/ConditionalWrapper/`
+
+### CopyButton
+
+Copy text to clipboard with feedback.
+
+**Location**: `apps/client/src/core/components/CopyButton/`
+
+## Sidebar Navigation
+
+Sidebar components for app navigation.
+
+**Location**: `apps/client/src/core/components/sidebar/`
+
+## Finding Components
+
+**Check locations in order**:
+
+1. `apps/client/src/core/components/ui/` - UI primitives (shadcn/ui-style)
+2. `apps/client/src/core/components/form/` - TanStack Form-integrated components
+3. `apps/client/src/core/components/` - Specialized components (ButtonWithPermission, EmptyList, etc.)
+4. `apps/client/src/modules/platform/{feature}/components/` - Feature-specific
+
+**Naming Convention**:
+
+- UI primitives: lowercase (button, dialog, input)
+- Specialized: PascalCase (ButtonWithPermission, EmptyList)
 
 ## When to Create New Components
 
