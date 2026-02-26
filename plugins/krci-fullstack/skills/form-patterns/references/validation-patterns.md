@@ -1,20 +1,21 @@
 # Form Validation Patterns
 
-Comprehensive guide for implementing form validation using Tanstack Form's validation system.
+Comprehensive guide for implementing form validation using TanStack Form's validation system.
 
 ## Validation Levels
 
-Tanstack Form supports three levels of validation:
+TanStack Form supports three levels of validation:
+
 1. **Field-Level Validation** - Validates individual fields
 2. **Async Validation** - Server-side or async field validation
 3. **Form-Level Validation** - Cross-field validation
 
 ## Field-Level Validation
 
-Add validators to individual fields using the `validators` prop on `form.Field`:
+Add validators to individual fields using the `validators` prop on `form.AppField`:
 
 ```typescript
-<form.Field
+<form.AppField
   name="email"
   validators={{
     onChange: ({ value }) => {
@@ -26,8 +27,8 @@ Add validators to individual fields using the `validators` prop on `form.Field`:
     },
   }}
 >
-  {(field) => <TextField field={field} label="Email" />}
-</form.Field>
+  {(field) => <field.FormTextField label="Email" />}
+</form.AppField>
 ```
 
 ### Validation Triggers
@@ -40,7 +41,7 @@ Add validators to individual fields using the `validators` prop on `form.Field`:
 ### Multiple Validators
 
 ```typescript
-<form.Field
+<form.AppField
   name="password"
   validators={{
     onChange: ({ value }) => {
@@ -55,8 +56,8 @@ Add validators to individual fields using the `validators` prop on `form.Field`:
     },
   }}
 >
-  {(field) => <TextField field={field} label="Password" type="password" />}
-</form.Field>
+  {(field) => <field.FormTextField label="Password" type="password" />}
+</form.AppField>
 ```
 
 ## Async Validation
@@ -64,7 +65,7 @@ Add validators to individual fields using the `validators` prop on `form.Field`:
 For server-side validation or async checks:
 
 ```typescript
-<form.Field
+<form.AppField
   name="username"
   validators={{
     onChangeAsync: async ({ value }) => {
@@ -76,8 +77,8 @@ For server-side validation or async checks:
     onChangeAsyncDebounceMs: 500, // Debounce to avoid excessive API calls
   }}
 >
-  {(field) => <TextField field={field} label="Username" />}
-</form.Field>
+  {(field) => <field.FormTextField label="Username" />}
+</form.AppField>
 ```
 
 ### Async Validation Best Practices
@@ -85,12 +86,12 @@ For server-side validation or async checks:
 1. **Debounce**: Always set `onChangeAsyncDebounceMs` (300-500ms) to avoid excessive API calls
 2. **Loading State**: Check `field.state.meta.isValidating` to show loading indicator
 3. **Error Handling**: Catch and handle API errors gracefully
-4. **Cancel Requests**: Tanstack Form automatically cancels previous async validations
+4. **Cancel Requests**: TanStack Form automatically cancels previous async validations
 
 ### Async with Loading Indicator
 
 ```typescript
-<form.Field
+<form.AppField
   name="email"
   validators={{
     onChangeAsync: async ({ value }) => {
@@ -104,13 +105,13 @@ For server-side validation or async checks:
 >
   {(field) => (
     <div>
-      <TextField field={field} label="Email" />
+      <field.FormTextField label="Email" />
       {field.state.meta.isValidating && (
         <span className="text-sm text-muted-foreground">Checking...</span>
       )}
     </div>
   )}
-</form.Field>
+</form.AppField>
 ```
 
 ## Form-Level Validation
@@ -118,7 +119,7 @@ For server-side validation or async checks:
 Validate across multiple fields using form-level validators:
 
 ```typescript
-const form = useForm<FormValues>({
+const form = useAppForm<FormValues>({
   defaultValues: {
     password: "",
     confirmPassword: "",
@@ -141,7 +142,7 @@ const form = useForm<FormValues>({
 ### Complex Cross-Field Validation
 
 ```typescript
-const form = useForm<FormValues>({
+const form = useAppForm<FormValues>({
   defaultValues: {
     startDate: null,
     endDate: null,
@@ -171,11 +172,37 @@ const form = useForm<FormValues>({
 
 ## Using Zod Schemas
 
-For complex validation, use Zod schemas:
+For complex validation, use Zod schemas inline via the `validators` prop. This is the preferred pattern over manually calling `schema.parse()` with try/catch:
 
 ```typescript
 import { z } from "zod";
 
+// Preferred: inline Zod schema directly in the validators prop
+<form.AppField
+  name="name"
+  validators={{
+    onChange: z.string()
+      .min(1, "Name is required")
+      .max(63, "Name too long")
+      .regex(/^[a-z0-9-]+$/, "Only lowercase alphanumeric and hyphens"),
+  }}
+>
+  {(field) => <field.FormTextField label="Name" />}
+</form.AppField>
+
+<form.AppField
+  name="gitUrl"
+  validators={{
+    onChange: z.string().url("Invalid URL format"),
+  }}
+>
+  {(field) => <field.FormTextField label="Git URL" />}
+</form.AppField>
+```
+
+For form-level Zod validation, compose a full object schema:
+
+```typescript
 const codebaseSchema = z.object({
   name: z.string()
     .min(1, "Name is required")
@@ -186,22 +213,12 @@ const codebaseSchema = z.object({
   type: z.enum(["application", "library", "autotests"]),
 });
 
-// Use in field validator
-<form.Field
-  name="name"
-  validators={{
-    onChange: ({ value }) => {
-      try {
-        codebaseSchema.shape.name.parse(value);
-        return undefined;
-      } catch (error) {
-        return error.errors[0]?.message || "Invalid value";
-      }
-    },
-  }}
->
-  {(field) => <TextField field={field} label="Name" />}
-</form.Field>
+const form = useAppForm<FormValues>({
+  defaultValues: { name: "", gitUrl: "", branch: "", type: "application" },
+  validators: {
+    onChange: codebaseSchema,
+  },
+});
 ```
 
 ## Validation Patterns
@@ -210,7 +227,7 @@ const codebaseSchema = z.object({
 
 ```typescript
 validators={{
-  onChange: ({ value }) => !value ? "This field is required" : undefined,
+  onChange: z.string().min(1, "This field is required"),
 }}
 ```
 
@@ -218,13 +235,9 @@ validators={{
 
 ```typescript
 validators={{
-  onChange: ({ value }) => {
-    if (!value) return "Email is required";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      return "Invalid email format";
-    }
-    return undefined;
-  },
+  onChange: z.string()
+    .min(1, "Email is required")
+    .email("Invalid email format"),
 }}
 ```
 
@@ -232,15 +245,7 @@ validators={{
 
 ```typescript
 validators={{
-  onChange: ({ value }) => {
-    if (!value) return undefined; // Optional
-    try {
-      new URL(value);
-      return undefined;
-    } catch {
-      return "Invalid URL format";
-    }
-  },
+  onChange: z.string().url("Invalid URL format").optional(),
 }}
 ```
 
@@ -248,12 +253,9 @@ validators={{
 
 ```typescript
 validators={{
-  onChange: ({ value }) => {
-    const num = Number(value);
-    if (isNaN(num)) return "Must be a number";
-    if (num < 1 || num > 100) return "Must be between 1 and 100";
-    return undefined;
-  },
+  onChange: z.number({ invalid_type_error: "Must be a number" })
+    .min(1, "Must be at least 1")
+    .max(100, "Must be at most 100"),
 }}
 ```
 
@@ -261,23 +263,21 @@ validators={{
 
 ```typescript
 validators={{
-  onChange: ({ value }) => {
-    if (!/^[a-z0-9-]+$/.test(value)) {
-      return "Only lowercase letters, numbers, and hyphens allowed";
-    }
-    return undefined;
-  },
+  onChange: z.string().regex(
+    /^[a-z0-9-]+$/,
+    "Only lowercase letters, numbers, and hyphens allowed"
+  ),
 }}
 ```
 
 ### Conditional Validation
 
 ```typescript
-<form.Field
+<form.AppField
   name="customValue"
   validators={{
-    onChange: ({ value, fieldApi }) => {
-      const formValues = fieldApi.form.state.values;
+    onChange: ({ value }) => {
+      const formValues = form.store.state.values;
       // Only validate if type is "custom"
       if (formValues.type === "custom" && !value) {
         return "Custom value is required";
@@ -286,8 +286,8 @@ validators={{
     },
   }}
 >
-  {(field) => <TextField field={field} label="Custom Value" />}
-</form.Field>
+  {(field) => <field.FormTextField label="Custom Value" />}
+</form.AppField>
 ```
 
 ## Error Display
@@ -304,7 +304,7 @@ const errorMessage = hasError ? (error as string) : undefined;
 ### Manual Error Display
 
 ```typescript
-<form.Field name="username">
+<form.AppField name="username">
   {(field) => (
     <div>
       <Input
@@ -318,7 +318,7 @@ const errorMessage = hasError ? (error as string) : undefined;
       )}
     </div>
   )}
-</form.Field>
+</form.AppField>
 ```
 
 ## Programmatic Validation
@@ -333,7 +333,7 @@ await form.validateField("email", "change");
 await form.validateAllFields("change");
 
 // Check if form is valid
-const isValid = form.state.isValid;
+const isValid = form.store.state.isValid;
 ```
 
 ## Best Practices
@@ -344,5 +344,5 @@ const isValid = form.state.isValid;
 4. **Debounce async**: Always debounce async validation (300-500ms)
 5. **Validate on blur**: For heavy validation, use `onBlur` instead of `onChange`
 6. **Form-level for cross-field**: Use form-level validators when fields depend on each other
-7. **Zod for complex rules**: Use Zod schemas for complex validation logic
+7. **Zod for complex rules**: Prefer inline Zod validators (`validators={{ onChange: z.string().min(1) }}`) over manual try/catch parsing
 8. **Show loading state**: Display loading indicator during async validation

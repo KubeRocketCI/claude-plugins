@@ -23,6 +23,7 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 **Load relevant knowledge skills BEFORE exploring the codebase.** Analyze the issue description first, then load skills that provide context needed for efficient diagnosis. This prevents wasting time rediscovering patterns already documented in skills.
 
 **Decide which skills to load based on the issue description:**
+
 - **frontend-tech-stack** — if the issue involves project structure, architecture, auth flow, monorepo setup, or you need to understand how the portal is organized
 - **api-integration** — if the issue involves API calls, tRPC, data fetching, error handling, or backend integration
 - **component-development** — if the issue involves UI components, layouts, or component patterns

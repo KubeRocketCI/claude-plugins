@@ -33,6 +33,7 @@ Follow structured phases to implement the feature: `$ARGUMENTS`
 **Load relevant knowledge skills BEFORE exploring the codebase.** Analyze the feature description first, then load skills that provide context needed for efficient planning. This prevents wasting time rediscovering patterns already documented in skills.
 
 **Decide which skills to load based on the feature description:**
+
 - **frontend-tech-stack** — if the feature involves understanding project structure, architecture, auth flow, or monorepo setup
 - **api-integration** — if the feature involves API endpoints, tRPC, data fetching, or backend integration
 - **component-development** — if the feature involves creating/modifying UI components
