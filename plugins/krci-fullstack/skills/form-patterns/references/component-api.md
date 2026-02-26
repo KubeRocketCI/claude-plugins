@@ -1,6 +1,6 @@
 # Form Component API Reference
 
-Quick reference for all form components in `/core/form-temp/components/`.
+Quick reference for all form components in `/core/components/form/components/`.
 
 ## Common Props (All Components)
 
@@ -37,6 +37,7 @@ Quick reference for all form components in `/core/form-temp/components/`.
 ```
 
 **Unique Props:**
+
 - `type` - Input type
 - `editable` - Show edit button
 - `initiallyEditable` - Start in edit mode
@@ -92,6 +93,7 @@ Multi-line password input with show/hide.
 ```
 
 **Option Type:**
+
 ```typescript
 {
   value: string;
@@ -146,6 +148,7 @@ Searchable/filterable select.
 ```
 
 **Unique Props:**
+
 - `variant` - Layout direction
 - `classNames` - Custom styling per element
 
@@ -326,7 +329,7 @@ listeners={{
 
 ## Component Locations
 
-All components: `/core/form-temp/components/`
+All components: `/core/components/form/components/`
 
 ```
 FormTextField/index.tsx
@@ -346,4 +349,4 @@ FormControlLabelWithTooltip/index.tsx
 SwitchGroup/index.tsx
 ```
 
-Main export: `/core/form-temp/index.ts`
+Main export: `/core/components/form/index.ts`

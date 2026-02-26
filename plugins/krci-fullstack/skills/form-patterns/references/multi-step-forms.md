@@ -5,6 +5,7 @@ Provider-based multi-step wizards with TanStack Form.
 ## Architecture
 
 **Three Providers:**
+
 1. **FormProvider** - Wraps `useAppForm`, provides form instance
 2. **StepperProvider** - Manages step navigation and validation
 3. **FormGuideProvider** - (Optional) Help sidebar with contextual guidance
@@ -289,7 +290,7 @@ const HELP_CONFIG = {
 </FormGuideProvider>
 ```
 
-**Details**: See `~/.claude/.../memory/form-guide.md`
+**Details**: See `/core/providers/FormGuide/` in the codebase
 
 ---
 
@@ -318,4 +319,4 @@ See `references/real-examples.md` for specific patterns.
 
 - **Stepper**: `/core/providers/Stepper/`
 - **FormGuide**: `/core/providers/FormGuide/`
-- **Pattern docs**: `~/.claude/.../memory/form-guide.md`
+- **Pattern docs**: `/core/providers/FormGuide/` in the codebase

@@ -121,7 +121,9 @@ For detailed patterns, see the **form-patterns** and **filter-patterns** skills.
 ## Permission Components (`@/core/components/`)
 
 ### ButtonWithPermission
+
 Button with RBAC integration:
+
 ```tsx
 <ButtonWithPermission
   allowed={permissions.data?.create.allowed}
@@ -176,6 +178,98 @@ Sidebar components for app navigation.
 
 **Location**: `apps/client/src/core/components/sidebar/`
 
+## Data Display & Layout Components
+
+### DataGrid
+
+Card-based grid layout with pagination:
+
+```tsx
+<DataGrid
+  data={items}
+  isLoading={isLoading}
+  renderItem={(item) => <ItemCard {...item} />}
+  filterFunction={(item) => item.status === 'active'}
+  showPagination={true}
+  rowsPerPage={9}
+  emptyListComponent={<EmptyList missingItemName="items" />}
+/>
+```
+
+### DataTable
+
+Advanced data table with sorting, filtering, column management. **Always use with `useColumns` hook** (see table-patterns skill):
+
+```tsx
+import { useColumns } from "./hooks/useColumns";
+
+export function ItemList() {
+  const columns = useColumns();
+  const itemsWatch = useItemsWatchList();
+
+  return (
+    <DataTable
+      id={TABLE.ITEMS.id}
+      name="Items"
+      columns={columns}
+      data={itemsWatch.data.array}
+      isLoading={!itemsWatch.query.isFetched}
+      emptyListComponent={<EmptyList missingItemName="items" />}
+    />
+  );
+}
+```
+
+### InfoColumns
+
+Display information in labeled columns:
+
+```tsx
+<InfoColumns
+  gridItems={[
+    { label: "Name", content: <span>{name}</span>, colSpan: 2 },
+    { label: "Status", content: <StatusIcon status={status} />, colSpan: 2 },
+  ]}
+  gridCols={4}
+/>
+```
+
+### CodeEditor
+
+Monaco-based code editor:
+
+```tsx
+<CodeEditor
+  content={yamlObject}
+  onChange={(text, json, error) => handleChange(json)}
+  language="yaml"
+  height={500}
+  readOnly={false}
+/>
+```
+
+### ActionsInlineList
+
+Horizontal row of action buttons:
+
+```tsx
+<ActionsInlineList
+  actions={[
+    { name: "Edit", Icon: <PencilIcon />, action: handleEdit },
+    { name: "Delete", Icon: <TrashIcon />, action: handleDelete,
+      disabled: { status: true, reason: "No permission" } },
+  ]}
+/>
+```
+
+### Layout Components
+
+- **PageLayout** - Main application layout with Header and Sidebar
+- **DetailsPageWrapper** - Wrapper for detail pages with error boundary
+- **Section** / **SubSection** - Semantic content sections
+- **TabPanel** / **TabSection** - Content panel for tab views
+- **BorderedSection** - Content section with border styling
+
 ## Finding Components
 
 **Check locations in order**:
@@ -224,7 +318,9 @@ Create new components only if:
 ## Important Patterns
 
 ### Table/DataTable Pattern
+
 **Always** use the `useColumns` hook pattern when implementing tables:
+
 1. Create `hooks/useColumns.tsx` with column definitions
 2. Use `useTableSettings` for persistent settings
 3. Use `getSyncedColumnData` to merge settings

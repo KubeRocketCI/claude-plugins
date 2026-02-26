@@ -14,8 +14,8 @@ const filterForm = useAppForm({
 // Subscribe to changes
 useEffect(() => {
   const unsubscribe = filterForm.store.subscribe(() => {
-    setSearchValue(filterForm.state.values.search);
-    setCategoryValue(filterForm.state.values.category);
+    setSearchValue(filterForm.store.state.values.search);
+    setCategoryValue(filterForm.store.state.values.category);
   });
   return unsubscribe;
 }, [filterForm]);
@@ -378,5 +378,5 @@ export const FormProvider: React.FC<PropsWithChildren> = ({ children }) => {
 
 - **CreateCodebaseWizard**: `/modules/platform/codebases/pages/create/components/CreateCodebaseWizard/`
 - **CreateStageWizard**: `/modules/platform/cdpipelines/pages/stages/create/components/CreateStageWizard/`
-- **Form Components**: `/core/form-temp/components/`
+- **Form Components**: `/core/components/form/components/`
 - **Providers**: `/core/providers/Stepper/`, `/core/providers/FormGuide/`
