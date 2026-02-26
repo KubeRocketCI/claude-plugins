@@ -23,8 +23,8 @@ Provide essential context about the portal's technical foundation including fron
 
 **State & Forms**:
 
+- TanStack Form with custom `useAppForm` hook for type-safe forms (see form-patterns skill)
 - Zustand for lightweight client-side UI state
-- React Hook Form (RHF) with Zod validation
 
 **Styling & UI**:
 

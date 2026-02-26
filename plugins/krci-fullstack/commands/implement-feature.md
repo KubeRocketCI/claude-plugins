@@ -18,12 +18,11 @@ You are helping a developer implement a new feature. Follow a systematic approac
 
 CRITICAL: Follow this workflow to implement the portal feature:
 
-Use fullstack-dev agent to implement the feature:
+Follow structured phases to implement the feature: `$ARGUMENTS`
 
-- The fullstack-dev agent will implement `$ARGUMENTS`
-- Agent will follow structured phases: Discovery → Planning → Design → Implementation → Testing
-- Agent will load skills dynamically based on what the feature needs
-- Agent will use TodoWrite to track all phases
+- Phases: Discovery → Planning → Design → Implementation → Testing → Quality Review → Summary
+- Load skills dynamically based on what the feature needs
+- Use TodoWrite to track all phases
 
 ---
 
@@ -31,18 +30,34 @@ Use fullstack-dev agent to implement the feature:
 
 **Goal**: Understand what feature needs to be built and its business purpose
 
+**Load relevant knowledge skills BEFORE exploring the codebase.** Analyze the feature description first, then load skills that provide context needed for efficient planning. This prevents wasting time rediscovering patterns already documented in skills.
+
+**Decide which skills to load based on the feature description:**
+- **frontend-tech-stack** — if the feature involves understanding project structure, architecture, auth flow, or monorepo setup
+- **api-integration** — if the feature involves API endpoints, tRPC, data fetching, or backend integration
+- **component-development** — if the feature involves creating/modifying UI components
+- **routing-permissions** — if the feature involves new pages, routes, navigation, or RBAC
+- **form-patterns** — if the feature involves forms, validation, or user input
+- **table-patterns** — if the feature involves data tables or list views
+- **filter-patterns** — if the feature involves filtering or search
+- **k8s-resources** — if the feature involves Kubernetes resource display
+
+**CRITICAL**: Load skills BEFORE using Grep/Glob/Read to explore. Only load skills relevant to the feature — not all of them.
+
 **Actions**:
 
-1. Create todo list with all 7 phases using TodoWrite
-2. If feature description from $ARGUMENTS is clear:
+1. Parse feature description from $ARGUMENTS to determine which skills to load
+2. Load relevant skills based on the feature type
+3. Create todo list with all 7 phases using TodoWrite
+4. If feature description from $ARGUMENTS is clear:
    - Summarize your understanding
    - Identify feature type (component, API, routing, table, form, permissions, or combination)
-3. If feature description is unclear or missing, use AskUserQuestion to ask:
+5. If feature description is unclear or missing, use AskUserQuestion to ask:
    - What problem does this feature solve?
    - Who will use it and when?
    - What should it do?
    - Are there similar features in the portal to reference?
-4. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
+6. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
 
 **Output**: Clear statement of feature purpose and target users
 
@@ -81,18 +96,7 @@ Use fullstack-dev agent to implement the feature:
    ```
 
 5. Add sub-tasks to TodoWrite for each major component to implement
-6. **Identify which skills to load** based on components:
-   - If ANY components need context: frontend-tech-stack (monorepo, tech stack)
-   - If UI components: component-development
-   - If forms: form-patterns
-   - If tables: table-patterns
-   - If tables with filtering: filter-patterns
-   - If APIs: api-integration
-   - If routes/RBAC: routing-permissions
-   - If K8s UIs: k8s-resources
-   - Testing will need: testing-standards
-
-7. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
+6. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
 
 **Output**: Confirmed list of components to create/modify + list of skills to load
 
@@ -104,23 +108,22 @@ Use fullstack-dev agent to implement the feature:
 
 **Goal**: Specify implementation details and resolve all ambiguities
 
-**MUST load skills** using Skill tool based on Phase 2 analysis:
+**Load any additional skills** not yet loaded that are needed for implementation, based on Phase 2 component analysis.
 
-1. **Load krci-fullstack:frontend-tech-stack skill** (if any components - provides monorepo/tech stack context)
+Some skills may already be loaded from Phase 1. Only load skills that are newly relevant:
 
-2. **Load krci-fullstack:component-development skill** (if UI components - provides project structure)
+- Load krci-fullstack:frontend-tech-stack (if not loaded in Phase 1 and now needed)
+- Load krci-fullstack:api-integration (if not loaded in Phase 1 and now needed)
+- Load krci-fullstack:component-development (if UI components - provides project structure)
+- Load krci-fullstack:form-patterns (if forms)
+- Load krci-fullstack:table-patterns (if tables)
+- Load krci-fullstack:filter-patterns (if tables with filtering)
+- Load krci-fullstack:routing-permissions (if routes/RBAC)
+- Load krci-fullstack:k8s-resources (if K8s UIs)
 
-3. **Load additional pattern-specific skills** based on Phase 2 components:
-   - Load krci-fullstack:form-patterns (if forms)
-   - Load krci-fullstack:table-patterns (if tables)
-   - Load krci-fullstack:filter-patterns (if tables with filtering)
-   - Load krci-fullstack:api-integration (if APIs)
-   - Load krci-fullstack:routing-permissions (if routes/RBAC)
-   - Load krci-fullstack:k8s-resources (if K8s UIs)
+**For authentication features only:** Read frontend-tech-stack/references/auth-integration.md for OAuth flow
 
-4. **For authentication features only:** Read frontend-tech-stack/references/auth-integration.md for OAuth flow
-
-**CRITICAL**: Load ONLY skills needed for this specific feature. This is one of the most important phases. DO NOT SKIP.
+**CRITICAL**: Do NOT re-load skills already loaded in Phase 1. Only load what's newly needed. DO NOT SKIP this phase.
 
 **Actions**:
 
@@ -375,19 +378,19 @@ Use fullstack-dev agent to implement the feature:
 
 ### Skills to Load by Phase
 
-Skills are loaded **dynamically based on feature needs** identified in Phase 2:
+Skills are loaded **as early as possible** to provide context before exploration. Analyze the feature first, then load what's relevant:
 
-- **Phase 2**: Identify which skills will be needed (no loading yet)
-- **Phase 3**: Load skills identified in Phase 2:
-  - frontend-tech-stack (if any components - tech stack and monorepo)
-  - component-development (if UI components - project structure)
-  - form-patterns (if forms)
-  - table-patterns (if tables)
-  - filter-patterns (if tables with filtering)
-  - api-integration (if APIs)
-  - routing-permissions (if routes/RBAC)
-  - k8s-resources (if K8s UIs)
-  - auth-integration.md reference (if auth features only)
+- **Phase 1** (before exploration): Analyze feature description and load relevant skills:
+  - frontend-tech-stack — if feature involves architecture, project structure, auth flow
+  - api-integration — if feature involves APIs, tRPC, data fetching
+  - component-development — if feature involves UI components
+  - routing-permissions — if feature involves routes, navigation, RBAC
+  - form-patterns — if feature involves forms
+  - table-patterns — if feature involves tables
+  - filter-patterns — if feature involves filtering
+  - k8s-resources — if feature involves K8s resources
+- **Phase 2**: Identify needed components (no loading unless new areas discovered)
+- **Phase 3**: Load any additional skills newly identified from Phase 2 (do NOT re-load skills from Phase 1). Also load auth-integration.md reference if auth features.
 - **Phase 5**: testing-standards (for writing tests)
 - **Phase 6**: code-reviewer agents launched via Task tool (krci-general:code-reviewer)
 

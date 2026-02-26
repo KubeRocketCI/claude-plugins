@@ -89,89 +89,89 @@ export const useCDPipelineFilter = () =>
 
 ```typescript
 import React from "react";
-import { TextField, Autocomplete } from "@/core/components/form";
 import { Button } from "@/core/components/ui/button";
+import { Label } from "@/core/components/ui/label";
+import { X } from "lucide-react";
 import { CDPIPELINE_LIST_FILTER_NAMES } from "./constants";
 import { useCDPipelineFilter } from "./hooks/useFilter";
-import { useCodebaseWatchList } from "@/k8s/api/groups/.../Codebase";
-import { useNamespaces } from "@/core/hooks/useNamespaces";
+import { useCDPipelineWatchList } from "@/k8s/api/groups/.../CDPipeline";
+import { useClusterStore } from "@/k8s/store";
+import { useShallow } from "zustand/react/shallow";
 
 export const CDPipelineFilter = () => {
   const { form, reset } = useCDPipelineFilter();
 
-  // Fetch options for multi-select fields
-  const codebaseWatch = useCodebaseWatchList();
-  const { namespaces } = useNamespaces();
+  const cdPipelineListWatch = useCDPipelineWatchList();
+  const allowedNamespaces = useClusterStore(useShallow((state) => state.allowedNamespaces));
+  const showNamespaceFilter = allowedNamespaces.length > 1;
 
-  // Prepare options for autocomplete
-  const codebaseOptions = React.useMemo(() => {
-    return codebaseWatch.dataArray.map((codebase) => ({
-      label: codebase.metadata.name,
-      value: codebase.metadata.name,
-    }));
-  }, [codebaseWatch.dataArray]);
+  // Extract unique codebases from all pipelines
+  const cdPipelineCodebases = React.useMemo(() => {
+    const list = cdPipelineListWatch.data.array ?? [];
+    return Array.from(
+      list.reduce((acc, cur) => {
+        cur?.spec?.applications?.forEach((codebase) => acc.add(codebase));
+        return acc;
+      }, new Set<string>())
+    );
+  }, [cdPipelineListWatch.data.array]);
 
-  const namespaceOptions = React.useMemo(() => {
-    return namespaces.map((ns) => ({
-      label: ns,
-      value: ns,
-    }));
-  }, [namespaces]);
+  const codebaseOptions = React.useMemo(
+    () => cdPipelineCodebases.map((value) => ({ label: value, value })),
+    [cdPipelineCodebases]
+  );
+
+  const namespaceOptions = React.useMemo(
+    () => allowedNamespaces.map((value) => ({ label: value, value })),
+    [allowedNamespaces]
+  );
 
   return (
-    <div className="flex items-start gap-4">
-      {/* Search Field */}
-      <div className="w-64">
-        <form.Field name={CDPIPELINE_LIST_FILTER_NAMES.SEARCH}>
-          {(field) => (
-            <TextField
-              field={field}
-              label="Search"
-              placeholder="Search CD pipelines"
-            />
-          )}
-        </form.Field>
+    <>
+      <div className="col-span-3">
+        <form.AppField name={CDPIPELINE_LIST_FILTER_NAMES.SEARCH}>
+          {(field) => <field.FormTextField label="Search" placeholder="Search CD Pipelines" />}
+        </form.AppField>
       </div>
 
-      {/* Codebases Multi-Select */}
-      <div className="w-64">
-        <form.Field name={CDPIPELINE_LIST_FILTER_NAMES.CODEBASES}>
+      <div className="col-span-4">
+        <form.AppField name={CDPIPELINE_LIST_FILTER_NAMES.CODEBASES}>
           {(field) => (
-            <Autocomplete
-              field={field}
-              label="Codebases"
+            <field.FormCombobox
+              multiple
               options={codebaseOptions}
+              label="Codebases"
               placeholder="Select codebases"
-              multiple={true}
             />
           )}
-        </form.Field>
+        </form.AppField>
       </div>
 
-      {/* Namespaces Multi-Select */}
-      <div className="w-64">
-        <form.Field name={CDPIPELINE_LIST_FILTER_NAMES.NAMESPACES}>
-          {(field) => (
-            <Autocomplete
-              field={field}
-              label="Namespaces"
-              options={namespaceOptions}
-              placeholder="Select namespaces"
-              multiple={true}
-            />
-          )}
-        </form.Field>
-      </div>
+      {showNamespaceFilter && (
+        <div className="col-span-4">
+          <form.AppField name={CDPIPELINE_LIST_FILTER_NAMES.NAMESPACES}>
+            {(field) => (
+              <field.FormCombobox
+                options={namespaceOptions}
+                label="Namespaces"
+                placeholder="Select namespaces"
+                multiple
+              />
+            )}
+          </form.AppField>
+        </div>
+      )}
 
-      {/* Clear Button */}
       {form.state.isDirty && (
-        <div className="mt-4">
-          <Button variant="outline" onClick={reset} size="sm">
-            Clear Filters
+        <div className="col-span-1 flex flex-col gap-2">
+          <Label> </Label>
+          <Button variant="secondary" onClick={reset} size="sm" className="mt-0.5">
+            <X size={16} />
+            Clear
           </Button>
         </div>
       )}
-    </div>
+    </>
   );
 };
 ```
@@ -308,17 +308,17 @@ const codebaseOptions = React.useMemo(() => {
 ```typescript
 // Show namespace filter only if user has multi-namespace access
 {hasMultiNamespaceAccess && (
-  <div className="w-64">
-    <form.Field name={FILTER_NAMES.NAMESPACES}>
+  <div className="col-span-4">
+    <form.AppField name={FILTER_NAMES.NAMESPACES}>
       {(field) => (
-        <Autocomplete
-          field={field}
+        <field.FormCombobox
           label="Namespaces"
           options={namespaceOptions}
-          multiple={true}
+          placeholder="Select namespaces"
+          multiple
         />
       )}
-    </form.Field>
+    </form.AppField>
   </div>
 )}
 ```

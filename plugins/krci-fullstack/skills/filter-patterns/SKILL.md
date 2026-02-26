@@ -1,7 +1,7 @@
 ---
 name: Filter Patterns
 description: This skill should be used when the user asks to "add filter", "implement filter", "create filtering", "FilterProvider", "search filter", "filter table", "match functions", "URL sync filter", or mentions filter state, filter UI components, or data filtering patterns.
-version: 0.1.0
+version: 0.2.0
 ---
 
 Implement data filtering using the FilterProvider pattern with TanStack Form for state management, URL synchronization, and declarative match functions.
@@ -81,8 +81,9 @@ export const useEntityFilter = () =>
 
 ```typescript
 // index.tsx
-import { TextField } from "@/core/components/form";
 import { Button } from "@/core/components/ui/button";
+import { Label } from "@/core/components/ui/label";
+import { X } from "lucide-react";
 import { ENTITY_FILTER_NAMES } from "./constants";
 import { useEntityFilter } from "./hooks/useFilter";
 
@@ -90,19 +91,23 @@ export const EntityFilter = () => {
   const { form, reset } = useEntityFilter();
 
   return (
-    <div className="flex items-start gap-4">
-      <div className="w-64">
-        <form.Field name={ENTITY_FILTER_NAMES.SEARCH}>
-          {(field) => <TextField field={field} label="Search" placeholder="Search..." />}
-        </form.Field>
+    <>
+      <div className="col-span-3">
+        <form.AppField name={ENTITY_FILTER_NAMES.SEARCH}>
+          {(field) => <field.FormTextField label="Search" placeholder="Search..." />}
+        </form.AppField>
       </div>
 
       {form.state.isDirty && (
-        <Button variant="outline" onClick={reset} size="sm">
-          Clear
-        </Button>
+        <div className="col-span-1 flex flex-col gap-2">
+          <Label> </Label>
+          <Button variant="secondary" onClick={reset} size="sm" className="mt-0.5">
+            <X size={16} />
+            Clear
+          </Button>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 ```
