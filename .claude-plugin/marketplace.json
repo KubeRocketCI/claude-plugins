@@ -5,15 +5,13 @@
     "name": "KubeRocketCI Team"
   },
   "metadata": {
-    "version": "0.1.0",
-    "description": "AI agents adapted from KubeRocketAI framework for SDLC workflows"
+    "description": "AI agents for KubeRocketCI platform - SDLC automation"
   },
   "plugins": [
     {
       "name": "krci-godev",
       "source": "./plugins/krci-godev",
       "description": "KubeRocketCI Go Developer agent - Expert Go and Kubernetes operator development assistance",
-      "version": "0.1.0",
       "category": "development",
       "keywords": ["kuberocketci", "golang", "go", "kubernetes", "operator", "crd"],
       "license": "Apache-2.0",
@@ -26,7 +24,6 @@
       "name": "krci-general",
       "source": "./plugins/krci-general",
       "description": "General-purpose KubeRocketCI development utilities including commit message generation and code review",
-      "version": "0.1.0",
       "category": "development",
       "keywords": ["kuberocketci", "git", "commit", "conventional-commits", "code-review", "utilities"],
       "license": "Apache-2.0",
@@ -39,7 +36,6 @@
       "name": "krci-fullstack",
       "source": "./plugins/krci-fullstack",
       "description": "KubeRocketCI Fullstack Developer agent - Expert React, TypeScript, Radix UI, Tailwind CSS, and tRPC development assistance for portal applications",
-      "version": "0.1.0",
       "category": "development",
       "keywords": ["kuberocketci", "react", "typescript", "radix-ui", "tailwind", "frontend", "trpc", "fullstack-dev", "portal"],
       "license": "Apache-2.0",
@@ -52,7 +48,6 @@
       "name": "krci-devops",
       "source": "./plugins/krci-devops",
       "description": "KubeRocketCI DevOps agent - Expert automation for EDP-Tekton repository (github.com/epam/edp-tekton) pipeline and task onboarding",
-      "version": "0.1.0",
       "category": "devops",
       "keywords": ["kuberocketci", "devops", "tekton", "pipelines", "helm", "kubernetes", "automation", "edp-tekton"],
       "license": "Apache-2.0",
@@ -65,7 +60,6 @@
       "name": "krci-architect",
       "source": "./plugins/krci-architect",
       "description": "KubeRocketCI Architect agent - Technical architecture planning, design validation, and cross-component coordination for the KRCI ecosystem",
-      "version": "0.1.0",
       "category": "architecture",
       "keywords": ["kuberocketci", "architect", "planning", "design", "architecture", "coordination", "multi-repo", "technical-design"],
       "license": "Apache-2.0",
