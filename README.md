@@ -39,6 +39,19 @@ claude plugin install krci-architect krci-fullstack krci-godev krci-devops krci-
 | `/krci-general:commit`                | Generate conventional commit message from staged changes         |
 | `/krci-general:review`                | Review code for bugs, security issues, and convention violations |
 
+## Contributing
+
+### Version Bump Requirement
+
+Every PR that modifies plugin files **must** include a version bump in the affected plugin's manifest. CI will block the merge otherwise.
+
+1. Identify which plugin(s) your changes touch (anything under `plugins/<name>/`)
+2. Bump the `version` field in `plugins/<name>/.claude-plugin/plugin.json`
+3. Follow [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`
+   - **PATCH** — bug fixes, typo corrections, minor skill/command tweaks
+   - **MINOR** — new commands, skills, agents, or meaningful behavior changes
+   - **MAJOR** — breaking changes to command interfaces or plugin structure
+
 ## License
 
 Apache-2.0

@@ -1,0 +1,85 @@
+name: Check Plugin Version Bump
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed
+        run: |
+          FILES=$(git diff --name-only origin/${{ github.event.pull_request.base.ref }}...HEAD)
+          echo "files<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$FILES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
+      - name: Check plugin versions
+        run: |
+          set -euo pipefail
+
+          # Returns 0 (true) if $1 > $2 in semver ordering, using GNU sort -V
+          semver_gt() {
+            local highest
+            highest=$(printf '%s\n%s' "$1" "$2" | sort -V | tail -1)
+            [[ "$highest" == "$1" && "$1" != "$2" ]]
+          }
+
+          FAILED=0
+          CHECKED=""
+
+          while IFS= read -r file; do
+            [[ -z "$file" ]] && continue
+
+            # Only care about files under plugins/<name>/
+            if [[ "$file" =~ ^plugins/([^/]+)/ ]]; then
+              PLUGIN="${BASH_REMATCH[1]}"
+
+              # Skip if already checked this plugin
+              if [[ " $CHECKED " == *" $PLUGIN "* ]]; then
+                continue
+              fi
+              CHECKED="$CHECKED $PLUGIN"
+
+              MANIFEST="plugins/$PLUGIN/.claude-plugin/plugin.json"
+
+              if [[ ! -f "$MANIFEST" ]]; then
+                echo "::warning::No plugin.json found at $MANIFEST — skipping"
+                continue
+              fi
+
+              # Get version from PR branch
+              NEW_VERSION=$(jq -r '.version' "$MANIFEST")
+
+              # Get version from base branch
+              OLD_VERSION=$(git show "origin/${{ github.event.pull_request.base.ref }}:$MANIFEST" 2>/dev/null | jq -r '.version') || OLD_VERSION=""
+
+              if [[ -z "$OLD_VERSION" ]]; then
+                echo "✓ $PLUGIN — new plugin (version $NEW_VERSION)"
+                continue
+              fi
+
+              if [[ "$NEW_VERSION" == "$OLD_VERSION" ]]; then
+                echo "::error::Plugin '$PLUGIN' has changed files but version was not bumped (current: $OLD_VERSION). Update version in $MANIFEST."
+                FAILED=1
+              elif semver_gt "$NEW_VERSION" "$OLD_VERSION"; then
+                echo "✓ $PLUGIN — version bumped: $OLD_VERSION → $NEW_VERSION"
+              else
+                echo "::error::Plugin '$PLUGIN' version must be greater than $OLD_VERSION, got $NEW_VERSION. Do not downgrade versions."
+                FAILED=1
+              fi
+            fi
+          done <<< "${{ steps.changed.outputs.files }}"
+
+          if [[ "$FAILED" -eq 1 ]]; then
+            echo ""
+            echo "One or more plugins have changes without a valid version bump."
+            echo "Bump the \"version\" (MAJOR.MINOR.PATCH) in the plugin's .claude-plugin/plugin.json."
+            exit 1
+          fi
