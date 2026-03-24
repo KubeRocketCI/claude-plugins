@@ -1,6 +1,7 @@
 ---
 name: code-reviewer
-description: Reviews code for bugs, logic errors, security vulnerabilities, code quality issues, and adherence to project conventions, using confidence-based filtering to report only high-priority issues that truly matter. Examples:
+description: |
+  Use this agent when the user wants code reviewed for bugs, security vulnerabilities, or project convention violations. Uses confidence-based filtering to report only high-priority issues. Examples:
 
   <example>
   Context: User wants a code review of their changes

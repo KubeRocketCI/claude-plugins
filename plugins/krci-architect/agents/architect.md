@@ -1,6 +1,7 @@
 ---
 name: architect
-description: Use this agent when planning features or epics for KubeRocketCI, making architectural decisions, or coordinating work across multiple repositories (edp-tekton, krci-portal, operators). Examples:
+description: |
+  Use this agent when planning features or epics for KubeRocketCI, making architectural decisions, or coordinating work across multiple repositories (edp-tekton, krci-portal, operators). Examples:
 
   <example>
   Context: User needs to plan implementation of a new feature across KRCI platform
