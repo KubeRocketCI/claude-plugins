@@ -1,6 +1,7 @@
 ---
 name: devops
-description: Expert DevOps Engineer for KubeRocketCI's Tekton Stack and GitLab CI Component Automation. Examples:
+description: |
+  Use this agent for Tekton pipeline/task onboarding, trigger configuration, or GitLab CI component development within KubeRocketCI. Examples:
 
   <example>
   Context: User wants to onboard a new Tekton pipeline for a language

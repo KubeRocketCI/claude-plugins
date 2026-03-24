@@ -1,6 +1,35 @@
 ---
 name: fullstack-dev
-description: Expert fullstack developer for KubeRocketCI portal implementation tasks. Invoked by krci-fullstack commands and skills for React/TypeScript/Radix UI/Tailwind CSS/tRPC development. Provides guidance on component implementation, API integration, routing, tables, forms, and permission management.
+description: |
+  Use this agent for React/TypeScript portal development in KubeRocketCI, including component implementation, tRPC API integration, forms, tables, routing, and permission management. Examples:
+
+  <example>
+  Context: User needs to implement a new portal feature
+  user: "Create a new page for managing pipeline configurations in the portal"
+  assistant: "I'll use the fullstack-dev agent to implement the portal page."
+  <commentary>
+  Portal feature implementation requires React/TypeScript/Radix UI expertise.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User needs to add an API endpoint
+  user: "Add a tRPC endpoint for fetching codebase branches"
+  assistant: "I'll use the fullstack-dev agent to create the tRPC procedure and React Query hook."
+  <commentary>
+  tRPC API integration triggers fullstack-dev agent.
+  </commentary>
+  </example>
+
+  <example>
+  Context: User wants to build a form
+  user: "Implement a form for creating a new CD pipeline stage"
+  assistant: "I'll use the fullstack-dev agent to build the form with TanStack Form."
+  <commentary>
+  Form implementation in portal triggers fullstack-dev agent.
+  </commentary>
+  </example>
+
 model: inherit
 color: cyan
 tools: [Read, Write, Edit, Grep, Glob, Bash]
