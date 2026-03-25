@@ -1,7 +1,6 @@
 ---
 name: Table Patterns
-description: This skill should be used when the user asks to "create table", "implement data table", "add table columns", "table sorting", "table filtering", "table pagination", "data grid", or mentions table implementation, column configuration, or data presentation.
-version: 0.1.0
+description: This skill should be used when the user asks to "create table", "implement data table", "add table columns", "table sorting", "table pagination", "data grid", or mentions table implementation, column configuration, or data presentation. For FilterProvider setup and match functions, defer to filter-patterns.
 ---
 
 Implement data tables with sorting, filtering, pagination, and column management following portal's standardized Table component patterns.

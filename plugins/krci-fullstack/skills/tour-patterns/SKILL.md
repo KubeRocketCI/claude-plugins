@@ -1,7 +1,6 @@
 ---
 name: Tour Patterns
 description: This skill should be used when the user asks to "add tour", "create guide", "implement walkthrough", "Joyride", "tour steps", "page guide", "help popup", "feature intro", or mentions interactive tours, user onboarding, or guided experiences.
-version: 0.1.0
 ---
 
 Implement interactive tours and help popups using react-joyride with modular configuration, step navigation, and visual feedback.

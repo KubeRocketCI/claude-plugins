@@ -1,134 +1,64 @@
-# BitBucket Trigger Patterns
+# BitBucket Trigger Reference
 
-Reference for implementing Tekton Triggers with BitBucket webhooks in EDP-Tekton.
+VCS-specific details for BitBucket triggers. For architecture and common patterns, see the main SKILL.md.
 
-## BitBucket Webhook Events
+## Key Characteristics
 
-| Event | Trigger | Used For |
-|-------|---------|----------|
-| `repo:push` | Commits pushed | Build pipeline |
-| `pullrequest:created` | PR created | Review pipeline |
-| `pullrequest:updated` | PR updated | Review pipeline |
-| `pullrequest:fulfilled` | PR merged | Build pipeline |
+- **Interceptor**: `bitbucket` as **ClusterInterceptor** (unique — other providers use default kind)
+- **Secret**: `ci-bitbucket` (key: `secretString`)
+- **Events**: `pullrequest:fulfilled`, `pullrequest:created`, `pullrequest:updated`, `pullrequest:comment_created`
+- **Comment retrigger**: No (not supported)
+- **No CEL filter**: Event filtering done by ClusterInterceptor via `eventTypes` param
 
-## Key Differences
+## Architectural Difference
 
-- Uses **Custom ClusterInterceptor**
-- PR state: `OPEN`, `MERGED`, `DECLINED`
-- Field: `pullrequest` (lowercase, one word)
-- No native comment retriggering support
+BitBucket uses a **2-stage interceptor chain** instead of the standard 3-stage:
 
-## Webhook Payload Structure
-
-### Pull Request Event
-
-```json
-{
-  "eventKey": "pullrequest:created",
-  "pullrequest": {
-    "id": 1,
-    "title": "Add feature",
-    "state": "OPEN",
-    "source": {
-      "branch": {
-        "name": "feature"
-      },
-      "commit": {
-        "hash": "abc123..."
-      },
-      "repository": {
-        "links": {
-          "clone": [
-            {"href": "https://bitbucket.org/org/repo.git", "name": "https"}
-          ]
-        }
-      }
-    },
-    "destination": {
-      "branch": {
-        "name": "main"
-      }
-    }
-  },
-  "repository": {
-    "links": {
-      "clone": [
-        {"href": "https://bitbucket.org/org/repo.git"}
-      ]
-    }
-  }
-}
+```
+Webhook → ClusterInterceptor (bitbucket) → NamespacedInterceptor (edp)
 ```
 
-## CEL Filters
+The `bitbucket` ClusterInterceptor handles both webhook validation AND event filtering (via `eventTypes` param), replacing both the VCS interceptor and CEL filter stages used by other providers.
 
-### Build (PR Merged)
+## Webhook Payload Body Paths
 
-```yaml
-- ref:
-    name: cel
-  params:
-    - name: filter
-      value: >
-        body.eventKey == 'pullrequest:fulfilled' &&
-        body.pullrequest.state == 'MERGED'
+### Build TriggerBinding (`body.*` paths)
+
+| Parameter | Path |
+|-----------|------|
+| gitrevision | `extensions.targetBranch` |
+| gitbranch | `extensions.pullRequest.headRef` |
+| targetBranch | `extensions.targetBranch` |
+| gitrepositoryurl | `git@bitbucket.org:$(body.repository.full_name).git` |
+| gitrepositoryname | `body.repository.name` |
+| gitfullrepositoryname | `body.repository.full_name` |
+| gitsha | `extensions.pullRequest.headSha` |
+| commitMessage | `extensions.pullRequest.lastCommitMessage` |
+
+### Review TriggerBinding (`body.*` paths)
+
+| Parameter | Path |
+|-----------|------|
+| gitrevision | `extensions.pullRequest.headSha` |
+| targetBranch | `extensions.targetBranch` |
+| gitrepositoryurl | `git@bitbucket.org:$(body.repository.full_name).git` |
+| gitrepositoryname | `body.repository.name` |
+| gitfullrepositoryname | `body.repository.full_name` |
+| commitMessage | `extensions.pullRequest.lastCommitMessage` |
+| git-refspec | `extensions.pullRequest.headRef` |
+
+**Note**: BitBucket constructs the SSH URL from `body.repository.full_name` — there is no direct SSH URL field in the webhook payload.
+
+## Repo File Paths
+
 ```
-
-### Review (PR Created/Updated)
-
-```yaml
-- ref:
-    name: cel
-  params:
-    - name: filter
-      value: >
-        body.eventKey in ['pullrequest:created', 'pullrequest:updated'] &&
-        body.pullrequest.state == 'OPEN'
+charts/pipelines-library/templates/triggers/bitbucket/
+├── trigger-build.yaml
+├── trigger-review.yaml
+├── triggerbinding-build.yaml
+├── triggerbinding-review.yaml
+├── tt-build.yaml
+├── tt-review.yaml
+├── tt-autotests.yaml
+└── tt-security.yaml
 ```
-
-## TriggerBinding Example
-
-```yaml
-apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerBinding
-metadata:
-  name: bitbucket-binding-build
-spec:
-  params:
-    - name: git-source-url
-      value: $(body.repository.links.clone[0].href)
-    - name: git-source-revision
-      value: $(body.pullrequest.destination.branch.name)
-    - name: gitsha
-      value: $(body.pullrequest.source.commit.hash)
-    - name: changeNumber
-      value: $(body.pullrequest.id)
-    - name: CODEBASE_NAME
-      value: $(extensions.codebase)
-    - name: PIPELINE_NAME
-      value: $(extensions.pipelines.build)
-```
-
-## Webhook Configuration
-
-1. Go to: **Repository** → **Repository settings** → **Webhooks**
-2. Configure:
-   - Title: EDP Tekton
-   - URL: EventListener URL
-   - Status: Active
-   - Triggers: Repository push, Pull request created/updated/merged
-3. Save
-
-## Secret Format
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ci-bitbucket
-stringData:
-  username: bitbucket-bot
-  password: app-password-here    # BitBucket App Password
-```
-
-**App Password Permissions**: Repositories (Read, Write), Pull requests (Read, Write)

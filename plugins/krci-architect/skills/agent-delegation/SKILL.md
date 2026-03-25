@@ -1,6 +1,6 @@
 ---
 name: Agent Delegation
-description: This skill should be used when coordinating work across multiple KRCI repositories, delegating implementation tasks to specialized agents, or when the user asks about "krci-fullstack agent", "krci-devops agent", "krci-godev agent", "delegate to agent", "multi-repository coordination", "spawn agent for implementation", "parallel agent delegation", "which agent handles", "agent capabilities", or mentions using Task tool with KRCI agents.
+description: This skill should be used when coordinating work across multiple KRCI repositories, delegating implementation tasks to specialized agents, or when the user asks about "krci-fullstack agent", "krci-devops agent", "krci-godev agent", "delegate to agent", "multi-repository coordination", "spawn agent for implementation", "parallel agent delegation", "which agent handles", "agent capabilities", or mentions using Task tool with KRCI agents. For architectural decisions about what to build, defer to krci-architecture.
 ---
 
 # KRCI Agent Delegation

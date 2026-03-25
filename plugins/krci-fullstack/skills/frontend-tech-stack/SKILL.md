@@ -1,7 +1,6 @@
 ---
 name: Frontend Tech Stack
 description: This skill should be used when the user asks about "tech stack", "what framework", "what libraries", "monorepo structure", "project architecture", "authentication system", or needs context about the KubeRocketCI portal's technology choices, dependencies, or architectural organization.
-version: 0.1.0
 ---
 
 Understand the KubeRocketCI portal's comprehensive technology stack, monorepo architecture, and authentication system to make informed implementation decisions.

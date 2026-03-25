@@ -1,120 +1,69 @@
-# GitLab Trigger Patterns
+# GitLab Trigger Reference
 
-Reference for implementing Tekton Triggers with GitLab webhooks in EDP-Tekton.
+VCS-specific details for GitLab triggers. For architecture and common patterns, see the main SKILL.md.
 
-## GitLab Webhook Events
+## Key Characteristics
 
-| Event | Trigger | Used For |
-|-------|---------|----------|
-| `Push Hook` | Commits pushed | Build pipeline (after merge) |
-| `Merge Request Hook` | MR opened/merged/updated | Build (merged) + Review (opened/updated) |
-| `Note Hook` | Comment on MR | Re-trigger with `/recheck`, `/ok-to-test` |
+- **Interceptor**: `gitlab` (validates `X-Gitlab-Token` header — token-based, not signature)
+- **Secret**: `ci-gitlab` (key: `secretString`)
+- **Events**: `Merge Request Hook`, `Note Hook`
+- **Comment retrigger**: Yes (`/recheck`, `/ok-to-test` via Note Hook)
+- **Terminology**: Merge Request (MR) instead of Pull Request (PR)
 
-## Key Differences from GitHub
+## Webhook Payload Body Paths
 
-- Uses **token** validation (X-Gitlab-Token header), not signature
-- MR = Merge Request (GitLab's equivalent of GitHub PR)
-- Field: `object_attributes` instead of `pull_request`
-- Field: `project` instead of `repository`
+### Build TriggerBinding (`body.*` paths)
 
-## Webhook Payload Structure
+| Parameter | Path |
+|-----------|------|
+| gitrevision | `extensions.pullRequest.headSha` |
+| gitbranch | `extensions.pullRequest.headRef` |
+| targetBranch | `extensions.targetBranch` |
+| gitrepositoryurl | `body.project.git_ssh_url` |
+| gitrepositoryname | `body.project.name` |
+| gitfullrepositoryname | `body.object_attributes.target.path_with_namespace` |
+| commitMessage | `body.object_attributes.title` |
 
-### Merge Request Event
+### Review TriggerBinding (`body.*` paths)
 
-```json
-{
-  "object_kind": "merge_request",
-  "object_attributes": {
-    "id": 99,
-    "iid": 1,
-    "title": "Add feature",
-    "state": "opened",
-    "action": "open|update|merge|close|reopen",
-    "merge_status": "can_be_merged",
-    "source_branch": "feature",
-    "target_branch": "main",
-    "last_commit": {
-      "id": "abc123..."
-    }
-  },
-  "project": {
-    "git_http_url": "https://gitlab.com/org/repo.git",
-    "git_ssh_url": "git@gitlab.com:org/repo.git"
-  }
-}
-```
+| Parameter | Path |
+|-----------|------|
+| gitrevision | `extensions.pullRequest.headSha` |
+| gitbranch | `extensions.pullRequest.headRef` |
+| targetBranch | `extensions.targetBranch` |
+| gitrepositoryurl | `body.project.git_ssh_url` |
+| gitrepositoryname | `body.project.name` |
+| gitfullrepositoryname | `body.project.path_with_namespace` |
+| commitMessage | `extensions.pullRequest.lastCommitMessage` |
 
 ## CEL Filters
 
-### Build (Merged MRs)
+**Build** (merged MRs):
 
-```yaml
-- ref:
-    name: cel
-  params:
-    - name: filter
-      value: >
-        body.object_attributes.action == 'merge' &&
-        body.object_attributes.state == 'merged'
+```
+body.object_attributes.action in ['merge']
 ```
 
-### Review (MR Opened/Updated)
+**Review** (MR opened/updated + comment retrigger):
 
-```yaml
-- ref:
-    name: cel
-  params:
-    - name: filter
-      value: >
-        body.object_attributes.action in ['open', 'update', 'reopen'] ||
-        (body.object_kind == 'note' &&
-         body.merge_request != null &&
-         body.object_attributes.note.matches('/(recheck|ok-to-test)'))
+```
+body.object_attributes.action in ['open', 'reopen', 'update']
+  && !(has(body.changes.assignees) || has(body.changes.reviewers))
+  || (body.object_kind == 'note' && has(body.merge_request))
 ```
 
-## TriggerBinding Example
+The review filter excludes MR events that only change assignees/reviewers (no code change). Comment retrigger uses `Note Hook` — CEL checks `body.object_kind == 'note'` with `body.merge_request` present.
 
-```yaml
-apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerBinding
-metadata:
-  name: gitlab-binding-build
-spec:
-  params:
-    - name: git-source-url
-      value: $(body.project.git_http_url)
-    - name: git-source-revision
-      value: $(body.object_attributes.target_branch)
-    - name: gitsha
-      value: $(body.object_attributes.merge_commit_sha)
-    - name: changeNumber
-      value: $(body.object_attributes.iid)
-    - name: CODEBASE_NAME
-      value: $(extensions.codebase)
-    - name: PIPELINE_NAME
-      value: $(extensions.pipelines.build)
+## Repo File Paths
+
 ```
-
-## Webhook Configuration
-
-1. Go to: **Project** → **Settings** → **Webhooks**
-2. Configure:
-   - URL: EventListener URL
-   - Secret token: From `ci-gitlab` secret
-   - Trigger: Push events, Merge request events, Comments
-3. Add webhook
-4. Test: Click "Test" → "Merge requests events"
-
-## Secret Format
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ci-gitlab
-stringData:
-  token: glpat-xxxxxxxxxxxxxxxxxxxx    # GitLab Personal Access Token
-  username: gitlab-bot
+charts/pipelines-library/templates/triggers/gitlab/
+├── trigger-build.yaml
+├── trigger-review.yaml
+├── triggerbinding-build.yaml
+├── triggerbinding-review.yaml
+├── tt-build.yaml
+├── tt-review.yaml
+├── tt-autotests.yaml
+└── tt-security.yaml
 ```
-
-**Token Scopes**: `api`, `read_repository`, `write_repository`

@@ -1,7 +1,6 @@
 ---
 name: API Integration
 description: This skill should be used when the user asks to "add API endpoint", "create tRPC procedure", "implement React Query hook", "API integration", "tRPC router", "data fetching", "mutations", or mentions backend API, tRPC patterns, or React Query integration.
-version: 0.1.0
 ---
 
 Implement type-safe API endpoints using tRPC with React Query integration for data fetching and mutations in the KubeRocketCI portal.

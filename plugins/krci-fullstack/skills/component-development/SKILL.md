@@ -1,7 +1,6 @@
 ---
 name: Component Development
-description: This skill should be used when the user asks to "create component", "implement UI component", "build React component", "add Radix UI component", "common components", "component patterns", "project structure", or mentions component architecture, reusable components, or frontend file organization.
-version: 0.1.0
+description: This skill should be used when the user asks to "create reusable component", "implement UI primitive", "build React component", "add Radix UI component", "common components", "component file structure", "component patterns", or mentions component architecture, reusable UI primitives, or design system components. Not for forms, tables, filters, K8s resources, or tours — use their dedicated skills.
 ---
 
 Implement React components following the KubeRocketCI portal's architecture patterns, component organization, and Radix UI + TailwindCSS design system.

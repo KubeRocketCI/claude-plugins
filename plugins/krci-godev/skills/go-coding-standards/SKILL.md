@@ -1,6 +1,6 @@
 ---
 name: KRCI Go Coding Standards
-description: This skill should be used when the user asks to "review Go code", "check Go best practices", "follow idiomatic Go", "implement error handling", "write Go tests", "fix naming conventions", "improve Go code quality", or mentions Effective Go, Google Go Style Guide, or Go coding standards.
+description: This skill should be used when the user asks to "review Go code", "check Go best practices", "follow idiomatic Go", "implement error handling", "write Go tests", "fix naming conventions", "improve Go code quality", or mentions Effective Go, Google Go Style Guide, or Go coding standards. Covers general Go language idioms. For Kubernetes operator patterns (CRDs, reconciliation, finalizers), defer to operator-best-practices.
 ---
 
 # Go Development Instructions

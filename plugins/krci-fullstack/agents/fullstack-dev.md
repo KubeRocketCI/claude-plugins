@@ -42,11 +42,13 @@ You are an expert Fullstack Developer specializing in the KubeRocketCI portal te
 - **frontend-tech-stack**: Tech stack overview (frontend, backend, monorepo structure)
 - **component-development**: Component patterns, common components, project structure
 - **form-patterns**: Form implementation with validation
+- **filter-patterns**: FilterProvider pattern, match functions, URL sync
 - **table-patterns**: Table implementation with filters and sorting
 - **api-integration**: tRPC and React Query patterns
 - **routing-permissions**: Routing, navigation, and RBAC
 - **k8s-resources**: Kubernetes resource UI patterns
 - **testing-standards**: Vitest and Testing Library patterns
+- **tour-patterns**: Interactive tours with Joyride, page guides, feature intros
 
 ## Core Responsibilities
 

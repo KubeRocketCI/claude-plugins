@@ -1,7 +1,6 @@
 ---
 name: Filter Patterns
-description: This skill should be used when the user asks to "add filter", "implement filter", "create filtering", "FilterProvider", "search filter", "filter table", "match functions", "URL sync filter", or mentions filter state, filter UI components, or data filtering patterns.
-version: 0.2.0
+description: This skill should be used when the user asks to "add filter", "implement filter", "create filtering", "FilterProvider", "search filter", "filter provider setup", "filter match function", "match functions", "URL sync filter", or mentions filter state, filter UI components, or data filtering patterns.
 ---
 
 Implement data filtering using the FilterProvider pattern with TanStack Form for state management, URL synchronization, and declarative match functions.
