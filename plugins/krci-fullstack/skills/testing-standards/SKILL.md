@@ -1,7 +1,6 @@
 ---
 name: Testing Standards
-description: This skill should be used when the user asks to "write tests", "test component", "add unit tests", "Vitest", "Testing Library", "test coverage", "testing patterns", or mentions testing, test implementation, or quality assurance for frontend code.
-version: 0.1.0
+description: This skill should be used when the user asks to "write tests", "test component", "add unit tests", "Vitest", "Testing Library", "test coverage", "testing patterns", "mock", "mocking", or mentions testing, test implementation, or quality assurance for frontend code.
 ---
 
 Implement comprehensive tests using Vitest and React Testing Library following the KubeRocketCI portal's testing patterns and best practices.
@@ -183,84 +182,9 @@ await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
 
 ## Mocking
 
-### Mock tRPC Calls
+Mock external dependencies (tRPC, router, K8s hooks, permissions) using `vi.mock()`. Use `vi.fn()` for return values and `mockReturnValueOnce` for per-test overrides.
 
-```typescript
-import { vi } from 'vitest';
-
-const mockTRPC = {
-  codebases: {
-    list: {
-      useQuery: vi.fn(() => ({
-        data: [
-          { metadata: { name: 'codebase-1' }, spec: { gitUrlPath: 'https://...' } },
-          { metadata: { name: 'codebase-2' }, spec: { gitUrlPath: 'https://...' } },
-        ],
-        isLoading: false,
-        error: null,
-      })),
-    },
-    create: {
-      useMutation: vi.fn(() => ({
-        mutate: vi.fn(),
-        isPending: false,
-      })),
-    },
-  },
-};
-
-// Use in test
-vi.mock('@/core/clients/trpc', () => ({
-  trpc: mockTRPC,
-}));
-```
-
-### Mock React Router
-
-```typescript
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => vi.fn(),
-  useParams: () => ({ name: 'test-codebase' }),
-  Link: ({ children, to }: any) => <a href={to}>{children}</a>,
-}));
-```
-
-## Testing Hooks
-
-### Custom Hook Testing
-
-```typescript
-import { renderHook, waitFor } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { useCodebaseList } from './useCodebaseList';
-
-describe('useCodebaseList', () => {
-  it('fetches and returns codebases', async () => {
-    const { result } = renderHook(() => useCodebaseList());
-
-    await waitFor(() => {
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    expect(result.current.data).toHaveLength(2);
-    expect(result.current.data[0].metadata.name).toBe('codebase-1');
-  });
-
-  it('handles errors gracefully', async () => {
-    // Mock error response
-    mockTRPC.codebases.list.useQuery.mockReturnValueOnce({
-      data: null,
-      isLoading: false,
-      error: { message: 'Failed to fetch' },
-    });
-
-    const { result } = renderHook(() => useCodebaseList());
-
-    expect(result.current.error).toBeTruthy();
-    expect(result.current.error.message).toBe('Failed to fetch');
-  });
-});
-```
+See `references/testing-patterns.md` for complete mocking patterns including tRPC clients, TanStack Router, K8s watch hooks, permissions, filters, dialogs, WebSockets, and custom hook testing with `renderHook`.
 
 ## Accessibility Testing
 

@@ -1,7 +1,6 @@
 ---
 name: Kubernetes Resource UI Patterns
-description: This skill should be used when the user asks to "implement K8s resource UI", "Kubernetes resource component", "CRD UI", "custom resource display", "K8s API integration", or mentions Kubernetes resource presentation, watch hooks, or portal-specific K8s patterns.
-version: 0.1.0
+description: This skill should be used when the user asks to "implement K8s resource UI", "Kubernetes resource component", "CRD UI", "custom resource display", "K8s watch hooks", "useWatchList", "useWatchItem", "useBasicCRUD", or mentions Kubernetes resource presentation, watch hooks, draft creators, or portal-specific K8s patterns.
 ---
 
 Implement UI components for Kubernetes Custom Resources following the KubeRocketCI portal's patterns for resource display, watching, and management.

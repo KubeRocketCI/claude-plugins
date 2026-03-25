@@ -1,7 +1,6 @@
 ---
 name: Routing and Permissions
 description: This skill should be used when the user asks to "add route", "create page", "implement navigation", "add permissions", "RBAC", "permission check", "protect route", or mentions routing, navigation, breadcrumbs, or role-based access control.
-version: 0.1.0
 ---
 
 Implement routing, navigation, and RBAC permission patterns for the KubeRocketCI portal using TanStack Router and custom permission hooks.

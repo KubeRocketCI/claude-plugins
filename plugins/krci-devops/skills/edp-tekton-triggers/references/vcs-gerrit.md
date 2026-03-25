@@ -1,171 +1,90 @@
-# Gerrit Trigger Patterns
+# Gerrit Trigger Reference
 
-Reference for implementing Tekton Triggers with Gerrit events in EDP-Tekton.
+VCS-specific details for Gerrit triggers. For architecture and common patterns, see the main SKILL.md.
 
-## Gerrit Events
+## Key Characteristics
 
-| Event | Trigger | Used For |
-|-------|---------|----------|
-| `change-merged` | Change merged to branch | Build pipeline |
-| `patchset-created` | New patchset uploaded | Review pipeline |
-| `comment-added` | Comment on change | Re-trigger with `recheck` |
+- **Interceptor**: None — CEL only + EDP (no dedicated VCS interceptor)
+- **Secret**: `ci-gerrit` (SSH key, not token)
+- **Transport**: SSH stream-events (not HTTP webhooks)
+- **Events**: `change-merged`, `patchset-created`, `comment-added`
+- **Comment retrigger**: Yes (`recheck` in comment)
+- **Status reporting**: Posts review comments back to Gerrit via `gerrit-notify` task
 
-## Key Differences
+## Architectural Differences
 
-- **NO dedicated ClusterInterceptor** - Uses CEL only
-- Events delivered via **SSH stream-events**, not HTTP webhooks
-- Uses `change` instead of `pull_request`
-- Uses `patchSet` for commits
-- Trusted network (no signature validation)
+Gerrit is the most different provider:
 
-## Event Payload Structure
+1. **No VCS interceptor** — uses CEL filter directly (trusted network, no webhook signature validation)
+2. **SSH transport** — events arrive via `stream-events` SSH connection, not HTTP POST
+3. **2-stage chain**: `CEL filter → NamespacedInterceptor (edp)`
+4. **Status reporting** — pipeline results posted back as Gerrit review comments
 
-### Change Merged
+## Webhook Payload Body Paths
 
-```json
-{
-  "type": "change-merged",
-  "change": {
-    "project": "myproject",
-    "branch": "main",
-    "id": "I1234567890abcdef",
-    "number": 12345,
-    "subject": "Add new feature",
-    "owner": {"name": "developer"},
-    "url": "https://gerrit.example.com/12345"
-  },
-  "patchSet": {
-    "number": 3,
-    "revision": "abc123...",
-    "ref": "refs/changes/45/12345/3"
-  },
-  "newRev": "abc123..."
-}
-```
+### Build TriggerBinding (`body.*` paths)
 
-### Patchset Created
+| Parameter | Path |
+|-----------|------|
+| gitrevision | `body.change.branch` |
+| targetBranch | `body.change.branch` |
+| gerritproject | `body.change.project` |
+| changeNumber | `body.change.number` |
+| patchsetNumber | `body.patchSet.number` |
+| commitMessage | `body.change.commitMessage` |
+| gitauthor | `body.change.owner.username` |
 
-```json
-{
-  "type": "patchset-created",
-  "change": {
-    "project": "myproject",
-    "branch": "main",
-    "number": 12345
-  },
-  "patchSet": {
-    "number": 1,
-    "revision": "def456...",
-    "ref": "refs/changes/45/12345/1"
-  }
-}
-```
+### Review TriggerBinding (`body.*` paths)
+
+| Parameter | Path |
+|-----------|------|
+| gitrevision | `FETCH_HEAD` (literal — fetched via gerritrefspec) |
+| targetBranch | `body.change.branch` |
+| gerritproject | `body.change.project` |
+| gerritrefspec | `body.patchSet.ref` |
+| changeNumber | `body.change.number` |
+| patchsetNumber | `body.patchSet.number` |
+| commitMessage | `body.change.commitMessage` |
+| gitauthor | `body.patchSet.uploader.username` |
+
+**Note**: Gerrit review uses `gerritrefspec` (`refs/changes/XX/XXXXX/N`) to fetch the specific patchset, with `FETCH_HEAD` as the revision after fetch.
 
 ## CEL Filters
 
-### Build (Change Merged)
+**Build** (change merged):
 
-```yaml
-- ref:
-    name: cel
-  params:
-    - name: filter
-      value: body.type == 'change-merged'
+```
+body.change.status in ['MERGED']
 ```
 
-### Review (Patchset Created)
+**Review** (new patchset + comment retrigger):
 
-```yaml
-- ref:
-    name: cel
-  params:
-    - name: filter
-      value: >
-        body.type == 'patchset-created' ||
-        (body.type == 'comment-added' &&
-         body.comment.matches('recheck'))
+```
+body.change.status in ['NEW']
 ```
 
-## TriggerBinding Example
+Comment retrigger uses `comment-added` event type with CEL checking for `recheck` in the comment body.
 
-```yaml
-apiVersion: triggers.tekton.dev/v1beta1
-kind: TriggerBinding
-metadata:
-  name: gerrit-binding-build
-spec:
-  params:
-    - name: git-source-url
-      value: ssh://gerrit.example.com:29418/$(body.change.project)
-    - name: git-source-revision
-      value: $(body.change.branch)
-    - name: gitsha
-      value: $(body.patchSet.revision)
-    - name: changeNumber
-      value: $(body.change.number)
-    - name: patchsetNumber
-      value: $(body.patchSet.number)
-    - name: CODEBASE_NAME
-      value: $(extensions.codebase)
-    - name: PIPELINE_NAME
-      value: $(extensions.pipelines.build)
+## Gerrit-Specific Configuration
+
+### SSH Stream-Events
+
+Gerrit delivers events via SSH. The EventListener connects using an SSH key from `ci-gerrit` secret.
+
+### Status Reporting
+
+Gerrit pipelines use a `gerrit-notify` task to post build results as review comments. This is unique to Gerrit — other providers use VCS API status checks.
+
+## Repo File Paths
+
 ```
-
-## Gerrit Configuration
-
-### 1. Enable stream-events
-
-Edit `gerrit.config`:
-
-```ini
-[event]
-  stream-events = Administrators
-```
-
-### 2. Configure SSH
-
-EventListener connects via SSH to receive events:
-
-```yaml
-# In EventListener configuration
-env:
-  - name: GERRIT_SSH_KEY
-    valueFrom:
-      secretKeyRef:
-        name: ci-gerrit
-        key: ssh-privatekey
-```
-
-### 3. Status Reporting
-
-Gerrit uses `gerrit-notify` task to post review comments:
-
-```yaml
-- name: gerrit-notify
-  taskRef:
-    name: gerrit-notify
-  params:
-    - name: GERRIT_HOST
-      value: gerrit.example.com
-    - name: CHANGE_NUMBER
-      value: $(params.changeNumber)
-    - name: PATCHSET_NUMBER
-      value: $(params.patchsetNumber)
-    - name: MESSAGE
-      value: "Build successful"
-```
-
-## Secret Format
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: ci-gerrit
-stringData:
-  username: tekton-bot
-  ssh-privatekey: |
-    -----BEGIN OPENSSH PRIVATE KEY-----
-    ...
-    -----END OPENSSH PRIVATE KEY-----
+charts/pipelines-library/templates/triggers/gerrit/
+├── trigger-build.yaml
+├── trigger-review.yaml
+├── triggerbinding-build.yaml
+├── triggerbinding-review.yaml
+├── tt-build.yaml
+├── tt-review.yaml
+├── tt-autotests.yaml
+└── tt-security.yaml
 ```

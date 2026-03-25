@@ -1,7 +1,6 @@
 ---
 name: Form Patterns
-description: This skill should be used when the user asks to "create form", "implement form", "add validation", "TanStack Form", "form fields", "multi-step form", "form wizard", "stepper form", or mentions form implementation, field validation, or form state management.
-version: 0.2.0
+description: This skill should be used when the user asks to "create form", "implement form", "add validation", "TanStack Form", "useAppForm", "Zod validation", "form fields", "multi-step form", "form wizard", "stepper form", or mentions form implementation, field validation, or form state management.
 ---
 
 Implement forms using TanStack Form with custom hooks, Zod validation, and pre-built form components.
@@ -38,35 +37,9 @@ All form components are in `/core/components/form/`:
 
 ## Available Form Components
 
-### Text Input Components
+15+ pre-built components: text fields, password, textarea, select, combobox, radio group, checkbox, checkbox group, switch, rich switch, submit/reset buttons, and utility components.
 
-- `FormTextField` - text, email, number, tel, url, password variants
-- `FormTextFieldPassword` - dedicated password field with show/hide
-- `FormTextarea` - multi-line text input
-- `FormTextareaPassword` - multi-line password input
-
-### Selection Components
-
-- `FormSelect` - dropdown select with options
-- `FormCombobox` - searchable/filterable select
-- `FormRadioGroup` - radio button group (supports horizontal/vertical/grid layouts)
-
-### Toggle Components
-
-- `FormCheckbox` - single checkbox
-- `FormCheckboxGroup` - multiple checkbox options
-- `FormSwitch` - toggle switch
-- `FormSwitchRich` - switch with label, description, icon
-
-### Form Action Components
-
-- `FormSubmitButton` - handles form submission state
-- `FormResetButton` - resets form to default values
-
-### Utility Components
-
-- `FormControlLabelWithTooltip` - label with tooltip icon
-- `SwitchGroup` - container for multiple switches (NOT a field component)
+See `references/component-api.md` for the full catalog with props, and `references/form-preset-components.md` for integration patterns and examples.
 
 ## Implementation Pattern
 
@@ -168,7 +141,7 @@ Validators are defined inline via `form.AppField`'s `validators` prop:
 
 **Note**: TanStack Form does NOT use `zodResolver`. Use inline validators or manual schema validation on submit.
 
-**Details**: See `references/advanced-patterns.md`
+**Details**: See `references/validation-patterns.md` for async validation, Zod schemas, error display, and programmatic validation.
 
 ## Field Listeners (Side Effects)
 
@@ -188,532 +161,51 @@ Use `listeners.onChange` to execute side effects (e.g., reset dependent fields):
 </form.AppField>
 ```
 
-## Form Component Props Reference
-
-### Common Props (All Components)
-
-```typescript
-{
-  label?: string;              // Field label
-  placeholder?: string;        // Placeholder text
-  tooltipText?: React.ReactNode; // Tooltip icon next to label
-  helperText?: string;         // Helper text below field
-  disabled?: boolean;          // Disable field
-}
-```
-
-### FormTextField Specific
-
-```typescript
-{
-  type?: "text" | "email" | "number" | "tel" | "url" | "password";
-  editable?: boolean;          // Show edit button
-  initiallyEditable?: boolean; // Start in edit mode
-  prefix?: React.ReactNode;    // Prefix element
-  suffix?: React.ReactNode;    // Suffix element
-  inputProps?: React.ComponentProps<typeof Input>; // Pass-through props
-}
-```
-
-### FormSelect / FormCombobox
-
-```typescript
-{
-  options: Array<{
-    value: string;
-    label: string | React.ReactNode;
-    disabled?: boolean;
-    icon?: React.ReactNode;
-    description?: React.ReactNode; // FormCombobox only
-  }>;
-  suffix?: React.ReactNode;
-}
-```
-
-### FormRadioGroup
-
-```typescript
-{
-  options: Array<{
-    value: string;
-    label: string | React.ReactNode;
-    disabled?: boolean;
-    icon?: React.ReactNode;
-    description?: React.ReactNode;
-  }>;
-  variant?: "vertical" | "horizontal"; // Layout direction
-  classNames?: {
-    container?: string;     // Grid container classes
-    item?: string;         // Individual item classes
-    itemIcon?: string;     // Icon size classes
-    itemIconContainer?: string; // Icon wrapper classes
-  };
-}
-```
-
-### FormSwitch / FormCheckbox
-
-```typescript
-{
-  label?: string;         // Rendered next to switch/checkbox
-  helperText?: string;
-  disabled?: boolean;
-}
-```
-
-### FormSwitchRich
-
-```typescript
-{
-  label: string;
-  description?: string;
-  icon?: React.ReactNode;
-  disabled?: boolean;
-}
-```
-
 ## Multi-Step Form Pattern
 
-### Provider-Based Approach
+The portal uses a **provider pattern** for multi-step wizards with three key components:
 
-The portal uses a **provider pattern** for multi-step wizards:
+1. **StepperProvider** - manages step navigation and per-step validation
+2. **FormGuideProvider** - optional contextual help sidebar
+3. **Single Form Instance** - one `useAppForm` instance shared across all steps
 
-**Key Components:**
+Each wizard follows a standard file structure with `providers/`, `components/steps/`, `components/fields/`, `constants.ts`, `schema.ts`, and `names.ts`.
 
-1. **StepperProvider** - manages step navigation, validation
-2. **FormGuideProvider** - optional help sidebar with contextual guidance
-3. **Single Form Instance** - one `useAppForm` instance for all steps
-
-**File Structure:**
-
-```
-CreateCodebaseWizard/
-├── index.tsx                    # Main wizard wrapper
-├── providers/
-│   ├── form/
-│   │   ├── provider.tsx        # Form provider setup
-│   │   ├── hooks.ts            # useCreateCodebaseForm()
-│   │   └── context.ts          # Form context
-│   └── stepper/                # Step navigation logic
-├── components/
-│   ├── steps/                  # Step components
-│   │   ├── MethodStep.tsx
-│   │   ├── ConfigStep.tsx
-│   │   └── ReviewStep.tsx
-│   └── fields/                 # Reusable field components
-│       ├── Lang/
-│       ├── Framework/
-│       └── ...
-├── constants.ts                # NAMES, FORM_PARTS, etc.
-├── schema.ts                   # Zod validation schema
-└── names.ts                    # Field name constants
-```
-
-### Wizard Constants Pattern
-
-Each wizard maintains standardized constants:
-
-```typescript
-// names.ts
-export const NAMES = {
-  // Form fields
-  name: "name",
-  gitUrl: "gitUrl",
-  // UI-only fields (prefixed with ui_)
-  ui_creationMethod: "ui_creationMethod",
-  ui_creationTemplate: "ui_creationTemplate",
-} as const;
-
-// Step groupings
-export const FORM_PARTS = {
-  METHOD: ["ui_creationMethod", "ui_creationTemplate", "type"],
-  GIT_SETUP: ["name", "gitServer", "repositoryUrl", "defaultBranch"],
-  BUILD_CONFIG: ["lang", "framework", "buildTool", "ciTool"],
-  REVIEW: [], // Review step has no editable fields
-} as const;
-
-// Guide steps for FormGuide integration
-export const WIZARD_GUIDE_STEPS = [
-  { title: "Choose Method", target: ".method-step" },
-  { title: "Configure Git", target: ".git-step" },
-  { title: "Build Config", target: ".build-step" },
-  { title: "Review", target: ".review-step" },
-];
-```
-
-### Step Validation
-
-Validate specific fields before allowing navigation:
-
-```typescript
-const handleNext = async () => {
-  const currentStepFields = FORM_PARTS[currentStep];
-
-  // Validate all fields for current step
-  const validationResults = await Promise.all(
-    currentStepFields.map((field) => form.validateField(field)),
-  );
-
-  const hasErrors = validationResults.some((result) => result.length > 0);
-
-  if (!hasErrors) {
-    setStep((prev) => prev + 1);
-  }
-};
-```
-
-### Stepper Navigation
-
-```typescript
-<div className="flex justify-between mt-6">
-  <Button
-    variant="outline"
-    onClick={() => setStep(prev => prev - 1)}
-    disabled={step === 0}
-  >
-    Back
-  </Button>
-
-  {step < steps.length - 1 ? (
-    <Button onClick={handleNext}>Next</Button>
-  ) : (
-    <Button onClick={() => form.handleSubmit()}>Submit</Button>
-  )}
-</div>
-```
-
-### FormGuide Integration
-
-Add contextual help sidebar to wizards:
-
-```typescript
-import { FormGuideProvider, useFormGuide } from "@/core/providers/FormGuide";
-
-<FormGuideProvider steps={WIZARD_GUIDE_STEPS} helpConfig={HELP_CONFIG}>
-  <StepperProvider>
-    <CreateCodebaseWizard />
-  </StepperProvider>
-</FormGuideProvider>
-```
-
-**Pattern Details:** See `/core/providers/FormGuide/` in the codebase
+**Full implementation guide**: See `references/multi-step-forms.md` for provider setup, step validation, navigation, constants pattern, and FormGuide integration.
 
 ## Accessing Form State
 
-### Get Current Values
+Access values via `form.store.state.values`, update via `form.setFieldValue()` / `form.setValues()`, check state via `form.store.state.isSubmitting` / `isValid` / `isDirty`. Use `useStore(form.store, selector)` for reactive subscriptions in components.
 
-```typescript
-// Get all values
-const allValues = form.store.state.values;
-
-// Get specific field value
-const nameValue = form.store.state.values.name;
-
-// Using useStore hook (reactive)
-import { useStore } from "@tanstack/react-form";
-
-const MyComponent = () => {
-  const typeValue = useStore(form.store, (s) => s.values.type);
-
-  // Component re-renders when type changes
-  return <div>Current type: {typeValue}</div>;
-};
-```
-
-### Update Field Values
-
-```typescript
-// Set single field value
-form.setFieldValue("name", "new-value");
-
-// Set multiple values
-form.setValues({
-  name: "new-name",
-  email: "new@email.com",
-});
-
-// Reset form to default values
-form.reset();
-```
-
-### Trigger Validation
-
-```typescript
-// Validate single field
-const errors = await form.validateField("email");
-
-// Validate all fields
-const allErrors = await form.validateAllFields();
-```
-
-### Check Form State
-
-```typescript
-// Check if form is submitting
-const isSubmitting = form.store.state.isSubmitting;
-
-// Check if form is valid
-const isValid = form.store.state.isValid;
-
-// Check if form has been touched
-const isTouched = form.store.state.isTouched;
-
-// Check for field errors
-const fieldErrors = form.store.state.fieldMeta.email?.errors;
-```
+See `references/implementation-guide.md` for the full form state API with examples.
 
 ## Best Practices
 
-### 1. Field Names as Constants
+1. **Field Names as Constants** — define all field names in a `NAMES` constant object (`as const`) in a dedicated `names.ts` or `constants.ts` file
+2. **UI-Only Field Prefix** — prefix fields not submitted to the API with `ui_` (e.g., `ui_creationMethod`, `ui_searchQuery`)
+3. **Reusable Field Components** — extract complex fields (with listeners, validation, options) into standalone components under `components/fields/`
+4. **Type Safety** — define Zod schema and infer form type via `z.infer<typeof schema>`
+5. **Accessibility** — all form components handle `aria-invalid`, `aria-describedby`, and keyboard navigation automatically
+6. **Loading States** — form automatically tracks `isSubmitting`; use it to disable fields during async operations
 
-Always define field names in a constants file:
-
-```typescript
-// constants/names.ts
-export const NAMES = {
-  name: "name",
-  email: "email",
-  // ...
-} as const;
-
-// Usage
-<form.AppField name={NAMES.name}>
-  {(field) => <field.FormTextField label="Name" />}
-</form.AppField>
-```
-
-### 2. UI-Only Fields
-
-Prefix fields that aren't submitted with `ui_`:
-
-```typescript
-export const NAMES = {
-  // Submitted fields
-  name: "name",
-  type: "type",
-
-  // UI-only fields (for wizard flow, filters, etc.)
-  ui_creationMethod: "ui_creationMethod",
-  ui_searchQuery: "ui_searchQuery",
-} as const;
-```
-
-### 3. Reusable Field Components
-
-Extract complex fields into reusable components:
-
-```typescript
-// components/fields/Lang/index.tsx
-export const Lang: React.FC<{ disabled?: boolean }> = ({ disabled }) => {
-  const form = useCreateCodebaseForm();
-
-  return (
-    <form.AppField
-      name={NAMES.lang}
-      validators={{ onChange: z.string().min(1, "Select language") }}
-      listeners={{
-        onChange: () => {
-          form.setFieldValue(NAMES.framework, "");
-        },
-      }}
-    >
-      {(field) => (
-        <field.FormCombobox
-          label="Code language"
-          options={languageOptions}
-          disabled={disabled}
-        />
-      )}
-    </form.AppField>
-  );
-};
-
-// Usage in step
-<Lang disabled={isLoading} />
-```
-
-### 4. Type Safety
-
-Use TypeScript inference for full type safety:
-
-```typescript
-// Define schema and infer type
-const mySchema = z.object({
-  name: z.string(),
-  age: z.number(),
-});
-
-type MyFormData = z.infer<typeof mySchema>;
-
-// Form is fully typed
-const form = useAppForm<MyFormData>({
-  defaultValues: { name: "", age: 0 },
-  onSubmit: async (values) => {
-    // values is typed as MyFormData
-    console.log(values.name, values.age);
-  },
-});
-```
-
-### 5. Error Handling
-
-Provide clear error messages:
-
-```typescript
-validators={{
-  onChange: ({ value }) => {
-    if (!value) return "Name is required";
-    if (value.length < 2) return "Name must be at least 2 characters";
-    if (value.length > 30) return "Name must be less than 30 characters";
-    if (!/^[a-z0-9-]+$/.test(value)) {
-      return "Name can only contain lowercase letters, numbers, and dashes";
-    }
-    return undefined;
-  },
-}}
-```
-
-### 6. Accessibility
-
-All form components handle accessibility automatically:
-
-- `aria-invalid` on error
-- `aria-describedby` linking to helper/error text
-- Proper `id` and `htmlFor` associations
-- Keyboard navigation support
-
-### 7. Loading States
-
-Disable fields during async operations:
-
-```typescript
-const form = useAppForm({
-  defaultValues: {},
-  onSubmit: async (values) => {
-    // Form automatically sets isSubmitting: true
-    await submitData(values);
-    // Automatically resets isSubmitting: false
-  },
-});
-
-// Access submitting state
-<form.AppField name="name">
-  {(field) => (
-    <field.FormTextField
-      disabled={form.store.state.isSubmitting}
-      label="Name"
-    />
-  )}
-</form.AppField>
-```
-
-### 8. Unsaved Changes Warning
-
-Track dirty state to warn users:
-
-```typescript
-const isDirty = form.store.state.isDirty;
-
-useEffect(() => {
-  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-    if (isDirty) {
-      e.preventDefault();
-      e.returnValue = "";
-    }
-  };
-
-  window.addEventListener("beforeunload", handleBeforeUnload);
-  return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-}, [isDirty]);
-```
-
-## Integration with Shared Package
-
-Use shared schemas and draft creators:
-
-```typescript
-import {
-  codebaseSchema,
-  createCodebaseDraft,
-  type CreateCodebaseDraftInput,
-} from "@my-project/shared";
-
-const form = useAppForm<CreateCodebaseDraftInput>({
-  defaultValues: {},
-  onSubmit: async (values) => {
-    // Transform UI values to API format
-    const draft = createCodebaseDraft(values);
-
-    // Submit via tRPC
-    await trpc.codebases.create.mutate(draft);
-  },
-});
-```
+See `references/real-examples.md` for code examples of each pattern, and `references/advanced-patterns.md` for error handling, unsaved changes warning, and troubleshooting.
 
 ## Real-World Examples
 
-Check these implementations for reference:
+- **CreateCodebaseWizard** — multi-step, conditional steps, FormGuide, shared package integration with `createCodebaseDraft`
+- **CreateStageWizard** — dynamic fields, step-specific validation, review step
+- **Reusable field components** — `Lang/`, `Framework/`, `TemplateSelection/` under `components/fields/`
 
-### Complete Wizards
-
-- **Codebase Creation**: `/modules/platform/codebases/pages/create/components/CreateCodebaseWizard/`
-  - Complex validation with `superRefine`
-  - Multi-step with conditional steps
-  - FormGuide integration
-  - Template selection flow
-
-- **CD Pipeline Setup**: `/modules/platform/cdpipelines/pages/stages/create/components/CreateStageWizard/`
-  - Dynamic form fields based on selections
-  - Step-specific validation
-  - Review step with summary
-
-### Field Components
-
-- **Language Selection**: `/modules/.../components/fields/Lang/`
-  - Combobox with dynamic options
-  - Side effects on change (reset framework/buildTool)
-  - Icons and descriptions
-
-- **Template Selection**: `/modules/.../components/fields/TemplateSelection/`
-  - RadioGroup with rich content
-  - Nested form for filtering
-  - Conditional validation
-
-### Form Providers
-
-- **Stepper Provider**: `/core/providers/Stepper/`
-- **FormGuide Provider**: `/core/providers/FormGuide/`
-
-## Common Patterns
-
-- **Filter forms**: No submit button, subscribe to `filterForm.store` for real-time filtering
-- **Dynamic field lists**: Use `form.AppField` with `name={`items.${index}.name`}` for add/remove fields
-- **Dependent selects**: Use `listeners.onChange` to cascade resets through country/state/city chains
-
-**Details and code examples**: See `references/advanced-patterns.md`
-
-## Troubleshooting
-
-- **Field not updating**: Always use `form.AppField` render prop, not raw `useFieldContext`
-- **Validation not running**: Check `onChange` vs `onBlur` timing in `validators`
-- **Type errors**: Ensure form type parameter matches all field `name` props
-
-**Details**: See `references/advanced-patterns.md`
-
-## Migration from React Hook Form
-
-Key mappings: `useForm()` -> `useAppForm()`, `<Controller>` -> `<form.AppField>`, `useFormContext()` -> custom hook, `zodResolver` -> inline validators.
-
-**Full migration table and examples**: See `references/advanced-patterns.md`
+See `references/real-examples.md` for production patterns and `references/implementation-guide.md` for shared package integration and tRPC form submission.
 
 ## Additional Resources
 
-- **Advanced Patterns**: See `references/advanced-patterns.md` (validation, listeners, troubleshooting, RHF migration)
-- **Multi-Step Forms**: See `references/multi-step-forms.md`
-- **Component API**: See `references/component-api.md`
-- **Real Examples**: See `references/real-examples.md`
-- **Implementation Guide**: See `references/implementation-guide.md` (step-by-step form setup, API integration)
+- **Component API**: See `references/component-api.md` (full component catalog with props)
+- **Form Preset Components**: See `references/form-preset-components.md` (integration patterns)
 - **Validation Patterns**: See `references/validation-patterns.md` (async validation, Zod schemas, error display)
-- **Form Components**: See `references/form-preset-components.md` (complete component catalog with examples)
+- **Multi-Step Forms**: See `references/multi-step-forms.md` (provider setup, step validation, navigation)
+- **Advanced Patterns**: See `references/advanced-patterns.md` (common patterns, troubleshooting, RHF migration)
+- **Implementation Guide**: See `references/implementation-guide.md` (step-by-step setup, API integration, form dialogs)
+- **Real Examples**: See `references/real-examples.md` (production wizard patterns)
 - **TanStack Form Docs**: [tanstack.com/form](https://tanstack.com/form/latest)
 - **Zod Docs**: [zod.dev](https://zod.dev)
