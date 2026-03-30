@@ -8,7 +8,7 @@ Expert Go developer agent specializing in Kubernetes operators, Custom Resources
 
 ## Commands
 
-- `/krci-godev:review-code <file-path>` - Review Go code against standards (Effective Go, Google Style Guide, operator best practices)
+- `/krci-godev:review-code <file-path>` - Review Go code against KRCI standards and operator best practices
 - `/krci-godev:implement-new-cr <cr-name>` - Scaffold and implement Kubernetes Custom Resource with controller
 
 ## Skills

@@ -1,102 +1,140 @@
 ---
 name: KRCI Operator Best Practices
-description: This skill should be used when the user asks to "implement Kubernetes operator", "create Custom Resource", "design CRD", "implement controller", "setup reconciliation loop", "handle finalizers", "configure operator RBAC", or mentions operator development, CRD patterns, controller architecture, or Cloud Native best practices.
+description: This skill should be used when the user asks to "implement Kubernetes operator", "create Custom Resource", "design CRD", "implement controller", "setup reconciliation loop", "handle finalizers", "configure operator RBAC", or mentions operator development, CRD patterns, controller architecture, chain of responsibility, or Kubernetes operator best practices. Teaches the Chain of Responsibility pattern, controller reconciliation lifecycle, and CRD design conventions used in KRCI operators. For general Go coding style (error handling, testing, linting), defer to go-coding-standards skill.
 ---
 
-# Operator Best Practices
+# KRCI Operator Development Patterns
 
-## Development
+KRCI operators follow specific architectural patterns that differ from a standard kubebuilder scaffold. Always read existing controllers in the target repository first — this skill explains the patterns to look for and the reasoning behind them.
 
-Considerations for Operator developers:
+## Project Structure
 
-- An Operator should manage a single type of application, essentially following the UNIX principle: do one thing and do it well.
+Expect this layout in a KRCI operator repository:
 
-- If an application consists of multiple tiers or components, multiple Operators should be written one for each of them. For example, if the application consists of Redis, AMQ, and MySQL, there should be 3 Operators, not one.
+```
+operator-name/
+├── api/
+│   ├── v1/ or v1alpha1/       # CRD type definitions
+│   └── common/                # Shared types, status constants, ref interfaces
+├── cmd/main.go                # Manager setup, controller registration
+├── internal/controller/
+│   └── {resource}/
+│       ├── {resource}_controller.go
+│       └── chain/             # Chain of responsibility handlers
+├── pkg/
+│   ├── client/{service}/      # External API client wrappers
+│   └── helper/                # Cross-cutting utilities
+├── deploy-templates/          # Helm chart
+├── config/crd/bases/          # Generated CRDs
+├── .golangci.yaml
+├── .mockery.yaml
+└── Makefile
+```
 
-- If there is significant orchestration and sequencing involved, an Operator should be written that represents the entire stack, in turn delegating to other Operators for orchestrating their part of it.
+The presence of a `chain/` directory inside a controller package is the signature of the Chain of Responsibility pattern described below.
 
-- Operators should own a CRD and only one Operator should control a CRD on a cluster. Two Operators managing the same CRD is not a recommended best practice. An API that exists with multiple implementations is a typical example of a no-op Operator. The no-op Operator doesn't have any deployment or reconciliation loop to define the shared API and other Operators depend on this Operator to provide one implementation of the API, e.g. similar to PVCs or Ingress.
+## Chain of Responsibility — The Core Pattern
 
-- Inside an Operator, multiple controllers should be used if multiple CRDs are managed. This helps in separation of concerns and code readability. Note that this doesn't necessarily mean that we need to have one container image per controller, but rather one reconciliation loop (which could be running as part of the same Operator binary) per CRD.
+KRCI operators do NOT put business logic directly in the `Reconcile()` method. Instead, every controller delegates to a **chain of handlers** — small, single-responsibility structs that execute sequentially. The controller stays thin: get resource, manage finalizers, invoke chain, update status.
 
-- An Operator shouldn't deploy or manage other operators (such patterns are known as meta or super operators or include CRDs in its Operands). It's the Operator Lifecycle Manager's job to manage the deployment and lifecycle of operators. For further information check [Dependency Resolution](https://olm.operatorframework.io/docs/concepts/olm-architecture/dependency-resolution/).
+### Why This Pattern
 
-- If multiple operators are packaged and shipped as a single entity by the same CSV for example, then it is recommended to add all owned and required CRDs, as well as all deployments for operators that manage the owned CRDs, to the same CSV.
+- Each handler is independently testable with focused mocks
+- New behavior is added by creating a new handler and wiring it into the factory
+- Deletion logic is cleanly separated from creation/update logic
+- Dependencies are injected at the factory level, not scattered across reconciliation
 
-- Writing an Operator involves using the Kubernetes API, which in most scenarios will be built using same boilerplate code. Use a framework like the Operator SDK to save yourself time with this and to also get a suite of tooling to ease development and testing.
+### Two Variants
 
-- Operators shouldn't make any assumptions about the namespace they are deployed in and they should not use hard-coded names of resources that they expect to already exist.
+Inspect the existing `chain/` directory to identify which variant the project uses:
 
-- Operators shouldn't hard code the namespaces they are watching. This should be configurable - having no namespace supplied is interpreted as watching all namespaces
+**List-based chain** — A struct holds a `[]Handler` slice. A `Use()` method appends handlers. A factory function (`MakeChain` or `CreateChain`) composes them in execution order. The chain iterates the slice and stops on first error. This is the more common variant.
 
-- Semantic versioning (aka semver) should be used to version an Operator. Operators are long-running workloads on the cluster and its APIs are potentially in need of support over a longer period of time. Use the [semver.org guidelines](https://semver.org) to help determine when and how to bump versions when there are breaking or non-breaking changes.
+**Linked-list chain** — Each handler struct holds a `next` field pointing to the next handler. The factory nests handlers inside each other. Each handler calls `next.ServeRequest()` at the end.
 
-- Kubernetes API versioning guidelines should be used to version Operator CRDs. Use the [Kubernetes sig-architecture guidelines](https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api_changes.md#so-you-want-to-change-the-api) to get best practices on when to bump versions and when breaking changes are acceptable.
+### Key Conventions
 
-- When defining CRDs, you should use OpenAPI spec to create a structural schema for your CRDs.
+- All handlers implement a `ServeRequest(ctx, *Resource) error` method (the exact interface is per-resource type)
+- Each handler is a small struct with its own dependencies and a `NewXxx()` constructor
+- Factory functions compose handlers in execution order with injected dependencies
+- Deletion uses a separate one-off handler or a separate delete chain — never the main chain
+- When handlers need to pass data forward, look for a context struct (e.g., `RoleContext`) passed through the chain
 
-- Operators are instrumented to provide useful, actionable metrics to external systems (e.g. monitoring/alerting platforms).  Minimally, metrics should represent the software's health and key performance indicators, as well as support the creation of [service levels indicators](https://en.wikipedia.org/wiki/Service_level_indicator) such as throughput, latency, availability, errors, capacity, etc.
+### Adding a New Handler
 
-- Operators may create objects as part of their operational duty. Object accumulation can consume unnecessary resources, slow down the API and clutter the user interface. As such it is important for operators to keep good hygiene and to clean up resources when they are not needed. Here are instructions on [how to handle cleanup on deletion](https://raw.githubusercontent.com/operator-framework/operator-sdk/refs/heads/master/website/content/en/docs/building-operators/golang/advanced-topics.md).
+1. Create a new file in the `chain/` directory
+2. Define a struct with the required dependencies
+3. Implement the `ServeRequest` interface matching other handlers in the same package
+4. Write the constructor `NewXxx(deps) *Xxx`
+5. Wire it into the factory function in the correct execution order
+6. Write unit tests following the project's test patterns (see go-coding-standards skill)
 
-### Summary
+## Controller Reconciliation Lifecycle
 
-- One Operator per managed application
-- Multiple operators should be used for complex, multi-tier application stacks
-- CRD can only be owned by a single Operator, shared CRDs should be owned by a separate Operator
-- One controller per custom resource definition
-- Use a tool like Operator SDK
-- Do not hard-code namespaces or resources names
-- Make watch namespace configurable
-- Use semver / observe Kubernetes guidelines on versioning APIs
-- Use OpenAPI spec with structural schema on CRDs
-- Operators expose metrics to external systems
-- Operators cleanup resources on deletion
+Every KRCI controller follows this sequence. Read an existing controller to see the exact implementation, but expect these steps:
 
-## Running On-Cluster
+1. **Get resource** — Return empty `Result{}` if NotFound
+2. **Get API client** — Obtain the external service client from a provider (if the operator integrates with an external service)
+3. **Handle deletion** — Check `DeletionTimestamp` → run deletion handler → remove finalizer → return
+4. **Add finalizer** — If missing, add it and update the resource
+5. **Save old status** — Store a copy of the current status for later comparison
+6. **Execute chain** — `chain.MakeChain(deps).ServeRequest(ctx, resource)`
+7. **Handle error** — Set error status, update status subresource, return with `RequeueAfter`
+8. **Handle success** — Set success status, update status subresource, return
 
-<cluster_considerations>
-Considerations for on-cluster behavior
+### Non-Obvious Patterns
 
-- Like all containers on Kubernetes, Operators need not run as root unless absolutely necessary. Operators should come with their own ServiceAccount and not rely on the `default`.
+**Status equality check** — Before calling `Status().Update()`, compare the new status with the saved `oldStatus`. Skip the API call if nothing changed. This avoids unnecessary writes and reconciliation loops.
 
-- Operators should not self-register their CRDs. These are global resources and careful consideration needs to be taken when setting those up. Also this requires the Operator to have global privileges which is potentially dangerous compared to that little extra convenience.
+**`namespace=placeholder` in RBAC markers** — Kubebuilder RBAC markers use `namespace=placeholder` which gets replaced during manifest generation. Do not use actual namespace names.
 
-- Operators use CRs as the primary interface to the cluster user. As such, at all times, meaningful status information should be written to those objects unless they are solely used to store data in a structured schema.
+**Predicates** — Controllers use custom `predicate.Funcs` on `SetupWithManager` to skip reconciliation for status-only updates. The update predicate compares `Spec` fields and checks `DeletionTimestamp`.
 
-- Operators should be updated frequently according to server versioning.
+**Requeue strategy** — Return `ctrl.Result{RequeueAfter: errorRequeueTime}, nil` for retriable errors (controls timing). Return `ctrl.Result{}, err` only for fatal errors needing controller-runtime default backoff.
 
-- Operators need to support updating managed applications (Operands) that were set up by an older version of the Operator. There are multiple models for this:
+**API client provider** — Operators that integrate with external services use a provider that bridges K8s Secrets to API clients: get parent CR from typed reference → get Secret → create client with credentials.
 
-| Model | Description |
-| ------ | ----- |
-| Operator fan-out | where the Operator allows the user to specify the version in the custom resource |
-| single version | where the Operator is tied to the version of the operand. |
-| hybrid approach | where the Operator is tied to a range of versions, and the user can select some level of the version. |
+## CRD Design
 
-- An Operator should not deploy another Operator - an additional component on cluster should take care of this (OLM).
+### Status Patterns
 
-- When Operators change their APIs, CRD conversion (webhooks) should be used to deal with potentially older instances of them using the previous API version.
+Inspect the existing API types in `api/` to determine which status pattern the project uses:
 
-- Operators should make it easy for users to use their APIs - validating and rejecting malformed requests via extensive Open API validation schema on CRDs or via an admission webhook is good practice.
+- **Simple** — `Value` + `Error` string fields. Value is a constant like `"created"` or `"error"`.
+- **Rich** — Includes `Status`, `Available`, `Result`, `DetailedMessage`, `LastTimeUpdated`. Used for resources with complex lifecycle tracking.
+- **With FailureCount** — Adds a failure counter for exponential backoff on requeue.
 
-- The Operator itself should be really modest in its requirements - it should always be able to deploy by deploying its controllers, no user input should be required to start up the Operator.
+Status constants are typically defined in `api/common/`.
 
-- If user input is required to change the configuration of the Operator itself, a Configuration CRD should be used. Init-containers as part of the Operator deployments can be used to create a default instance of those CRs and then the Operator manages their lifecycle.
-</cluster_considerations>
+### Cross-Resource References
 
-### Summary
+Dependent resources reference their parent via typed ref interfaces defined in `api/common/`. Look for patterns like `Has{Service}Ref` with `GetRef()` methods.
 
-On the cluster, an Operator...
+### Helper Methods on API Types
 
-- Does not run as root
-- Does not self-register CRDs
-- Does not install other Operators
-- Does rely on dependencies via package manager (OLM)
-- Writes meaningful status information on Custom Resources objects unless pure data structure
-- Should be capable of updating from a previous version of the Operator
-- Should be capable of managing an Operand from an older Operator version
-- Uses CRD conversion (webhooks) if API/CRDs change
-- Uses OpenAPI validation / Admission Webhooks to reject invalid CRs
-- Should always be able to deploy and come up without user input
-- Offers (pre)configuration via a `"Configuration CR"` instantiated by InitContainers
+Convenience methods are defined directly on CRD types (e.g., `IsFirst()`, `InCluster()`, `GetStatus()`, `SetStatus()`). Follow this pattern when adding new helpers.
+
+## Finalizer Conventions
+
+Check existing controllers for the finalizer naming convention. Two patterns exist:
+
+- **Shared constant** — All controllers in the project use the same finalizer string
+- **Per-resource** — Each resource type has its own finalizer name
+
+All use `controllerutil.AddFinalizer()` / `RemoveFinalizer()` / `ContainsFinalizer()` from controller-runtime.
+
+## Build and Code Generation
+
+Standard Makefile targets for KRCI operators:
+
+```bash
+make generate    # DeepCopy methods from kubebuilder markers
+make manifests   # CRDs, RBAC, webhooks → config/ and deploy-templates/
+make test        # Unit + integration tests (requires envtest binaries)
+make lint        # golangci-lint
+make lint-fix    # golangci-lint with auto-fix
+make mocks       # Generate testify mocks via mockery
+make build       # Compile operator binary
+```
+
+After adding or changing a CRD field, always run `make generate && make manifests`. After changing an interface, run `make mocks`.

@@ -14,7 +14,7 @@ allowed-tools: [Read, Grep, Glob, Skill, Task]
 
 2. **Use go-dev agent to perform the review:**
    - The go-dev agent will analyze the code at `$ARGUMENTS`
-   - Agent will apply all standards from the go-coding-standards skill (Effective Go, Google Style Guide)
+   - Agent will apply all standards from the go-coding-standards skill
    - Agent will apply all patterns from the operator-best-practices skill (CRD design, controller patterns)
    - Agent will provide comprehensive review with specific violations and recommendations
 
