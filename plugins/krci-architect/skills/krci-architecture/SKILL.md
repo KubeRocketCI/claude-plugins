@@ -1,223 +1,89 @@
 ---
 name: KRCI Architecture
-description: This skill should be used when planning KubeRocketCI features, validating technical designs, making architectural decisions for the KRCI platform, or when the user asks about "KRCI reference architecture", "KRCI components", "platform architecture", "DevSecOps principles", "deployment patterns", "validate design against KRCI", "check KRCI architecture alignment", "plan KRCI feature implementation", "multi-cluster architecture", or mentions KRCI platform design decisions. For delegating implementation to specialized agents, defer to agent-delegation.
+description: This skill should be used when planning KubeRocketCI features, validating technical designs, making architectural decisions for the KRCI platform, or when the user asks about "KRCI reference architecture", "platform architecture", "DevSecOps principles", "deployment patterns", "validate design against KRCI", "check KRCI architecture alignment", "plan KRCI feature implementation", "multi-cluster architecture", or mentions KRCI platform design decisions. For delegating implementation to specialized agents, defer to agent-delegation.
 ---
 
 # KubeRocketCI Reference Architecture
 
-## Overview
-
-KubeRocketCI is a comprehensive CI/CD platform built on Kubernetes, integrating Tekton for CI, Argo CD for deployment, and a suite of tools for security, quality, and observability. Understanding the reference architecture ensures implementations align with platform principles and integrate seamlessly with existing components.
-
 ## Core Principles
 
-KubeRocketCI is built on these foundational principles:
+Non-negotiable architectural constraints. Every design must satisfy them.
 
-Managed Infrastructure and Container Orchestration: Platform leverages Kubernetes or OpenShift for all deployments. Design solutions that work across Kubernetes distributions without vendor lock-in.
+**Cloud-agnostic on Kubernetes**: Runs on any Kubernetes or OpenShift cluster. Never introduce platform-specific dependencies. Use standard Kubernetes primitives and Helm for packaging.
 
-Security as Priority: Authentication, authorization, and SSO integration across all services using OIDC. Keycloak serves as identity broker integrating with existing IdPs.
+**OIDC everywhere via Keycloak**: All platform tools and Kubernetes clusters authenticate through OIDC. Keycloak serves as the identity broker. No tool should have its own user database.
 
-Development and Testing Toolset: Comprehensive tools for development (Git integration, templating), testing (automated analysis), and deployment (Tekton + Argo CD).
+**DevSecOps as mandatory gates**: Every CI pipeline includes SAST scanning and SonarQube analysis as blocking gates. These are not advisory.
 
-Well-Established Engineering Process: CI/CD pipelines reflect best practices. Follow established patterns for build, test, deploy workflows.
+**GitOps with Argo CD**: Non-production uses push model (platform Argo CD deploys to targets). Production uses pull model (dedicated Argo CD pulls from Git). See `references/deployment-patterns.md` for cluster topologies.
 
-Open-Source and Cloud-Agnostic: Runs on any Kubernetes or OpenShift cluster. Avoid platform-specific dependencies.
-
-DevSecOps Excellence: Security is a mandatory quality gate, not optional. Every pipeline includes SAST, code quality checks, and artifact verification.
-
-Automated Testing: Seamless regression testing through automated test analysis. Testing is integral to delivery, not afterthought.
-
-## Platform Components
-
-### Core CI/CD Components
-
-Tekton: Kubernetes-native CI/CD framework providing pipelines and tasks for build, test, and deploy workflows. All CI automation runs through Tekton.
-
-Argo CD: GitOps deployment tool managing both operational and business workloads. Production uses dedicated Argo CD instance with pull-based deployment.
-
-Codebase Operator: Manages codebases, Git integration, versioning, branching, and release capabilities. Provides scaffolding using application templates.
-
-CD Pipeline Operator: Manages CD pipelines, artifact promotion logic, and Argo CD integration. Triggers CD pipelines based on events.
-
-### Quality and Security Tools
-
-SonarQube: Continuous code quality assessment. Every pipeline includes quality analysis.
-
-SAST Tools: Static Application Security Testing integrated into pipelines as mandatory quality gates.
-
-Artifact Storage: Dedicated storage (Nexus, AWS ECR, Azure Artifacts) for versioned application artifacts.
-
-Artifact Verification: Cryptographic verification ensuring artifact integrity and authenticity.
-
-### Platform Services
-
-KubeRocketCI Portal: React/TypeScript UI using Radix UI, Tailwind CSS, and tRPC. Provides central hub for platform interaction.
-
-Git Server Integration: Supports GitLab, GitHub, Bitbucket, Gerrit for source code management and collaboration.
-
-Authentication: OIDC-based authentication and authorization across tools and Kubernetes clusters. Keycloak integrates with corporate IdPs.
-
-### Observability Stack
-
-Prometheus: Metrics collection, storage, and querying for monitoring system health.
-
-OpenSearch: Centralized logging for log aggregation and analysis.
-
-OpenTelemetry: Standardized observability data collection enabling deep platform insights.
+**Build once, deploy everywhere**: Artifacts are built once in CI and promoted through environments unchanged.
 
 ## Component Interaction Patterns
 
+The architect agent prompt has the complete component-to-repository mapping. These workflows describe how components interact at runtime.
+
 ### Developer Workflow
 
-1. Developers authenticate via OIDC (Keycloak broker)
-2. Access platform through KubeRocketCI Portal
-3. Create/manage codebases using application templates
-4. Git server integration manages source code
-5. Tekton pipelines execute on code changes
-6. Quality gates (SonarQube, SAST) validate code
-7. Artifacts stored in artifact repository
-8. CD Pipeline Operator creates Argo CD applications for deployment
-9. Argo CD deploys to target environments
+Developer authenticates via OIDC -> accesses Portal -> creates codebases (Codebase Operator scaffolds Git repos) -> pushes code -> Git webhook triggers Tekton pipeline -> pipeline runs build/test/scan/quality gates -> artifacts stored in registry -> CD Pipeline Operator promotes to next environment -> Argo CD deploys.
 
 ### CI Pipeline Flow
 
-1. Tekton Triggers activate on Git events
-2. Tekton Pipeline executes build/test tasks
-3. Code quality analysis (SonarQube)
-4. Security scanning (SAST tools)
-5. Artifact creation and storage
-6. Artifact verification
-7. Promotion to CD pipeline
+Git event -> Tekton Trigger interceptor chain (CEL filter -> VCS validation -> pipeline selection) -> pipeline tasks (clone -> build -> test -> scan -> quality gate -> image push) -> quality gates are blocking -> on success: artifact tagged, image pushed -> Codebase Operator updates CodebaseBranch status.
 
 ### CD Pipeline Flow
 
-1. CD Pipeline Operator receives artifact
-2. Promotion logic validates artifact readiness
-3. Argo CD synchronizes deployment manifests
-4. GitOps-based deployment to target cluster
-5. Production uses dedicated Argo CD instance (pull model)
-
-## Deployment Patterns
-
-### Environment Separation
-
-Development and Testing: May share Kubernetes clusters for efficiency.
-
-Production Isolation: Critical requirement - Production workloads MUST run in dedicated clusters with highest isolation and security standards.
-
-Environment Progression: dev → test/UAT → staging → production with quality gates between each.
-
-### GitOps Deployment
-
-Push Model: Suitable for non-production environments. Argo CD instance in platform cluster pushes to target environments.
-
-Pull Model: Recommended for production. Dedicated Argo CD instance in production cluster pulls manifests, ensuring production isolation.
-
-### Multi-Cluster Architecture
-
-- Platform cluster: Runs KRCI platform components (operators, portal, Tekton)
-- Development cluster: Development and test workloads
-- Staging cluster: Pre-production validation
-- Production cluster: Isolated production workloads with dedicated Argo CD
+CD Pipeline Operator receives promotion trigger -> updates Argo CD Application manifests -> for non-prod: Argo CD pushes to target cluster -> for prod: Operator commits to Git, production Argo CD pulls -> environment progression: dev -> test -> UAT -> staging -> production.
 
 ## Security Architecture
 
-### Authentication and Authorization
+**OIDC flow**: Keycloak brokers to corporate IdPs. Portal uses OIDC login with tokens passed to tRPC backend for K8s API calls. Kubernetes API validates OIDC tokens, Keycloak groups map to RBAC roles. All tools (SonarQube, Nexus, Argo CD) configured as OIDC clients. The Keycloak Operator manages realm/client/group CRDs declaratively.
 
-All platform tools and Kubernetes clusters use OIDC for unified authentication. Keycloak brokers identity with existing corporate IdPs (Active Directory, LDAP, etc.).
-
-Portal Access: OIDC authentication required
-Git Access: SSH keys or OIDC tokens
-Kubernetes Access: OIDC integration via Keycloak
-Tool Access: Unified SSO across SonarQube, Nexus, etc.
-
-### Security Quality Gates
-
-Every pipeline includes mandatory security checks:
-
-SAST Integration: Static security analysis identifies vulnerabilities before deployment.
-
-Code Quality: SonarQube enforces quality thresholds (coverage, complexity, duplication).
-
-Artifact Verification: Cryptographic signing and verification ensures artifact integrity.
-
-Secret Management: Integration with secret stores (AWS Parameter Store, Vault) for secure credential handling.
-
-### Network Security
-
-Design for network isolation between environments, proper egress/ingress controls, and service mesh integration where applicable.
+**Security gates**: SAST scanning (blocking), SonarQube analysis (blocking), artifact verification (signing), secret management via External Secrets Operator (never commit secrets to Git).
 
 ## Integration Points
 
-### Adding New Pipelines
+**Adding a new pipeline**: Tekton Pipeline/Task in edp-tekton following onboarding conventions. Helm chart templates. Connect to VCS via existing trigger patterns.
 
-Integrate with Tekton by creating Pipeline and Task definitions following KRCI naming conventions. Use onboarding scripts where available (edp-tekton repository).
+**Extending the Portal**: React/TypeScript with tRPC. Portal reads/writes Kubernetes CRDs directly.
 
-### Extending Portal
+**Creating/modifying operators**: Go-based with CRDs and controller-runtime. Integrate with Codebase or CD Pipeline Operator as needed.
 
-Portal extensions use React/TypeScript with Radix UI components and Tailwind CSS. tRPC provides type-safe API integration. Follow existing component patterns.
-
-### Creating Operators
-
-New operators follow Kubernetes operator patterns with CRDs, controllers, and reconciliation loops. Integrate with Codebase Operator or CD Pipeline Operator as needed.
-
-### Adding Tools
-
-New tools integrate via Helm charts with OIDC authentication, deployed through cluster add-ons approach.
+**Adding platform tools**: Deploy via Helm through edp-cluster-add-ons (ArgoCD app-of-apps). Must integrate with Keycloak for OIDC.
 
 ## Design Validation Checklist
 
-When validating technical designs:
+### Must Have (blocking)
 
-- Cloud-Agnostic: Works on any Kubernetes distribution
-- OIDC Authentication: Integrates with Keycloak for unified auth
-- Security Quality Gates: Includes SAST and code quality checks
-- GitOps Alignment: Uses Argo CD deployment patterns
-- Production Isolation: Production workloads in dedicated cluster
-- Component Integration: Properly integrates with Tekton, Argo CD, operators, portal
-- Observability: Includes Prometheus metrics, OpenSearch logging, OpenTelemetry tracing
-- Artifact Management: Proper artifact storage and verification
-- Backward Compatibility: Migration path for breaking changes
+- Works on any Kubernetes distribution (no cloud-specific deps)
+- Integrates with Keycloak for OIDC
+- Includes SAST and quality gates in any new pipeline
+- Uses Argo CD for deployment (push non-prod, pull prod)
+- Production in dedicated, isolated cluster
+
+### Should Have (justify if missing)
+
+- Proper integration with existing components
+- Prometheus metrics and OpenSearch logging
+- Artifact storage with verification
+- Migration path for breaking changes
+- Tests covering integration surfaces
+
+### Consider (note if deferred)
+
+- OpenTelemetry tracing
+- Multi-cluster topology implications
+- Environment-specific configuration
+- Feature flags for gradual rollout
 
 ## Common Patterns
 
-### Adding New Application Type
+**New application type**: Template (Git skeleton + Dockerfile) -> Tekton pipelines -> quality gates -> artifact config -> CD pipeline config -> Portal UI if needed.
 
-1. Create application template (Git repo skeleton)
-2. Add Tekton pipeline for build/test
-3. Configure quality gates (SonarQube, SAST)
-4. Set up artifact storage
-5. Create CD pipeline configuration
-6. Add portal UI if needed
+**Multi-repo features**: Design data contracts first -> implement API surface (CRDs, tRPC routes) -> implement consumers (Portal, pipeline tasks) -> coordinate integration testing.
 
-### Multi-Repository Features
-
-Features spanning multiple repositories (e.g., portal + operator):
-
-1. Design data contracts between components (CRDs, APIs)
-2. Implement operator changes first (API, CRD, controller)
-3. Implement portal integration (tRPC API, React components)
-4. Update pipelines in edp-tekton
-5. Coordinate testing across components
-
-### Migration Strategies
-
-For breaking changes:
-
-1. Maintain backward compatibility initially
-2. Provide migration tooling/documentation
-3. Deprecation warnings in advance
-4. Phased rollout with feature flags
-5. Complete removal after migration period
+**Breaking changes**: Add new alongside old -> update consumers -> deprecation period -> remove old in next release.
 
 ## Additional Resources
 
-### Reference Files
-
-For detailed component information and patterns:
-
-- `references/reference-architecture.md` - Official KRCI reference architecture documentation
-- `references/components.md` - Detailed descriptions of all platform components
-- `references/deployment-patterns.md` - Comprehensive deployment strategies and multi-cluster architecture
-
-Combine with agent-delegation skill when coordinating work across specialized agents for implementation.
+For cluster allocation strategies and GitOps configuration, see **`references/deployment-patterns.md`** (read when designing deployment topology or configuring GitOps repos).
