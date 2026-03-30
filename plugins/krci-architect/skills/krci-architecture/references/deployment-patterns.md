@@ -1,418 +1,52 @@
 # KRCI Deployment Patterns
 
-Comprehensive deployment strategies and multi-cluster architecture patterns for KubeRocketCI.
+KRCI-specific deployment topology and GitOps configuration. For generic Kubernetes strategies (blue-green, canary, HA, DR), use your existing knowledge. Read this when designing deployment topology or configuring GitOps repos.
 
-## Environment Strategy
+## Cluster Allocation Strategies
 
-### Environment Tiers
+Three supported topologies. Choice depends on security requirements and budget.
 
-**Development**: Rapid iteration, minimal controls, shared resources acceptable.
+**Single cluster (cost-effective):**
 
-**Testing/QA**: Automated and manual testing, quality gates, may share cluster with development for cost efficiency.
+- Cluster 1: Platform (operators, portal, Tekton) + dev + test
+- Cluster 2: Staging
+- Cluster 3: Production (isolated, dedicated Argo CD)
 
-**UAT**: User acceptance testing, production-like configuration, isolated from development.
+**Dev + Platform separation (recommended):**
 
-**Staging**: Pre-production validation, identical configuration to production, separate cluster recommended.
-
-**Production**: **Mandatory isolation**, dedicated cluster, highest security and reliability standards.
-
-### Environment Progression
-
-**Standard Flow**:
-
-```
-dev → test → UAT → staging → production
-```
-
-**Quality Gates Between Environments**:
-
-- Code quality (SonarQube thresholds)
-- Security scanning (SAST clean or approved exceptions)
-- Test coverage (minimum coverage requirements)
-- Manual approval (for production promotion)
-
-### Cluster Allocation Strategies
-
-**Option 1: Shared Non-Production (Cost-Effective)**
-
-```
-- Cluster 1: Platform + dev + test environments
-- Cluster 2: Staging environment
-- Cluster 3: Production environment (isolated)
-```
-
-**Option 2: Separated Environments (Recommended)**
-
-```
 - Cluster 1: Platform components (operators, portal, Tekton)
-- Cluster 2: Development workloads (DEV/QA/UAT)
-- Cluster 3: Staging environment (isolated, dedicated Prod Argo CD)
-- Cluster 4: Production environment (isolated, dedicated Prod Argo CD)
-```
+- Cluster 2: Development workloads (dev/QA/UAT)
+- Cluster 3: Staging (dedicated Argo CD)
+- Cluster 4: Production (isolated, dedicated Argo CD)
 
-**Option 3: Fully Isolated (High Security)**
+**Full separation (high security):**
 
-```
 - Cluster 1: Platform components
-- Cluster 2: Development
-- Cluster 3: Testing
-- Cluster 4: UAT
-- Cluster 5: Staging (isolated, dedicated Prod Argo CD)
-- Cluster 6: Production (isolated, dedicated Prod Argo CD)
+- Clusters 2-5: One per environment (dev, test, UAT, staging)
+- Cluster 6: Production (isolated, dedicated Argo CD)
+
+In all topologies, production requires its own cluster with a dedicated Argo CD instance.
+
+## GitOps: Push vs Pull Model
+
+This is a hard architectural requirement.
+
+**Non-production (push):** A single Argo CD in the platform cluster pushes to dev/test/staging clusters. The CD Pipeline Operator creates Argo CD Application resources directly.
+
+**Production (pull):** A dedicated Argo CD runs inside the production cluster. It pulls manifests from Git. The CD Pipeline Operator only commits manifests to Git — never touches production directly. This ensures production isolation: no inbound connections from platform.
+
+**Network implication:** Platform cluster needs access to non-prod clusters (push). Production cluster only needs outbound HTTPS to Git and artifact registry.
+
+## GitOps Repositories
+
+**edp-install**: Core platform Helm chart. Installs all KRCI operators, CRDs, RBAC. Values file controls which components are enabled. Explore `charts/` directory for installation structure.
+
+**edp-cluster-add-ons**: ArgoCD app-of-apps for cluster tooling (SonarQube, Nexus, Keycloak). Each add-on has its own directory with Helm values. Toggled via feature flags in root Application. All tools integrate with Keycloak SSO.
+
+## Environment Progression
+
+```text
+dev --> test --> UAT --> staging --> production
 ```
 
-## GitOps Deployment Models
-
-### Push Model (Non-Production)
-
-**Usage**: Development, testing, staging environments
-
-**Pattern**:
-
-1. CD Pipeline Operator in platform cluster
-2. Operator creates/updates Argo CD Application
-3. Argo CD in platform cluster syncs to target cluster
-4. Manifests from Git repository applied to target
-
-**Advantages**:
-
-- Centralized management
-- Single Argo CD instance
-- Simpler configuration
-
-**Disadvantages**:
-
-- Platform cluster has access to all environments
-- Not suitable for production isolation
-
-### Pull Model (Production)
-
-**Usage**: **Required for production environments**
-
-**Pattern**:
-
-1. CD Pipeline Operator pushes manifests to Git
-2. Dedicated Argo CD instance runs in production cluster
-3. Argo CD pulls manifests from Git repository
-4. Synchronizes production cluster state with Git
-5. No external cluster access to production
-
-**Advantages**:
-
-- Production completely isolated
-- No inbound connections from platform
-- Production Argo CD only accesses Git (read-only)
-- Meets high security requirements
-
-## Multi-Cluster Architecture
-
-### Hub-and-Spoke Pattern
-
-**Platform Cluster (Hub)**:
-
-- Runs KRCI operators (Codebase, CD Pipeline, Keycloak)
-- Hosts KubeRocketCI Portal
-- Executes Tekton pipelines
-- Stores artifacts
-- Manages non-production Argo CD
-
-**Environment Clusters (Spokes)**:
-
-- Run application workloads
-- Receive deployments via Argo CD
-- Production cluster has dedicated Argo CD (pull model)
-
-**Network Requirements**:
-
-- Platform cluster can reach development/staging clusters (push model)
-- Production cluster only requires Git access (pull model)
-- All clusters reach artifact registry for image pulls
-- All clusters reach Keycloak for authentication
-
-### Network Segmentation
-
-**Production Isolation**:
-
-- Dedicated network segment for production cluster
-- No inbound connections from platform cluster
-- Only outbound to Git repository (HTTPS)
-- Only outbound to artifact registry (HTTPS)
-- No cross-environment communication
-
-**Non-Production Networks**:
-
-- May share network space
-- Platform cluster can access for deployment
-- Proper firewall rules between environments
-
-## Artifact Promotion
-
-### Build Once, Deploy Everywhere
-
-**Pattern**:
-
-1. Build artifact in development pipeline
-2. Tag artifact with version (semantic versioning)
-3. Store in artifact registry
-4. Promote same artifact through environments
-5. Never rebuild between environments
-
-**Advantages**:
-
-- Consistency across environments
-- Faster deployments
-- Immutable artifacts
-- Clear provenance
-
-### Promotion Workflow
-
-**Automatic Promotion (Dev → Test)**:
-
-```
-Build successful → Tests pass → Auto-deploy to test
-```
-
-**Manual Promotion (Test → UAT → Staging)**:
-
-```
-Tests complete → QA approval → Manual trigger → Deploy to UAT
-UAT validated → PM approval → Manual trigger → Deploy to staging
-```
-
-**Controlled Promotion (Staging → Production)**:
-
-```
-Staging validated → Change management approval → Manual trigger → Update Git manifest → Production Argo CD pulls changes
-```
-
-### Versioning Strategy
-
-**Semantic Versioning**: `MAJOR.MINOR.PATCH[-PRERELEASE][+BUILD]`
-
-**Examples**:
-
-- `1.2.3-dev.20230315.abc123` - Development build
-- `1.2.3-rc.1` - Release candidate
-- `1.2.3` - Production release
-
-**Tagging**:
-
-- Docker images tagged with version
-- Git tags on release branches
-- Helm charts versioned independently
-
-## Configuration Management
-
-### GitOps Configuration
-
-KubeRocketCI uses GitOps principles for configuration management across environments:
-
-**Application Configuration**:
-
-- Environment-specific values stored in Git repositories
-- Argo CD synchronizes configuration from Git to target clusters
-- Helm values files per environment (values-dev.yaml, values-staging.yaml, values-prod.yaml)
-- ConfigMaps and Secrets generated from Git-stored templates
-
-**Platform Configuration**:
-
-- edp-install Helm chart values define platform component configuration
-- edp-cluster-add-ons manages tool configuration via ArgoCD Applications
-- Each environment cluster has its own values overlay
-- Changes tracked through Git commits with audit trail
-
-**Configuration Promotion**:
-
-```
-1. Developer modifies configuration in Git
-2. PR review and approval
-3. Merge triggers Argo CD sync to target environment
-4. Argo CD applies configuration changes
-5. Validation confirms successful rollout
-```
-
-**Best Practices**:
-
-- Store all configuration in Git (single source of truth)
-- Use Helm values overlays for environment differences
-- Never store secrets in Git (use External Secrets Operator)
-- Tag configuration versions alongside application versions
-- Use branch-per-environment or directory-per-environment strategy
-
-### Secret Management
-
-**Development/Testing**:
-
-- Kubernetes Secrets acceptable
-- Sealed Secrets for Git storage
-
-**Production**:
-
-- External secret store (AWS Parameter Store, Vault, Azure Key Vault)
-- External Secrets Operator integration
-- Never commit secrets to Git
-- Rotate secrets regularly
-
-## High Availability Patterns
-
-### Platform Cluster HA
-
-**Operators**:
-
-- Multiple replicas with leader election
-- Distributed across availability zones
-- Health checks and automatic restart
-
-**Tekton**:
-
-- Tekton controllers highly available
-- Pipeline runs on ephemeral pods (failures retried)
-
-**Portal**:
-
-- Multiple replicas behind load balancer
-- Session affinity if needed
-- StatefulSets for persistent sessions
-
-### Production Application HA
-
-**Deployment Strategy**:
-
-- Minimum 3 replicas across availability zones
-- Pod Disruption Budgets configured
-- Resource requests/limits defined
-- Liveness and readiness probes
-
-**Rolling Updates**:
-
-```yaml
-strategy:
-  type: RollingUpdate
-  rollingUpdate:
-    maxSurge: 1
-    maxUnavailable: 0
-```
-
-## Disaster Recovery
-
-### Backup Strategy
-
-**Critical Data**:
-
-- Git repositories (source of truth)
-- Artifact registry (backup images)
-- Keycloak data (user accounts, permissions)
-- Persistent volumes (if used)
-
-**Not Backed Up** (Recreatable from Git):
-
-- Kubernetes resources (deployed via GitOps)
-- Tekton pipeline runs (history retained, not critical)
-- Temporary build artifacts
-
-### Recovery Procedures
-
-**Platform Cluster Failure**:
-
-1. Provision new Kubernetes cluster
-2. Restore Keycloak data
-3. Install KRCI operators from Helm charts
-4. Configure operators pointing to Git repositories
-5. Operators reconcile desired state from CRDs in Git
-
-**Production Cluster Failure**:
-
-1. Provision new production cluster
-2. Install Argo CD
-3. Configure Argo CD to pull from Git
-4. Argo CD restores all applications from Git
-5. Restore any persistent data from backups
-
-## Cloud-Specific Patterns
-
-### AWS
-
-**EKS Clusters**: Use for all Kubernetes clusters
-
-**Artifact Storage**: ECR for container images
-
-**Secret Management**: AWS Parameter Store or Secrets Manager
-
-**Networking**: VPC per environment with peering for non-production
-
-### Azure
-
-**AKS Clusters**: Use for all Kubernetes clusters
-
-**Artifact Storage**: Azure Container Registry
-
-**Secret Management**: Azure Key Vault
-
-**Networking**: VNet per environment with peering for non-production
-
-### On-Premises
-
-**Kubernetes Distribution**: OpenShift or vanilla Kubernetes
-
-**Artifact Storage**: Nexus or Harbor
-
-**Secret Management**: HashiCorp Vault
-
-**Networking**: Isolated VLANs per environment
-
-## Scaling Patterns
-
-### Horizontal Scaling
-
-**Applications**:
-
-- Horizontal Pod Autoscaler based on CPU/memory
-- Custom metrics (queue length, request rate)
-- Manual scaling for predictable load
-
-**Tekton**:
-
-- Pipeline runs scale automatically (Kubernetes pods)
-- Task pods sized per task requirements
-- Parallel execution where possible
-
-### Cluster Scaling
-
-**Node Autoscaling**:
-
-- Cluster Autoscaler for dynamic node pools
-- Different node pools for different workloads (CI vs. apps)
-- Spot/preemptible instances for CI workloads
-
-## Migration Patterns
-
-### Blue-Green Deployment
-
-1. Deploy new version to "green" environment
-2. Validate green environment
-3. Switch traffic to green
-4. Keep blue for rollback
-5. Decommission blue after validation period
-
-### Canary Deployment
-
-1. Deploy new version to canary subset (10%)
-2. Monitor metrics and errors
-3. Gradually increase canary percentage (25%, 50%, 100%)
-4. Rollback if issues detected
-5. Complete rollout when validated
-
-### Database Migrations
-
-**Pattern**:
-
-1. Schema changes backward compatible
-2. Deploy new application version
-3. Migrate data
-4. Remove backward compatibility code in next version
-
-**Never**:
-
-- Breaking schema changes without migration path
-- Simultaneous app and schema updates
-- Irreversible migrations without backups
+Artifacts built once, promoted unchanged. CD Pipeline Operator manages promotion logic. Automatic for dev-to-test; manual approval for staging-to-production.

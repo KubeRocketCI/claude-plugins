@@ -1,16 +1,9 @@
 ---
 description: Create a workspace with KubeRocketCI repositories for feature development
-argument-hint: <workspace-name>
 allowed-tools: [Bash, AskUserQuestion]
 ---
 
-Bootstrap a new workspace directory for KubeRocketCI feature development by cloning selected repositories.
-
-## Workspace Name
-
-Workspace: $ARGUMENTS
-
-If no workspace name was provided (empty $ARGUMENTS), use AskUserQuestion to ask the user for a workspace name. Do NOT proceed without a workspace name.
+Bootstrap the current directory as a KubeRocketCI workspace by cloning selected repositories into it.
 
 ## Step 1: Repository Selection
 
@@ -70,20 +63,18 @@ options:
 After the user selects repositories, run the bootstrap script using Bash:
 
 ```bash
-${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap-workspace.sh "<workspace-name>" <repo1> <repo2> ...
+${CLAUDE_PLUGIN_ROOT}/scripts/bootstrap-workspace.sh <repo1> <repo2> ...
 ```
 
-Pass the workspace name as the first argument and all selected repository names as subsequent arguments. Exclude "None" from the argument list if selected.
+Pass all selected repository names as arguments. Exclude "None" from the argument list if selected. The script clones into the current working directory and skips repos that already exist.
 
 ## Step 3: Confirm
 
 After the script completes, report what was cloned and the workspace path. Example:
 
 ```
-Workspace 'feature-github' created with 3 repositories:
+Workspace ready at /Users/me/my-feature with 3 repositories:
   - edp-tekton
   - krci-portal
   - edp-codebase-operator
-
-Path: /current/working/dir/feature-github
 ```
