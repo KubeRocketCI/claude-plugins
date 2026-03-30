@@ -1,320 +1,76 @@
-# Kubernetes Resource Patterns
+# Advanced K8s Resource Patterns
 
-Advanced patterns for working with Kubernetes Custom Resources in the KubeRocketCI portal.
+> **When to read this**: When you need to implement cross-resource relationships, multi-namespace watching, data transformations, or other patterns beyond basic watch/CRUD.
 
-> **Important**: All examples in this document use label constants from the shared package. Never hardcode label strings - always import label constants from `packages/shared/src/models/k8s/groups/{Group}/{Resource}/labels.ts`
+## Label-Based Resource Relationships
 
-## Label Selectors
+Parent-child relationships between K8s resources are established through label selectors. The `labels` parameter on `useWatchList` filters resources server-side.
 
-**IMPORTANT**: Always use label constants from shared package, never hardcode label strings.
+Always use label constants from the shared package. Each resource defines its label keys in `packages/shared/src/models/k8s/groups/{Group}/{Resource}/labels.ts`. Import them from `@my-project/shared`.
 
-Filter resources by labels:
+Label filtering uses AND logic: all specified labels must match.
 
-```typescript
-import { applicationLabels } from "@my-project/shared";
+To discover which labels a resource defines, read its `labels.ts` file.
 
-const codebaseWatch = useWatchList({
-  resourceConfig: k8sCodebaseConfig,
-  labelSelector: {
-    [applicationLabels.component]: 'frontend',  // Using constant
-    [applicationLabels.environment]: 'production', // Using constant
-  },
-});
-```
+## Multi-Namespace Watching
 
-**Label constants location**: `packages/shared/src/models/k8s/groups/{Group}/{Resource}/labels.ts`
+The `useWatchListMultiple` hook watches a resource across multiple namespaces simultaneously. It returns combined data with per-namespace breakdown.
 
-**Label matching**: All specified labels must match (AND logic).
+To see its interface: read `apps/client/src/k8s/api/hooks/useWatch/useWatchListMultiple/`.
 
-**Why use constants?**
+Its result includes `data.array` (merged), `data.byNamespace` (per-namespace Map), `isLoading` (ANY pending), `isReady` (ALL successful).
 
-- Type safety - typos caught at compile time
-- Single source of truth - change once, update everywhere
-- Refactoring - find all usages easily
-- Consistency - same labels across client and trpc packages
+Factory: `createUseWatchListMultipleHook<T>(config)` in the hook-creators.
 
-**Location**: `apps/client/src/k8s/api/hooks/useWatch/useWatchList/index.ts`
+## Data Transformations
 
-## Resource Transformations
+Both `useWatchList` and `useWatchItem` accept an optional `transform` parameter:
 
-Transform resources before display:
+- For lists: `transform: (items: Map<string, T>) => Map<string, T>` - applied during initial fetch and after each WebSocket update
+- For items: `transform: (item: T) => T` - applied during fetch and after updates
 
-```typescript
-const codebaseWatch = useWatchList({
-  resourceConfig: k8sCodebaseConfig,
-  transform: (items) => {
-    // Sort by creation time
-    const sorted = new Map(
-      [...items.entries()].sort((a, b) => {
-        const timeA = new Date(a[1].metadata.creationTimestamp || 0);
-        const timeB = new Date(b[1].metadata.creationTimestamp || 0);
-        return timeB.getTime() - timeA.getTime();
-      })
-    );
-    return sorted;
-  },
-});
-```
-
-**Use cases**: Sorting, filtering, enriching data, normalizing structures
-
-## Multi-Resource Watching
-
-Watch multiple resource types simultaneously:
-
-```typescript
-const codebaseWatch = useWatchList({ resourceConfig: k8sCodebaseConfig });
-const branchWatch = useWatchList({ resourceConfig: k8sCodebaseBranchConfig });
-const pipelineWatch = useWatchList({ resourceConfig: k8sCDPipelineConfig });
-
-// Combine data
-const resources = useMemo(() => ({
-  codebases: codebaseWatch.dataArray,
-  branches: branchWatch.dataArray,
-  pipelines: pipelineWatch.dataArray,
-}), [codebaseWatch.dataArray, branchWatch.dataArray, pipelineWatch.dataArray]);
-```
-
-## Cross-Namespace Resources
-
-Watch resources across multiple namespaces:
-
-```typescript
-import { useWatchListMultiple } from "@/k8s/api/hooks/useWatch/useWatchListMultiple";
-
-const allCodebases = useWatchListMultiple({
-  resourceConfig: k8sCodebaseConfig,
-  namespaces: ['dev', 'staging', 'prod'],
-});
-```
-
-**Location**: `apps/client/src/k8s/api/hooks/useWatch/useWatchListMultiple/`
+Use transformations for: normalizing data shapes, sorting by a default order, enriching items with computed fields. The transform runs inside the query/subscription pipeline, so the cache already stores transformed data.
 
 ## Owner References
 
-Link resources via owner references:
-
-```typescript
-// Find resources owned by a parent
-const branches = branchWatch.dataArray.filter(branch =>
-  branch.metadata.ownerReferences?.some(ref =>
-    ref.kind === 'Codebase' && ref.name === codebase.metadata.name
-  )
-);
-```
-
-**Pattern**: Kubernetes garbage collection automatically deletes child resources when parent is deleted.
+K8s owner references link child to parent resources. To find children of a resource, filter by `metadata.ownerReferences`. Kubernetes garbage collection automatically deletes children when the parent is deleted.
 
 ## Status Conditions
 
-Check resource status conditions:
+Many K8s resources express status through `status.conditions` (an array of `{ type, status, reason, message, lastTransitionTime }`). The portal's status icon utilities typically map the `status.phase` or conditions to visual indicators. Read the resource's status type in its shared types file to understand available conditions.
 
-```typescript
-const getCondition = (resource: KubeObjectBase, type: string) => {
-  return resource.status?.conditions?.find(c => c.type === type);
-};
+## Resource Generation Tracking
 
-const isReady = (resource: KubeObjectBase) => {
-  const readyCondition = getCondition(resource, 'Ready');
-  return readyCondition?.status === 'True';
-};
+`metadata.generation` increments on spec changes. `status.observedGeneration` tracks what the controller last reconciled. When `generation !== observedGeneration`, the resource is being reconciled (show an updating indicator).
 
-const getStatusMessage = (resource: KubeObjectBase) => {
-  const readyCondition = getCondition(resource, 'Ready');
-  return readyCondition?.message || 'Unknown status';
-};
+## Cluster-Scoped Resources
+
+Resources with `clusterScoped: true` in their config bypass namespace. The watch hooks detect this and omit the namespace from API URLs automatically. No special handling is needed in component code.
+
+## Performance Considerations
+
+1. Use server-side label selectors (`labels` param) instead of client-side filtering when possible
+2. The `transform` function runs on every WebSocket event; keep it lightweight
+3. Watch hooks use `staleTime` and `gcTime` for cache efficiency; avoid overriding unless necessary
+4. `useWatchItem` reads initial data from the list cache (if available), avoiding duplicate API calls
+5. Permissions queries use `staleTime: Infinity` since RBAC rarely changes mid-session
+
+## Discovering Resources in the Codebase
+
+To find all defined K8s resource configs:
+
+```
+ls packages/shared/src/models/k8s/groups/
 ```
 
-## Resource Creation with Defaults
+To find all client-side resource hook registrations:
 
-Create resources with default values:
-
-```typescript
-import { createCodebaseDraft } from "@my-project/shared";
-
-const handleCreate = async (values: CodebaseFormValues) => {
-  const draft = createCodebaseDraft({
-    name: values.name,
-    namespace: defaultNamespace,
-    spec: {
-      type: values.type,
-      // ... other fields
-    },
-  });
-
-  await createMutation.mutateAsync({
-    resourceConfig: k8sCodebaseConfig,
-    namespace: defaultNamespace,
-    data: draft,
-  });
-};
+```
+ls apps/client/src/k8s/api/groups/
 ```
 
-**Draft creators**: Located in `packages/shared/src/models/k8s/groups/*/utils/`
+To find how a specific resource is used in the UI:
 
-## Patch Operations
-
-Update specific fields without replacing entire resource:
-
-```typescript
-const patchMutation = useResourceCRUDMutation({
-  resourceConfig: k8sCodebaseConfig,
-  operation: 'patch',
-});
-
-await patchMutation.mutateAsync({
-  name: codebase.metadata.name,
-  namespace: codebase.metadata.namespace,
-  data: {
-    spec: {
-      description: newDescription, // Only update description
-    },
-  },
-});
 ```
-
-**Patch types**: Strategic merge patch (default), JSON merge patch, JSON patch
-
-## Permission-Based UI
-
-Show/hide UI based on resource permissions:
-
-```typescript
-const permissions = useResourcePermissions({
-  resourceConfig: k8sCodebaseConfig,
-  namespace: defaultNamespace,
-});
-
-// In component
-{permissions.data?.create.allowed && (
-  <Button onClick={handleCreate}>
-    Create Codebase
-  </Button>
-)}
-
-{!permissions.data?.create.allowed && (
-  <Tooltip content={permissions.data?.create.reason}>
-    <Button disabled>Create Codebase</Button>
-  </Tooltip>
-)}
+grep -r "use{Resource}WatchList" apps/client/src/modules/
 ```
-
-**Location**: `apps/client/src/k8s/api/hooks/usePermissions/`
-
-## Resource Events
-
-Watch Kubernetes events for a resource:
-
-```typescript
-// Events are included in resource watch
-const events = resource.status?.events || [];
-
-// Display events
-events.map(event => (
-  <div key={event.timestamp}>
-    <span>{event.type}</span>
-    <span>{event.reason}</span>
-    <span>{event.message}</span>
-  </div>
-));
-```
-
-## Finalizers
-
-Resources with finalizers require cleanup before deletion:
-
-```typescript
-const hasFinalizers = (resource: KubeObjectBase) => {
-  return (resource.metadata.finalizers?.length || 0) > 0;
-};
-
-// Warning before delete
-{hasFinalizers(resource) && (
-  <Alert>
-    This resource has finalizers and may take time to delete.
-  </Alert>
-)}
-```
-
-## Resource Quotas and Limits
-
-Check namespace quotas:
-
-```typescript
-const quotaWatch = useWatchItem({
-  resourceConfig: k8sResourceQuotaConfig,
-  name: 'default-quota',
-  namespace: currentNamespace,
-});
-
-const canCreate = () => {
-  const used = quotaWatch.data?.status?.used?.['count/pods'] || 0;
-  const hard = quotaWatch.data?.status?.hard?.['count/pods'] || 0;
-  return used < hard;
-};
-```
-
-## Custom Resource Schemas
-
-Validate against CRD schema:
-
-```typescript
-import { codebaseSchema } from "@my-project/shared";
-
-const validateResource = (data: unknown) => {
-  try {
-    codebaseSchema.parse(data);
-    return { valid: true };
-  } catch (error) {
-    return { valid: false, errors: error.errors };
-  }
-};
-```
-
-**Schemas**: Located in `packages/shared/src/models/k8s/groups/*/schema.ts`
-
-## Resource Generation
-
-Track resource updates via generation:
-
-```typescript
-const hasUpdates = (resource: KubeObjectBase) => {
-  // Generation increments on spec changes
-  // ObservedGeneration tracks last reconciled generation
-  return resource.metadata.generation !==
-         resource.status?.observedGeneration;
-};
-
-{hasUpdates(resource) && (
-  <Badge>Updating...</Badge>
-)}
-```
-
-## Real-World Examples
-
-**Check these implementations**:
-
-- Codebase management: `apps/client/src/modules/platform/codebases/`
-- Pipeline management: `apps/client/src/modules/platform/cdpipelines/`
-- Tekton resources: `apps/client/src/modules/platform/tekton/`
-- K8s API groups: `apps/client/src/k8s/api/groups/`
-
-## Performance Optimization
-
-1. **Use watch hooks** - Avoid polling, use WebSocket watches
-2. **Transform data once** - Apply transformations in watch hook, not component
-3. **Memoize derived data** - Cache computed values with useMemo
-4. **Filter early** - Use label selectors (with label constants from shared) instead of client-side filtering
-5. **Limit watched resources** - Only watch what you need
-6. **Use label constants** - Import once, use type-safe references throughout
-
-## Best Practices
-
-1. **Use label constants** - **Never hardcode label strings**. Always import from `packages/shared/src/models/k8s/groups/{Group}/{Resource}/labels.ts`
-2. **Handle loading states** - Check `query.isFetched` before rendering
-3. **Handle errors gracefully** - Show user-friendly error messages
-4. **Use permission checks** - Validate permissions before mutations
-5. **Validate input** - Use Zod schemas from shared package
-6. **Track resource status** - Display conditions and generation info
-7. **Filter with label selectors** - Use label selectors instead of client-side filtering
-8. **Clean up on unmount** - WebSocket connections auto-close

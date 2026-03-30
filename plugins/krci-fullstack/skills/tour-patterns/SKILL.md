@@ -11,94 +11,89 @@ Guide tour implementation using the portal's modular tour system with automatic 
 
 ## Core Architecture
 
-**Tours Module**: Centralized tour management with react-joyride, supporting manual triggers, auto-activation, nested navigation, and visual state feedback.
+The tour system is centralized in `modules/tours/` and uses react-joyride under the hood. Tours are configured declaratively and orchestrated by a single `ToursProvider` that handles activation, navigation between steps (including cross-page navigation), element waiting, and completion tracking.
 
-**Key Components**:
+**Key files to read**:
 
-- `@/modules/tours` - ToursProvider, hooks, config, utilities
-- `@/core/components/PageGuide` - PageGuideButton for manual tour activation
-- Module-specific tour configs - Each module exports its tours
+- `modules/tours/types.ts` -- All TypeScript types (TourMetadata, TourTrigger, StepPrerequisite, etc.)
+- `modules/tours/config.tsx` -- Central tour registry. Global tours are defined here; module tours are imported.
+- `modules/tours/providers/provider.tsx` -- ToursProvider with joyride orchestration, step navigation, and auto-trigger logic.
+- `modules/tours/services/index.ts` -- localStorage-based completion tracking.
+- `modules/tours/utils.ts` -- Tour eligibility checking and route matching.
+- `core/components/PageGuide/PageGuideButton.tsx` -- Manual tour trigger button.
 
-## Tour Types
+## Tour Types and Triggers
 
-- **Manual tours** (`trigger: "manual"`) - Started via PageGuideButton
-- **Auto tours** (`trigger: "onMount"`) - Auto-start when eligible
-- **Route tours** (`trigger: "route"`) - Auto-start on route navigation
-- **Popups** (`type: "popup"`) - Single-step informative hints
+### Tour Types
 
-## Tour Configuration Structure
+- **`type: "tour"`** -- Multi-step walkthrough with navigation bar (Back/Next/Skip)
+- **`type: "popup"`** -- Single-step informative hint (shows "Got it" button)
 
-Tours are modular - each feature module exports its own:
+### Trigger Types
 
+There are four trigger types:
+
+- **`trigger: "manual"`** -- Started by user via PageGuideButton or programmatic call
+- **`trigger: "onMount"`** -- Auto-starts when the app loads and prerequisites match (e.g., welcome tour)
+- **`trigger: "route"`** -- Auto-starts when navigating to a matching route
+- **`trigger: "feature"`** -- Triggered when a specific feature is encountered. Uses `featureId` to identify the feature (e.g., `featureId: "form-guide"` for the form guide toggle button)
+
+### TourMetadata Interface
+
+The full interface is defined in `modules/tours/types.ts`. Key fields:
+
+```typescript
+interface TourMetadata {
+  id: string;                       // Unique identifier (used for completion tracking)
+  title: string;                    // Human-readable title
+  description: string;              // What this tour demonstrates
+  type?: TourType;                  // "tour" | "popup" (default: "tour")
+  showOnce: boolean;                // Only show once per user
+  trigger: TourTrigger;             // "manual" | "onMount" | "route" | "feature"
+  routePattern?: string;            // For route trigger: pattern to match
+  featureId?: string;               // For feature trigger: feature identifier
+  minVersion?: string;              // Min app version (semver) for this tour
+  maxVersion?: string;              // Max app version (semver) for this tour
+  prerequisite?: TourPrerequisite;  // Conditions for activation
+  route?: string;                   // Route pattern for navigation from tours settings
+  steps: StepWithPrerequisite[];    // Joyride steps with optional navigation
+}
 ```
-modules/platform/codebases/
-├── tours.tsx              # Export CODEBASES_TOURS
-└── ...
 
-modules/tours/
-├── config.tsx             # GLOBAL_TOURS + imports all module tours
-├── types.ts               # TourMetadata, prerequisites, step config
-├── providers/
-│   └── provider.tsx       # ToursProvider with navigation logic
-└── utils/
-    ├── waitForElement.ts  # MutationObserver-based element detection
-    └── utils.ts           # isTourEligible, route matching
-```
+Always read `modules/tours/types.ts` directly for the authoritative interface definition.
 
 ## Implementation Steps
 
 ### 1. Define Module Tours
 
-Create `tours.tsx` in your module:
+Create `tours.tsx` in your module directory:
 
 ```typescript
-// modules/platform/codebases/tours.tsx
-import { TourMetadata } from "@/modules/tours/types";
-import { PATH_PROJECT_DETAILS_FULL } from "@/core/router/paths";
-import { OverviewHelp, PipelinesHelp } from "./components/help";
+// modules/platform/myfeature/tours.tsx
+import type { TourMetadata } from "@/modules/tours/types";
+import { TourStepContent } from "@/modules/tours/components/TourStepContent";
 
-export const CODEBASES_TOURS: Record<string, TourMetadata> = {
-  projectDetailsTour: {
-    id: "project_details_tour",
-    title: "Project Details Tour",
-    description: "Learn about tabs and features",
+export const MY_FEATURE_TOURS: Record<string, TourMetadata> = {
+  myFeatureTour: {
+    id: "my_feature_tour",
+    title: "My Feature Tour",
+    description: "Learn about this feature",
     type: "tour",
     trigger: "manual",
     showOnce: false,
-
-    // Tour-level prerequisite (where it can be activated)
     prerequisite: {
-      routePattern: "/c/:clusterName/projects/:namespace/:name",
-      requiredSearch: (search) => !search.tab || search.tab === "overview",
+      routePattern: "/c/:clusterName/my-feature",
     },
-
     steps: [
       {
-        target: "[data-tour='project-tabs']",
-        content: <OverviewHelp />,
+        target: "[data-tour='feature-header']",
+        content: (
+          <TourStepContent title="Feature Overview">
+            <p>This is the main area where you manage your feature.</p>
+          </TourStepContent>
+        ),
         placement: "bottom",
         disableBeacon: true,
-        // Step prerequisite (navigate before showing step)
-        prerequisite: {
-          to: PATH_PROJECT_DETAILS_FULL,
-          search: (prev) => ({ ...prev, tab: "overview" }),
-          waitFor: "[data-tour='project-tabs']",
-        },
-      },
-      {
-        target: "[data-tour='pipeline-history']",
-        content: <PipelinesHelp />,
-        placement: "top",
-        prerequisite: {
-          to: PATH_PROJECT_DETAILS_FULL,
-          search: (prev) => ({
-            ...prev,
-            tab: "pipelines",
-            pipelinesTab: "tekton-results"  // Nested tab navigation
-          }),
-          waitFor: "[data-tour='pipeline-history']",
-          stabilizationDelay: 300,  // Wait for tab animation
-        },
       },
     ],
   },
@@ -107,176 +102,136 @@ export const CODEBASES_TOURS: Record<string, TourMetadata> = {
 
 ### 2. Register in Central Config
 
+Add import to `modules/tours/config.tsx`:
+
 ```typescript
-// modules/tours/config.tsx
-import { CODEBASES_TOURS } from "@/modules/platform/codebases/tours";
+import { MY_FEATURE_TOURS } from "@/modules/platform/myfeature/tours";
 
-const GLOBAL_TOURS: Record<string, TourMetadata> = {
-  welcome: {
-    type: "tour",
-    trigger: "onMount",
-    prerequisite: { routePattern: "/home" },
-    // ...
-  },
-  pinnedItems: { type: "popup", trigger: "manual", /* ... */ },
-};
-
-export const TOURS_CONFIG = {
+export const TOURS_CONFIG: Record<string, TourMetadata> = {
   ...GLOBAL_TOURS,
+  ...CDPIPELINE_TOURS,
   ...CODEBASES_TOURS,
+  ...MY_FEATURE_TOURS,
 };
 ```
 
 ### 3. Add Data-Tour Attributes
 
-Target tour steps using `data-tour` attributes:
+Target tour steps using `data-tour` attributes on your components:
 
 ```typescript
-// In your component
-<TabsList data-tour="project-tabs">
-  {/* ... */}
-</TabsList>
-
-<div data-tour="pipeline-history">
-  <TektonResultsTable />
+<div data-tour="feature-header">
+  <h2>My Feature</h2>
 </div>
-
-// For DataTable slots
-const tableSlots = React.useMemo(
-  () => ({
-    header: {
-      component: <CodebaseFilter />,
-      slotProps: { "data-tour": "projects-filter" },
-    },
-  }),
-  []
-);
 ```
+
+Use descriptive names: `data-tour="project-tabs"` not `data-tour="tabs"`. Add to wrapper elements, not deeply nested nodes.
 
 ### 4. Add Manual Trigger (Optional)
 
 ```typescript
 import { PageGuideButton } from "@/core/components/PageGuide";
 
-<PageGuideButton tourId="projectDetailsTour" />
+<PageGuideButton tourId="myFeatureTour" />
 ```
 
-## Tour Types Detail
+## Step Prerequisites (Cross-Page Navigation)
 
-### TourMetadata Fields
+Steps can navigate to a different route before showing. This is how tours span multiple pages or tabs:
 
 ```typescript
-interface TourMetadata {
-  id: string;                    // Unique identifier
-  title: string;                 // Display name
-  description: string;           // Short description
-  type: "tour" | "popup";        // Multi-step vs single informative
-  trigger: "manual" | "onMount" | "route";
-  showOnce?: boolean;            // Only show once (default: false)
-  prerequisite?: TourPrerequisite;  // Where it can activate
-  steps: Step[];                 // Joyride steps
+{
+  target: "[data-tour='pipeline-history']",
+  content: <PipelinesHelp />,
+  placement: "top",
+  prerequisite: {
+    to: PATH_PROJECT_DETAILS_FULL,
+    params: (current) => current,           // Preserve current route params
+    search: (prev) => ({ ...prev, tab: "pipelines" }),  // Switch to pipelines tab
+    waitFor: "[data-tour='pipeline-history']",          // Wait for element
+    stabilizationDelay: 300,                            // Wait for animation
+  },
 }
 ```
 
-### Tour Prerequisites
+The `StepPrerequisite` interface is defined in `modules/tours/types.ts`. Key fields: `to` (route path), `params`, `search`, `waitFor` (CSS selector or array), `stabilizationDelay` (ms).
 
-Control where tours can activate:
+## Tour-Level Prerequisites
+
+Control where a tour can be activated:
 
 ```typescript
-interface TourPrerequisite {
-  // Route pattern with params (/c/:clusterName/projects/:namespace/:name)
-  routePattern?: string;
-
-  // Required search params (exact match or validator function)
-  requiredSearch?: Record<string, unknown> | ((search: Record<string, unknown>) => boolean);
-
-  // Custom validation
-  validator?: (context: TourActivationContext) => boolean;
-}
-
-interface TourActivationContext {
-  path: string;                  // Current pathname
-  params: Record<string, string>;  // Route params
-  search: Record<string, unknown>; // Search params
+prerequisite: {
+  routePattern: "/c/:clusterName/projects/:namespace/:name",
+  requiredSearch: (search) => !search.tab || search.tab === "overview",
+  validator: (context) => someCustomCheck(context),
 }
 ```
 
-### Step Prerequisites (Navigation)
-
-Navigate before showing a step:
-
-```typescript
-interface StepPrerequisite {
-  to: string;                    // Route path constant
-  params?: Record<string, string> | ((current: Record<string, string>) => Record<string, string>);
-  search?: Record<string, unknown> | ((prev: Record<string, unknown>) => Record<string, unknown>);
-  waitFor?: string | string[];   // Selectors to wait for
-  stabilizationDelay?: number;   // Delay after elements appear
-}
-```
+Route patterns use `:param` syntax for dynamic segments. The `isTourEligible` function in `modules/tours/utils.ts` handles matching.
 
 ## Best Practices
 
-### Modular Configuration
+### Configuration
 
-- Keep module tours in module directory (`modules/platform/codebases/tours.tsx`)
-- Only global tours (welcome, general features) in central config
+- Keep module tours in the module directory (`modules/platform/codebases/tours.tsx`)
+- Only global tours (welcome, general features) go in the central config
 - Export as `ENTITY_TOURS` constant for clarity
-
-### Data-Tour Attributes
-
-- Use descriptive names: `data-tour="project-tabs"` not `data-tour="tabs"`
-- Add to wrapper elements, not deeply nested nodes
-- For DataTable headers, use `slots.header.slotProps`
-
-### Prerequisites
-
-- Always define tour-level prerequisites (where it can activate)
-- Use step prerequisites for navigation (tabs, pages)
-- Specify `waitFor` to prevent empty states
+- Use `showOnce: true` for onboarding, `false` for repeatable help
 
 ### Content
 
-- Keep help text concise (2-3 sentences or bullet list)
-- Use React components for complex content
-- Avoid redundant explanations of UI visible on screen
+- Use `TourStepContent` component for consistent step formatting
+- Keep help text concise (2-3 sentences or a short bullet list)
+- Create React components for complex content
+- Avoid explaining what is already visible on screen
 
 ### Placement
 
 - `placement: "bottom"` for top elements (tabs, headers)
-- `placement: "right"` for left sidebars
+- `placement: "right"` for left sidebar items
 - `placement: "top"` for bottom elements
-- Never center horizontally (overlaps navigation bar)
+- Avoid `placement: "center"` horizontally (overlaps navigation bar)
 
 ### Timing
 
-- Use `stabilizationDelay: 300` for animated transitions
-- Default `waitFor` timeout is 5000ms (5s)
-- Allow DOM to settle before showing step
+- Use `stabilizationDelay: 300` for animated transitions (tabs, accordions)
+- Default element wait timeout is 5000ms
+- Always specify `waitFor` in step prerequisites to avoid showing steps before elements render
 
 ### Types
 
 - Use `type: "popup"` for single-step informative hints
 - Use `type: "tour"` for multi-step walkthroughs
-- Set `showOnce: true` for onboarding, `false` for feature help
+- Use `trigger: "feature"` with `featureId` to introduce new UI features on first encounter
 
-## Key Files
+## Completion Tracking
 
-- `/modules/tours/config.tsx` - Central tour registry
-- `/modules/tours/types.ts` - TypeScript definitions
-- `/modules/tours/providers/provider.tsx` - Tour orchestration logic
-- `/modules/tours/utils/waitForElement.ts` - Element detection
-- `/modules/tours/utils.ts` - Tour eligibility validation
-- `/core/components/PageGuide/PageGuideButton.tsx` - Manual trigger
-- `/core/providers/Tabs/components/Tabs/index.tsx` - Tab highlighting
+Tours are tracked in localStorage via the services in `modules/tours/services/index.ts`. Completion records include timestamp, app version, and trigger type. Records are automatically cleaned up after 180 days.
+
+The `useTours()` hook (from `modules/tours/providers/hooks.ts`) provides `startTour`, `skipTour`, `isTourCompleted`, `isRunning`, and other context values.
+
+## Key Files Summary
+
+| File | Purpose |
+|------|---------|
+| `modules/tours/types.ts` | All TypeScript interfaces |
+| `modules/tours/config.tsx` | Central tour registry |
+| `modules/tours/providers/provider.tsx` | Tour orchestration (joyride, navigation, auto-triggers) |
+| `modules/tours/providers/hooks.ts` | `useTours()` and `useAutoTour()` hooks |
+| `modules/tours/providers/types.ts` | Provider context type |
+| `modules/tours/services/index.ts` | localStorage completion tracking |
+| `modules/tours/utils.ts` | Tour eligibility, route matching |
+| `modules/tours/utils/waitForElement.ts` | MutationObserver-based element detection |
+| `core/components/PageGuide/PageGuideButton.tsx` | Manual trigger button |
+| `modules/tours/components/TourStepContent/` | Standard step content wrapper |
 
 ## References
 
-For advanced patterns including auto-activation, tab highlighting, element waiting, help content components, completion tracking, common tour patterns, PageGuide integration, and troubleshooting, see `references/advanced-patterns.md`.
+For advanced patterns including tab highlighting, element waiting details, auto-activation flow, common tour patterns (popup, multi-tab, route-based), PageGuide integration, and troubleshooting, see `references/advanced-patterns.md`. Read it when building complex tours with cross-page navigation or tab interaction.
 
-Real implementations:
+Real implementations to study:
 
-- **Project Details Tour**: `modules/platform/codebases/tours.tsx`
-- **Projects List Tour**: `modules/platform/codebases/tours.tsx`
-- **Welcome Tour**: `modules/tours/config.tsx` (global)
-- **Form Guide Integration**: `core/providers/FormGuide/` (different pattern for form wizards)
+- `modules/platform/codebases/tours.tsx` -- Project details and list tours
+- `modules/platform/cdpipelines/tours.tsx` -- CDPipeline tours
+- `modules/tours/config.tsx` -- Global tours (welcome, pinned items, form guide, page guide)

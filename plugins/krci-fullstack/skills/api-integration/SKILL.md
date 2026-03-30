@@ -3,378 +3,129 @@ name: API Integration
 description: This skill should be used when the user asks to "add API endpoint", "create tRPC procedure", "implement React Query hook", "API integration", "tRPC router", "data fetching", "mutations", or mentions backend API, tRPC patterns, or React Query integration.
 ---
 
-Implement type-safe API endpoints using tRPC with React Query integration for data fetching and mutations in the KubeRocketCI portal.
+Guide tRPC API endpoint creation and React Query integration following the portal's type-safe patterns for client-server communication.
 
-## Purpose
+## Architecture Overview
 
-Guide tRPC API endpoint creation and React Query hook integration following portal's type-safe patterns for client-server communication.
+The portal uses a **monorepo with three packages** that participate in the API layer:
 
-## Tech Stack
+| Package | Role |
+|---------|------|
+| `packages/trpc/` | tRPC router definitions, procedures, middleware, K8s/external clients |
+| `packages/shared/` | Zod schemas, TypeScript types, resource configs (shared by both client and server) |
+| `apps/client/` | React frontend that consumes tRPC via a vanilla client + React Query |
+| `apps/server/` | Fastify server that mounts the tRPC handler |
 
-- **tRPC**: Type-safe API framework
-- **React Query**: Data fetching and caching (via tRPC client)
-- **Zod**: Input validation schemas
-- **Fastify**: Backend server framework
+The tRPC package does **not** use `@trpc/react-query`. Instead, the frontend uses a **vanilla tRPC client** (`createTRPCClient`) obtained through React context, and wraps calls in standard `@tanstack/react-query` hooks (`useQuery`, `useMutation`).
 
-## tRPC Router Creation
+## tRPC Server Architecture
 
-### Define Router
+### Router and Procedure Primitives
 
-```typescript
-// packages/trpc/src/routers/codebases/index.ts
-import { t } from "../../trpc.js";
-import { publicProcedure } from "../../trpc.js";
-import { protectedProcedure } from "../../procedures/protected/index.js";
-import { z } from "zod";
+The tRPC instance is initialized in `packages/trpc/src/trpc.ts`:
 
-export const codebaseRouter = t.router({
-  // Query - fetch data
-  list: protectedProcedure
-    .query(async ({ ctx }) => {
-      const codebases = await k8sService.listCodebases(ctx.session.user.secret.idToken);
-      return codebases;
-    }),
+- `t.router()` creates routers (not `createTRPCRouter`)
+- `t.procedure` is the base procedure
+- `protectedProcedure` (in `procedures/protected/`) adds session authentication middleware
+- `publicProcedure` (in `procedures/public/`) is just `t.procedure` re-exported
 
-  // Query with input
-  getByName: protectedProcedure
-    .input(z.object({ name: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const codebase = await k8sService.getCodebase(
-        input.name,
-        ctx.session.user.secret.idToken
-      );
-      return codebase;
-    }),
+To discover the exact initialization and middleware chain, read `packages/trpc/src/trpc.ts` and `packages/trpc/src/procedures/protected/index.ts`.
 
-  // Mutation - create/update/delete
-  create: protectedProcedure
-    .input(codebaseSchema)
-    .mutation(async ({ ctx, input }) => {
-      const codebase = await k8sService.createCodebase(
-        input,
-        ctx.session.user.secret.idToken
-      );
-      return codebase;
-    }),
+### Router Composition
 
-  delete: protectedProcedure
-    .input(z.object({ name: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      await k8sService.deleteCodebase(input.name, ctx.session.user.secret.idToken);
-      return { success: true };
-    }),
-});
-```
+All routers are composed in `packages/trpc/src/routers/index.ts` into a single `appRouter`. To see the current router tree, read that file. Current top-level namespaces include: `auth`, `config`, `dependencyTrack`, `gitfusion`, `k8s`, `sonarqube`, `tektonResults`.
 
-### Register Router
+The `k8s` router is the largest, containing generic CRUD procedures (`get`, `list`, `create`, `patch`, `delete`, `watchItem`, `watchList`) plus composite procedures for integration management.
 
-```typescript
-// packages/trpc/src/routers/index.ts
-import { t } from "../trpc.js";
-import { codebaseRouter } from "./codebases/index.js";
-import { pipelineRouter } from "./pipelines/index.js";
+### Context and Authentication
 
-export const appRouter = t.router({
-  codebases: codebaseRouter,
-  pipelines: pipelineRouter,
-});
+The tRPC context (`TRPCContext`) carries Fastify request/response, session, and OIDC config. To understand the context shape, read `packages/trpc/src/context/types.ts`.
 
-export type AppRouter = typeof appRouter;
-```
+The `protectedProcedure` middleware checks the session for a valid user. If no cookie session exists, it falls back to Bearer token authentication. K8s API calls use the session's `idToken` through the `K8sClient` class (in `packages/trpc/src/clients/k8s/`), which constructs a `KubeConfig` with the user's OIDC token.
 
-## Frontend Integration
+### Client Classes for External Services
 
-### tRPC Client Hook
+Each external service integration has a client class in `packages/trpc/src/clients/`:
 
-```typescript
-// apps/client/src/core/providers/trpc/hooks.ts
-import { useContext } from "react";
-import { TRPCContext } from "./context";
+- `k8s/` - K8sClient wrapping `@kubernetes/client-node` KubeConfig + fetch
+- `oidc/` - OIDC authentication client
+- `sonarqube/`, `dependencyTrack/`, `gitfusion/`, `tektonResults/` - external tool clients
 
-export const useTRPCClient = () => {
-  const client = useContext(TRPCContext);
-  if (!client) {
-    throw new Error("useTRPCClient must be used within TRPCProvider");
-  }
-  return client;
-};
-```
+To understand how a specific service is called, read its client class and the corresponding router.
 
-### Use in Components
+## Frontend tRPC Integration
 
-#### Query (Fetch Data)
+### The tRPC Client
 
-```typescript
-import { useTRPCClient } from "@/core/providers/trpc";
-import { useQuery } from "@tanstack/react-query";
+The frontend creates a vanilla `TRPCClient<AppRouter>` and provides it via React context. Two clients exist:
 
-const CodebaseList = () => {
-  const trpc = useTRPCClient();
+1. **Full client** (in `TRPCProvider`) - uses `splitLink`: HTTP for queries/mutations, WebSocket for subscriptions. Created after authentication.
+2. **HTTP-only client** (`trpcHttpClient`) - available before auth for login/logout operations.
 
-  const { data: codebases, isLoading, error } = useQuery({
-    queryKey: ["codebases.list"],
-    queryFn: () => trpc.codebases.list.query(),
-  });
+To access the client in components, use `useTRPCClient()` from `@/core/providers/trpc`.
 
-  if (isLoading) return <LoadingSpinner />;
-  if (error) return <ErrorMessage error={error} />;
+### Consuming tRPC in Components
 
-  return (
-    <ul className="space-y-2">
-      {codebases.map(codebase => (
-        <li key={codebase.metadata.name} className="p-2 border rounded">
-          {codebase.metadata.name}
-        </li>
-      ))}
-    </ul>
-  );
-};
-```
+Since the portal uses a vanilla tRPC client (not `@trpc/react-query`), all data fetching uses standard React Query:
 
-#### Query with Parameters
+**Queries**: Use `useQuery` with `trpc.namespace.procedure.query()` as the `queryFn`.
 
-```typescript
-const CodebaseDetails = ({ name }: { name: string }) => {
-  const trpc = useTRPCClient();
+**Mutations**: Use `useMutation` with `trpc.namespace.procedure.mutate()` as the `mutationFn`.
 
-  const { data: codebase } = useQuery({
-    queryKey: ["codebases.get", name],
-    queryFn: () => trpc.codebases.getByName.query({ name }),
-    enabled: Boolean(name),
-  });
+**Subscriptions**: Use `trpc.namespace.procedure.subscribe()` for WebSocket-based real-time data.
 
-  return <CodebaseView codebase={codebase} />;
-};
-```
+### K8s-Specific Hooks (Most Common Pattern)
 
-#### Mutation (Create/Update/Delete)
+Most portal data fetching goes through the K8s watch hook system rather than direct tRPC calls. These hooks (`useWatchList`, `useWatchItem`) internally call `trpc.k8s.list.query()` / `trpc.k8s.get.query()` and set up WebSocket subscriptions for live updates. See the **k8s-resources** skill for details.
 
-```typescript
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTRPCClient } from "@/core/providers/trpc";
+For non-K8s data (SonarQube metrics, DependencyTrack scores, Tekton Results), components call tRPC procedures directly via `useQuery`/`useMutation`.
 
-const CreateCodebaseButton = () => {
-  const trpc = useTRPCClient();
-  const queryClient = useQueryClient();
+## How to Add a New Router
 
-  const { mutate: createCodebase, isPending } = useMutation({
-    mutationFn: (data: CodebaseFormData) => trpc.codebases.create.mutate(data),
-    onSuccess: () => {
-      // Invalidate list query to refetch
-      queryClient.invalidateQueries({ queryKey: ["codebases.list"] });
-      toast.success('Codebase created');
-    },
-    onError: (error) => {
-      toast.error(`Failed: ${error.message}`);
-    },
-  });
+Follow this process when adding a new tRPC router for a new external service or feature:
 
-  const handleCreate = (data: CodebaseFormData) => {
-    createCodebase(data);
-  };
+1. **Create client class** in `packages/trpc/src/clients/{service}/` if the service needs HTTP calls
+2. **Create router** in `packages/trpc/src/routers/{service}/index.ts` using `t.router()`
+3. **Define procedures** using `protectedProcedure` (most cases) or `publicProcedure`
+4. **Register router** by importing into `packages/trpc/src/routers/index.ts` and adding to the `appRouter`
+5. **Consume on frontend** using `useTRPCClient()` + React Query hooks
 
-  return (
-    <Button onClick={() => handleCreate(formData)} disabled={isPending}>
-      {isPending ? 'Creating...' : 'Create Codebase'}
-    </Button>
-  );
-};
-```
+For Zod input schemas shared between client validation and server input validation, define them in `packages/shared/`.
 
-## React Query Patterns
+## Discovery Instructions
 
-### Automatic Refetching
+| To learn about... | Read this file |
+|-------------------|----------------|
+| tRPC initialization, `t.router`, `t.procedure` | `packages/trpc/src/trpc.ts` |
+| Protected procedure middleware (auth chain) | `packages/trpc/src/procedures/protected/index.ts` |
+| Full router tree and AppRouter type | `packages/trpc/src/routers/index.ts` |
+| TRPCContext shape (session, req, res) | `packages/trpc/src/context/types.ts` |
+| K8sClient (how K8s API calls are made server-side) | `packages/trpc/src/clients/k8s/index.ts` |
+| Frontend tRPC client setup (split link, WS) | `apps/client/src/core/providers/trpc/provider.tsx` |
+| `useTRPCClient` hook | `apps/client/src/core/providers/trpc/hooks.ts` |
+| How a specific router works | `packages/trpc/src/routers/{name}/index.ts` |
+| K8s router procedures (list, get, watch, etc.) | `packages/trpc/src/routers/k8s/index.ts` |
+| Any router's procedure details | `packages/trpc/src/routers/{name}/procedures/` |
 
-```typescript
-const trpc = useTRPCClient();
+## Key Conventions
 
-const { data } = useQuery({
-  queryKey: ["codebases.list"],
-  queryFn: () => trpc.codebases.list.query(),
-  refetchOnWindowFocus: true,
-  refetchInterval: 30000,  // Every 30s
-});
-```
-
-### Optimistic Updates
-
-```typescript
-const { mutate: updateCodebase } = trpc.codebases.update.useMutation({
-  onMutate: async (newData) => {
-    // Cancel outgoing refetches
-    await utils.codebases.getByName.cancel({ name: newData.name });
-
-    // Snapshot current value
-    const previous = utils.codebases.getByName.getData({ name: newData.name });
-
-    // Optimistically update
-    utils.codebases.getByName.setData({ name: newData.name }, newData);
-
-    return { previous };
-  },
-  onError: (err, variables, context) => {
-    // Rollback on error
-    if (context?.previous) {
-      utils.codebases.getByName.setData(
-        { name: variables.name },
-        context.previous
-      );
-    }
-  },
-  onSettled: (data, error, variables) => {
-    // Refetch to ensure consistency
-    utils.codebases.getByName.invalidate({ name: variables.name });
-  },
-});
-```
-
-### Dependent Queries
-
-```typescript
-const CodebaseWithBranches = ({ name }: { name: string }) => {
-  const { data: codebase } = trpc.codebases.getByName.useQuery({ name });
-
-  const { data: branches } = trpc.branches.listForCodebase.useQuery(
-    { codebaseName: name },
-    { enabled: !!codebase }  // Only fetch if codebase exists
-  );
-
-  return <View codebase={codebase} branches={branches} />;
-};
-```
-
-## Input Validation
-
-### Zod Schema
-
-```typescript
-const codebaseSchema = z.object({
-  name: z.string().min(1).max(63).regex(/^[a-z0-9-]+$/),
-  gitUrl: z.string().url(),
-  branch: z.string().optional(),
-  type: z.enum(['application', 'library', 'autotests']),
-});
-```
-
-### Shared Schemas
-
-Import from shared package for consistency:
-
-```typescript
-import { codebaseSchema } from "@my-project/shared";
-
-export const codebaseRouter = createTRPCRouter({
-  create: protectedProcedure
-    .input(codebaseSchema)  // Use shared schema
-    .mutation(async ({ input }) => {
-      // input is fully typed
-    }),
-});
-```
+- **No `@trpc/react-query`**: The project uses vanilla tRPC client + standard React Query. Do not use `trpc.procedure.useQuery()` syntax.
+- **No `createTRPCRouter`**: Routers are created with `t.router()`.
+- **Session-based auth**: The `protectedProcedure` reads tokens from `ctx.session.user.secret`. The K8sClient uses `session.user.secret.idToken` for cluster authentication.
+- **Error formatting**: tRPC errors include a `source` field extracted from the cause (see `formatError` in `trpc.ts`).
+- **Zod for inputs**: All procedure inputs use Zod schemas. Output schemas are optional but recommended for external API responses.
+- **K8sResourceConfig**: The universal config object passed through tRPC to the K8sClient for building API URLs. Defined in `packages/shared/`.
 
 ## Error Handling
 
-### Backend Errors
-
-```typescript
-import { TRPCError } from '@trpc/server';
-
-export const codebaseRouter = createTRPCRouter({
-  delete: protectedProcedure
-    .input(z.object({ name: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const exists = await k8sService.codebaseExists(input.name);
-
-      if (!exists) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: `Codebase ${input.name} not found`,
-        });
-      }
-
-      await k8sService.deleteCodebase(input.name, ctx.tokens.idToken);
-      return { success: true };
-    }),
-});
-```
-
-### Frontend Error Handling
-
-```typescript
-const { error } = trpc.codebases.list.useQuery();
-
-if (error) {
-  if (error.data?.code === 'UNAUTHORIZED') {
-    return <Navigate to="/login" />;
-  }
-  return <ErrorMessage message={error.message} />;
-}
-```
-
-## Authentication
-
-### Protected Procedures
-
-```typescript
-export const protectedProcedure = publicProcedure.use(async ({ ctx, next }) => {
-  if (!ctx.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
-
-  return next({
-    ctx: {
-      ...ctx,
-      user: ctx.user,     // Guaranteed to exist
-      tokens: ctx.tokens, // Access and ID tokens
-    },
-  });
-});
-```
-
-### Using in Routers
-
-```typescript
-export const codebaseRouter = createTRPCRouter({
-  // Public - no auth required
-  getPublicInfo: publicProcedure.query(() => ({ version: '1.0.0' })),
-
-  // Protected - auth required
-  list: protectedProcedure.query(({ ctx }) => {
-    // ctx.user and ctx.tokens guaranteed
-    return k8sService.listCodebases(ctx.tokens.idToken);
-  }),
-});
-```
+- **Server side**: Throw `TRPCError` with appropriate codes (`UNAUTHORIZED`, `NOT_FOUND`, `BAD_REQUEST`, etc.). For K8s errors, the `K8sApiError` class (from `@my-project/shared`) wraps HTTP status, statusText, and body.
+- **Client side**: React Query's `error` state captures tRPC errors. The error object includes `data.source` for identifying the error origin. Use `error.message` for user-facing messages.
 
 ## Best Practices
 
-1. **Type Safety**: Let tRPC infer types, don't use `any`
-2. **Input Validation**: Always use Zod schemas for inputs
-3. **Error Handling**: Use TRPCError with proper codes
-4. **Authentication**: Use protectedProcedure for authenticated endpoints
-5. **Shared Schemas**: Import schemas from shared package
-6. **Query Invalidation**: Invalidate queries after mutations
-7. **Loading States**: Always handle loading and error states
-8. **Optimistic Updates**: For better UX on mutations
-
-## Integration with K8s
-
-```typescript
-// Use ID token for K8s API calls
-export const codebaseRouter = createTRPCRouter({
-  create: protectedProcedure
-    .input(codebaseSchema)
-    .mutation(async ({ ctx, input }) => {
-      // Use ID token from auth context
-      const codebase = await k8sService.createCodebase(
-        input,
-        ctx.tokens.idToken  // K8s API requires ID token
-      );
-      return codebase;
-    }),
-});
-```
-
-## Additional Resources
-
-See **`references/trpc-patterns.md`** for advanced patterns including WebSocket subscriptions, batch requests, and custom middleware.
+1. Use `protectedProcedure` for any endpoint that accesses K8s or user data
+2. Define Zod schemas in `packages/shared/` when they are needed by both client and server
+3. Keep router files focused; extract complex logic into client classes or utility functions
+4. For K8s resources, prefer the generic `k8s` router procedures over creating resource-specific routers
+5. Always handle loading and error states in frontend components
+6. Use React Query's `queryKey` arrays that reflect the procedure path for cache consistency

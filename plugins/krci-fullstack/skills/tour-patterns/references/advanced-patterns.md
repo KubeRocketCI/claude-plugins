@@ -1,5 +1,7 @@
 # Advanced Tour Patterns
 
+Read this when building complex tours that involve auto-activation, cross-page tab navigation, element waiting, or when troubleshooting tour behavior.
+
 ## Auto-Activation
 
 ### onMount Tours

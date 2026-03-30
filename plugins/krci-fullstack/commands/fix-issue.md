@@ -24,7 +24,7 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 **Decide which skills to load based on the issue description:**
 
-- **frontend-tech-stack** — if the issue involves project structure, architecture, auth flow, monorepo setup, or you need to understand how the portal is organized
+- **portal-tech-stack** — if the issue involves project structure, architecture, auth flow, monorepo setup, or you need to understand how the portal is organized
 - **api-integration** — if the issue involves API calls, tRPC, data fetching, error handling, or backend integration
 - **component-development** — if the issue involves UI components, layouts, or component patterns
 - **routing-permissions** — if the issue involves navigation, routes, redirects, or RBAC
@@ -136,7 +136,7 @@ allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestio
 
 Some skills may already be loaded from Phase 1. Only load skills that are newly relevant based on deeper understanding of the issue:
 
-- Load krci-fullstack:frontend-tech-stack (if not loaded in Phase 1 and now needed)
+- Load krci-fullstack:portal-tech-stack (if not loaded in Phase 1 and now needed)
 - Load krci-fullstack:api-integration (if not loaded in Phase 1 and now needed)
 - Load krci-fullstack:component-development (if UI components affected - provides project structure)
 - Load krci-fullstack:form-patterns (if forms affected)
@@ -424,7 +424,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 Skills are loaded **as early as possible** to provide context before exploration. Analyze the issue first, then load what's relevant:
 
 - **Phase 1** (before exploration): Analyze issue description and load relevant skills:
-  - frontend-tech-stack — if issue involves architecture, project structure, auth flow
+  - portal-tech-stack — if issue involves architecture, project structure, auth flow
   - api-integration — if issue involves APIs, tRPC, data fetching, error handling
   - component-development — if issue involves UI components, layouts
   - routing-permissions — if issue involves routes, redirects, RBAC

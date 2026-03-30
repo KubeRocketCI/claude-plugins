@@ -1,6 +1,6 @@
 ---
 name: KRCI GitLab CI Component Standards
-description: This skill should be used when the user asks to "create GitLab CI component", "scaffold CI component library", "add GitLab CI pipeline template", "create component for CI/CD Catalog", "build GitLab component", "add language to CI component", "configure SonarQube for GitLab CI", "create Dockerfile for CI component", "7-stage pipeline architecture", "configure CI pipeline dependency chain", or mentions GitLab CI components, CI/CD Catalog publishing, component spec inputs, KubeRocketCI GitLab CI, gitlab-ci.yml structure, review/build pipeline templates, component library scaffolding, or CI component language profiles.
+description: This skill should be used when the user asks to "create GitLab CI component", "scaffold CI component library", "add GitLab CI pipeline template", "create component for CI/CD Catalog", "build GitLab component", "add language to CI component", "configure SonarQube for GitLab CI", "create Dockerfile for CI component", "7-stage pipeline architecture", "configure CI pipeline dependency chain", "GitLab CI review pipeline", "GitLab CI build pipeline", "pipeline stages", "needs vs dependencies", "publish to CI/CD Catalog", "ci-template", "ci-golang", "common.yml", "review.yml", "build.yml", or mentions GitLab CI components, CI/CD Catalog publishing, component spec inputs, KubeRocketCI GitLab CI, gitlab-ci.yml structure, review/build pipeline templates, component library scaffolding, or CI component language profiles. Make sure to use this skill whenever working on GitLab CI/CD component libraries under the kuberocketci GitLab group, even if the user doesn't explicitly mention "component". For Tekton pipeline/task work, defer to edp-tekton-standards. For Tekton trigger/webhook configuration, defer to edp-tekton-triggers.
 ---
 
 # GitLab CI Component Standards for KubeRocketCI
@@ -75,7 +75,7 @@ init-values (prepare)
 
 **Parallel test-stage jobs** (all with `needs: []`): test, lint, type-check, helm-docs, helm-lint, dockerfile-lint.
 
-For detailed stage architecture and job dependencies, see `references/pipeline-stages.md`.
+For detailed stage architecture, DAG diagrams, and job-level `needs`/`dependencies` specifications, see **`references/pipeline-stages.md`** (read when modifying job dependencies or debugging pipeline execution order).
 
 ## Template Anatomy
 
@@ -183,7 +183,7 @@ create-release:
   # Triggers on semver tags, creates GitLab release for CI/CD Catalog publishing
 ```
 
-The `workflow:` block uses rules to activate on MR events, protected branches, and semver tags. For the complete file, see `references/component-structure.md`.
+The `workflow:` block uses rules to activate on MR events, protected branches, and semver tags. For the complete file and detailed file anatomy, see **`references/component-structure.md`** (read when scaffolding a new component library or modifying the root orchestrator).
 
 ## Technology Stack Customization
 
@@ -201,7 +201,7 @@ Each language requires implementing `# IMPLEMENT:` extension points in the templ
 | `Dockerfile`               | Runtime packaging for the language                   |
 | `sonar-project.properties` | Source paths, exclusions, coverage                   |
 
-For complete per-language configurations with YAML examples, see `references/language-profiles.md`.
+For language-specific customization guidance, see **`references/language-profiles.md`** (read when implementing extension points — it explains how to study published components and lists the 4 key extension points to fill for any language).
 
 ## `needs` vs `dependencies` Distinction
 
@@ -233,7 +233,7 @@ Components are published to GitLab CI/CD Catalog via semantic version tags:
 
 **Prerequisites**: Project description set, README.md exists, CI/CD Catalog toggle enabled in project settings.
 
-For detailed publishing workflow and versioning, see `references/publishing-catalog.md`.
+For detailed publishing workflow and versioning, see **`references/publishing-catalog.md`** (read when preparing a release or setting up CI/CD Catalog publishing for the first time).
 
 ## Key Architectural Patterns
 
@@ -288,9 +288,9 @@ include:
       image_registry: docker.io/myorg
 ```
 
-## Additional Resources
+## Reference Files
 
-- Component file anatomy: `references/component-structure.md`
-- Pipeline stages and dependencies: `references/pipeline-stages.md`
-- Per-language profiles with YAML examples: `references/language-profiles.md`
-- CI/CD Catalog publishing workflow: `references/publishing-catalog.md`
+- **`references/component-structure.md`** — Detailed file anatomy, hidden job tables, init-values outputs. Read when scaffolding or modifying component files.
+- **`references/pipeline-stages.md`** — DAG diagrams, job dependencies, `needs` vs `dependencies` rules. Read when modifying pipeline flow.
+- **`references/language-profiles.md`** — How to study published components and fill the 4 extension points for any language. Read when onboarding a new stack.
+- **`references/publishing-catalog.md`** — Release job, versioning strategy, consumer usage. Read when publishing or setting up CI/CD Catalog.

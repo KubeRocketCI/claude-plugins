@@ -1,380 +1,153 @@
-# Testing Patterns
+# Testing Patterns Reference
 
-Advanced testing patterns for the KubeRocketCI portal using Vitest and React Testing Library.
+Read this when writing tests that need to mock tRPC, Zustand stores, K8s hooks, or permissions. These patterns are hard to derive from the code alone.
 
-## Testing Hooks
+## Mocking tRPC Client
 
-Test custom hooks with `@testing-library/react-hooks`:
-
-```typescript
-import { renderHook, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
-
-  return ({ children }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
-
-it('should fetch data', async () => {
-  const { result } = renderHook(() => useMyHook(), {
-    wrapper: createWrapper(),
-  });
-
-  await waitFor(() => expect(result.current.isSuccess).toBe(true));
-  expect(result.current.data).toBeDefined();
-});
-```
-
-## Mocking tRPC Calls
-
-Mock tRPC client for component tests:
+The portal does not use MSW. Instead, create a mock tRPC client object and mock the `useTRPCClient` hook:
 
 ```typescript
-import { vi } from 'vitest';
-
-const mockTRPCClient = {
-  resources: {
-    list: {
-      query: vi.fn().mockResolvedValue([
-        { metadata: { name: 'test-resource' } },
-      ]),
-    },
-    create: {
-      mutate: vi.fn(),
-    },
+const mockTrpcClient = {
+  k8s: {
+    itemPermissions: { mutate: vi.fn() },
+    apiVersions: { query: vi.fn() },
   },
 };
 
-vi.mock('@/core/providers/trpc', () => ({
-  useTRPCClient: () => mockTRPCClient,
+vi.mock("@/core/providers/trpc", () => ({
+  useTRPCClient: vi.fn(),
+}));
+
+// In beforeEach:
+vi.mocked(useTRPCClient).mockReturnValue(mockTrpcClient as never);
+```
+
+The `as never` cast is necessary because the mock only implements the subset of methods the test needs.
+
+## Mocking Zustand Stores
+
+Zustand stores (like `useClusterStore`) require special handling because they are used both as hooks and as static objects (`.getState()`, `.setState()`):
+
+```typescript
+const { mockClusterStoreState, mockSetState } = vi.hoisted(() => {
+  const mockClusterStoreState = {
+    clusterName: "test-cluster",
+    defaultNamespace: "default",
+  };
+  const mockSetState = vi.fn();
+  return { mockClusterStoreState, mockSetState };
+});
+
+vi.mock("@/k8s/store", () => ({
+  useClusterStore: Object.assign(
+    vi.fn((selector) => {
+      if (selector) return selector(mockClusterStoreState);
+      return mockClusterStoreState;
+    }),
+    {
+      setState: mockSetState,
+      getState: vi.fn(() => mockClusterStoreState),
+    }
+  ),
 }));
 ```
 
-## Testing Forms
+`vi.hoisted()` is required so the mock state is available inside the `vi.mock()` factory, which is hoisted to the top of the file by Vitest.
 
-Test TanStack Form components:
+## Mocking Permissions
 
-```typescript
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-
-it('should submit form with valid data', async () => {
-  const onSubmit = vi.fn();
-  const user = userEvent.setup();
-
-  render(<MyForm onSubmit={onSubmit} />);
-
-  await user.type(screen.getByLabelText('Name'), 'Test Name');
-  await user.click(screen.getByRole('button', { name: 'Submit' }));
-
-  await waitFor(() => {
-    expect(onSubmit).toHaveBeenCalledWith({
-      name: 'Test Name',
-    });
-  });
-});
-
-it('should show validation errors', async () => {
-  const user = userEvent.setup();
-
-  render(<MyForm />);
-
-  await user.click(screen.getByRole('button', { name: 'Submit' }));
-
-  expect(screen.getByText('Name is required')).toBeInTheDocument();
-});
-```
-
-## Testing Kubernetes Resources
-
-Mock watch hooks for K8s resources:
+For components using `usePermissions`, mock the hook:
 
 ```typescript
-vi.mock('@/k8s/api/hooks/useWatch/useWatchList', () => ({
-  useWatchList: () => ({
-    dataArray: [
-      {
-        metadata: { name: 'test-codebase', namespace: 'default' },
-        spec: { type: 'application' },
-      },
-    ],
-    query: { isFetched: true, isLoading: false },
-  }),
-}));
-```
-
-## Testing Filters
-
-Test FilterProvider with components:
-
-```typescript
-import { FilterProvider } from '@/core/providers/Filter';
-
-const renderWithFilter = (ui: React.ReactElement) => {
-  return render(
-    <FilterProvider
-      defaultValues={{ search: '' }}
-      matchFunctions={{ search: () => true }}
-    >
-      {ui}
-    </FilterProvider>
-  );
-};
-
-it('should filter results', async () => {
-  const user = userEvent.setup();
-
-  renderWithFilter(<ResourceList />);
-
-  await user.type(screen.getByPlaceholderText('Search'), 'test');
-
-  await waitFor(() => {
-    expect(screen.queryByText('other-resource')).not.toBeInTheDocument();
-    expect(screen.getByText('test-resource')).toBeInTheDocument();
-  });
-});
-```
-
-## Testing Permissions
-
-Mock permission hooks:
-
-```typescript
-vi.mock('@/k8s/api/hooks/usePermissions', () => ({
-  useResourcePermissions: () => ({
+vi.mock("@/k8s/api/hooks/usePermissions", () => ({
+  usePermissions: vi.fn(() => ({
     data: {
-      create: { allowed: true, reason: '' },
-      delete: { allowed: false, reason: 'Insufficient permissions' },
+      create: { allowed: true, reason: "" },
+      patch: { allowed: true, reason: "" },
+      delete: { allowed: true, reason: "" },
     },
     isLoading: false,
-  }),
+    isSuccess: true,
+  })),
 }));
-
-it('should show delete button as disabled', () => {
-  render(<ResourceActions />);
-
-  const deleteButton = screen.getByRole('button', { name: 'Delete' });
-  expect(deleteButton).toBeDisabled();
-});
 ```
 
-## Testing Dialogs
-
-Test dialog interactions:
+Or use `mockPermissions` from test utils for the data shape:
 
 ```typescript
-import { DialogProvider } from '@/core/providers/Dialog';
-
-it('should open and close dialog', async () => {
-  const user = userEvent.setup();
-
-  render(
-    <DialogProvider>
-      <MyComponent />
-    </DialogProvider>
-  );
-
-  await user.click(screen.getByRole('button', { name: 'Open Dialog' }));
-
-  expect(screen.getByRole('dialog')).toBeInTheDocument();
-
-  await user.click(screen.getByRole('button', { name: 'Close' }));
-
-  await waitFor(() => {
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-  });
-});
+import { mockPermissions } from "@/test/utils";
 ```
 
-## Testing Navigation
+## Testing Hooks with renderHook
 
-Mock TanStack Router:
+Use `renderHook` from `@testing-library/react` (not the deprecated `@testing-library/react-hooks`). Wrap with a provider component:
 
 ```typescript
-import { useNavigate } from '@tanstack/react-router';
+import { renderHook, waitFor } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { createTestQueryClient } from "@/test/utils";
 
-vi.mock('@tanstack/react-router', () => ({
-  useNavigate: vi.fn(),
-  useParams: () => ({ namespace: 'default', name: 'test' }),
-}));
+const { result } = renderHook(
+  () => useMyHook({ someParam: "value" }),
+  {
+    wrapper: ({ children }) => (
+      <QueryClientProvider client={createTestQueryClient()}>
+        {children}
+      </QueryClientProvider>
+    ),
+  }
+);
 
-it('should navigate on click', async () => {
-  const navigate = vi.fn();
-  vi.mocked(useNavigate).mockReturnValue(navigate);
-
-  const user = userEvent.setup();
-
-  render(<ResourceLink />);
-
-  await user.click(screen.getByRole('link'));
-
-  expect(navigate).toHaveBeenCalledWith({
-    to: '/resources/$namespace/$name',
-    params: { namespace: 'default', name: 'test' },
-  });
+await waitFor(() => {
+  expect(result.current.data).toEqual(expectedData);
 });
 ```
 
-## Testing Tables
+For hooks that need the full provider stack, use `TestProviders` as the wrapper.
 
-Test table rendering and interactions:
+## Testing Components with TestProviders
 
 ```typescript
-it('should render table with data', () => {
-  render(<ResourceTable data={mockData} columns={columns} />);
+import { render, screen } from "@testing-library/react";
+import { TestProviders } from "@/test/utils";
 
-  expect(screen.getByRole('table')).toBeInTheDocument();
-  expect(screen.getAllByRole('row')).toHaveLength(mockData.length + 1); // +1 for header
-});
-
-it('should sort table', async () => {
-  const user = userEvent.setup();
-
-  render(<ResourceTable data={mockData} columns={columns} />);
-
-  await user.click(screen.getByText('Name'));
-
-  const rows = screen.getAllByRole('row').slice(1); // Skip header
-  expect(rows[0]).toHaveTextContent('app-a');
-  expect(rows[1]).toHaveTextContent('app-b');
-});
+render(
+  <TestProviders
+    seedQueryCache={(client) => {
+      client.setQueryData(["myKey"], mockData);
+    }}
+  >
+    <MyComponent />
+  </TestProviders>
+);
 ```
 
-## Testing WebSocket Connections
-
-Mock WebSocket watch streams:
+## Common Assertions
 
 ```typescript
-import { WS } from 'vitest-websocket-mock';
+// Element presence
+expect(screen.getByRole("button", { name: /create/i })).toBeInTheDocument();
 
-let ws: WS;
+// Element absence
+expect(screen.queryByText(/error/i)).not.toBeInTheDocument();
 
-beforeEach(() => {
-  ws = new WS('ws://localhost:3000/watch');
-});
+// Async appearance
+await waitFor(() => {
+  expect(result.current.data).toEqual(expected);
+}, { timeout: 5000 });
 
-afterEach(() => {
-  WS.clean();
-});
-
-it('should receive watch updates', async () => {
-  render(<ResourceWatcher />);
-
-  // Simulate WebSocket message
-  ws.send(JSON.stringify({
-    type: 'ADDED',
-    object: { metadata: { name: 'new-resource' } },
-  }));
-
-  await waitFor(() => {
-    expect(screen.getByText('new-resource')).toBeInTheDocument();
-  });
-});
+// Function calls
+expect(mockFn).toHaveBeenCalledWith(
+  expect.objectContaining({ key: "value" })
+);
 ```
 
-## Testing Error Boundaries
+## Discovery Instructions
 
-Test error handling:
+For real examples of these patterns in action:
 
-```typescript
-it('should catch and display errors', () => {
-  const ThrowError = () => {
-    throw new Error('Test error');
-  };
-
-  render(
-    <ErrorBoundary fallback={<div>Error occurred</div>}>
-      <ThrowError />
-    </ErrorBoundary>
-  );
-
-  expect(screen.getByText('Error occurred')).toBeInTheDocument();
-});
-```
-
-## Snapshot Testing
-
-Use sparingly for complex components:
-
-```typescript
-it('should match snapshot', () => {
-  const { container } = render(<ComplexComponent />);
-  expect(container).toMatchSnapshot();
-});
-```
-
-**Warning**: Snapshots are brittle. Use only for truly complex UI that rarely changes.
-
-## Coverage Best Practices
-
-Focus coverage on critical paths:
-
-- Business logic (100%)
-- User interactions (critical flows)
-- Error handling
-- Simple presentational components
-- Generated code
-- Third-party library wrappers
-
-## Test Organization
-
-```
-ComponentName/
-├── index.tsx
-├── index.test.tsx
-├── components/
-│   ├── SubComponent/
-│   │   ├── index.tsx
-│   │   └── index.test.tsx
-└── hooks/
-    ├── useComponentHook.tsx
-    └── useComponentHook.test.tsx
-```
-
-**Pattern**: Test files adjacent to source files.
-
-## Mock Data Factories
-
-Create reusable mock factories:
-
-```typescript
-// test/factories/resource.ts
-export const createMockCodebase = (overrides = {}) => ({
-  apiVersion: 'v2.edp.epam.com/v1',
-  kind: 'Codebase',
-  metadata: {
-    name: 'test-codebase',
-    namespace: 'default',
-  },
-  spec: {
-    type: 'application',
-  },
-  ...overrides,
-});
-```
-
-## Real-World Examples
-
-**Check these test files**:
-
-- Component tests: `apps/client/src/core/components/*/index.test.tsx`
-- Hook tests: `apps/client/src/k8s/api/hooks/*/*.test.ts`
-- Form tests: Look for `*.test.tsx` in feature modules
-
-## Best Practices
-
-1. **Test user behavior, not implementation** - Use accessible queries (getByRole, getByLabelText)
-2. **Avoid testing internal state** - Test outputs and side effects
-3. **Use userEvent over fireEvent** - More realistic user interactions
-4. **Wait for async updates** - Always use waitFor for async operations
-5. **Mock external dependencies** - Mock tRPC, K8s API, WebSockets
-6. **Keep tests isolated** - Each test should be independent
-7. **Name tests clearly** - "should [expected behavior] when [condition]"
-8. **Don't test third-party code** - Trust library functionality
+- Hook test with tRPC + store mocking: `apps/client/src/k8s/api/hooks/usePermissions/index.test.tsx`
+- Auth provider test: `apps/client/src/core/auth/provider/provider.test.tsx`
+- Component test with vi.mock: `apps/client/src/core/components/Table/Table.test.tsx`
+- Server-side procedure tests: `packages/trpc/src/routers/auth/procedures/`
+- Server-side mocks: `packages/trpc/src/__mocks__/`

@@ -36,7 +36,7 @@ The **krci-fullstack** plugin provides comprehensive guidance and automation for
 
 The plugin provides 8 comprehensive skills covering frontend development patterns:
 
-1. **frontend-tech-stack**: Overview of React, Radix UI, Tailwind CSS, tRPC, monorepo structure, and authentication
+1. **portal-tech-stack**: Overview of React, Radix UI, Tailwind CSS, tRPC, monorepo structure, and authentication
 2. **component-development**: Component architecture, common components, and project structure
 3. **form-patterns**: Form implementation with validation and error handling
 4. **table-patterns**: Data table implementation with filters, sorting, and pagination

@@ -3,367 +3,194 @@ name: Routing and Permissions
 description: This skill should be used when the user asks to "add route", "create page", "implement navigation", "add permissions", "RBAC", "permission check", "protect route", or mentions routing, navigation, breadcrumbs, or role-based access control.
 ---
 
-Implement routing, navigation, and RBAC permission patterns for the KubeRocketCI portal using TanStack Router and custom permission hooks.
+Orientation guide for the KubeRocketCI portal's routing architecture (TanStack Router), permission system (K8s RBAC), and page layout conventions.
 
-## Purpose
+## Routing Architecture
 
-Guide route creation, navigation integration, and permission-based access control following portal's patterns.
+The portal uses **TanStack Router** with a manually assembled route tree (not file-based generation). Routes are defined in colocated `route.ts` files and registered centrally.
 
-## Routing Stack
+### Route Hierarchy
 
-- **TanStack Router**: File-based, type-safe routing with built-in navigation
-- **Permission Hooks**: RBAC integration for route and action protection
+All portal URLs follow a cluster-scoped pattern:
 
-## Route Creation
+```
+/                        -> redirects to /home
+/home                    -> home page (outside cluster scope)
+/auth/login              -> login page
+/auth/callback           -> OIDC callback
+/c/$clusterName/...      -> all cluster-scoped pages
+```
 
-### Define Route
+The cluster segment `/c/$clusterName` is a route parameter. Under it, sub-routes are grouped by domain:
+
+- `/c/$clusterName/projects` -- codebases
+- `/c/$clusterName/cicd/...` -- pipelines, tasks, pipeline runs
+- `/c/$clusterName/configuration/...` -- ArgoCD, GitServers, etc.
+- `/c/$clusterName/security/...` -- Trivy, SAST, SCA
+- `/c/$clusterName/observability/...` -- pipeline metrics
+
+### Route Definition Pattern
+
+Each page has two files: `route.ts` (route config, always loaded) and `route.lazy.tsx` (component, lazy-loaded).
+
+**`route.ts`** -- defines the route, its parent, path, and metadata:
 
 ```typescript
-// apps/client/src/modules/platform/codebases/pages/codebase-list/route.ts
-import { createRoute } from '@tanstack/react-router';
-import { rootRoute } from '@/core/router';
+import { createRoute } from "@tanstack/react-router";
+import { routeConfiguration } from "@/core/router/routes";
 
-export const codebaseListRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/codebases',
-  component: () => import('./page').then(m => m.CodebaseListPage),
+export const PATH_CONFIG_ARGOCD = "argocd" as const;
+export const PATH_CONFIG_ARGOCD_FULL = "/c/$clusterName/configuration/argocd" as const;
+export const ROUTE_ID_CONFIG_ARGOCD = "/_layout/c/$clusterName/configuration/argocd" as const;
+
+export const routeArgocdConfiguration = createRoute({
+  getParentRoute: () => routeConfiguration,
+  path: PATH_CONFIG_ARGOCD,
+  head: () => ({
+    meta: [{ title: "ArgoCD Configuration | KRCI" }],
+  }),
+}).lazy(() => import("./route.lazy").then((res) => res.default));
+```
+
+**`route.lazy.tsx`** -- defines the component (code-split):
+
+```typescript
+import { createLazyRoute } from "@tanstack/react-router";
+import { ROUTE_ID_CONFIG_ARGOCD } from "./route";
+import ArgocdConfigurationPage from "./view";
+
+const ArgocdConfigurationRoute = createLazyRoute(ROUTE_ID_CONFIG_ARGOCD)({
+  component: ArgocdConfigurationPage,
 });
+
+export default ArgocdConfigurationRoute;
 ```
 
-### Lazy Loading
+Key conventions:
+
+- Export three constants: `PATH_*` (relative segment), `PATH_*_FULL` (full path pattern), `ROUTE_ID_*` (internal route ID including layout prefix)
+- The route ID includes the `/_layout` prefix because routes sit under `contentLayoutRoute` which has `id: "_layout"`
+- Use `createRoute().lazy()` chaining -- the route definition calls `.lazy()` and the lazy file uses `createLazyRoute(ROUTE_ID)()`
+- The actual page component lives in `view.tsx` next to the route files
+
+### Route Tree Registration
+
+All routes must be registered in `apps/client/src/core/router/index.ts`. This file imports every route and builds the tree using `.addChildren()`. To add a new route:
+
+1. Create `route.ts` and `route.lazy.tsx` in the page directory
+2. Create `view.tsx` with the page component
+3. Import the route in `core/router/index.ts`
+4. Add it to the correct position in the `routeTree`
+
+### Parent Route Objects
+
+Parent routes are defined in `apps/client/src/core/router/routes.ts`:
+
+- `rootRoute` -- root of the tree (in `_root.ts`)
+- `authRoute` -- parent for `/auth/*`
+- `contentLayoutRoute` -- layout wrapper for authenticated pages
+- `routeCluster` -- parent for `/c/$clusterName/*`
+- `routeCICD`, `routeConfiguration`, `routeSecurity`, `routeObservability` -- domain grouping routes
+
+### Authentication Guard
+
+The root route (`_root.ts`) has a `beforeLoad` hook that:
+
+- Checks if auth data exists in React Query cache
+- If not authenticated and not on auth pages, redirects to `/auth/login` with `redirect` search param
+- If authenticated and on login page, redirects to `/`
+
+## PageWrapper and Breadcrumbs
+
+Pages use the `PageWrapper` component for consistent layout with breadcrumb navigation. Breadcrumbs are **not** automatic -- each page explicitly passes them.
 
 ```typescript
-// route.lazy.ts
-import { createLazyRoute } from '@tanstack/react-router';
-
-export const Route = createLazyRoute('/codebases')({
-  component: CodebaseListPage,
-});
+<PageWrapper
+  breadcrumbs={[
+    {
+      label: "Projects",
+      route: { to: routeProjectList.fullPath },
+    },
+    {
+      label: params.name,
+    },
+  ]}
+  headerSlot={<PageGuideButton tourId="projectDetailsTour" />}
+>
+  {/* page content */}
+</PageWrapper>
 ```
 
-### Route with Parameters
+Each breadcrumb has a `label` (string or ReactElement) and an optional `route` (with `to`, `params`, `search` matching TanStack Router's `LinkProps`). The last breadcrumb typically has no route (current page).
 
-```typescript
-export const codebaseDetailsRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/codebases/$name',
-  component: () => import('./page').then(m => m.CodebaseDetailsPage),
-});
+`PageWrapper` also accepts `headerSlot` (rendered in the breadcrumb bar, right side) and `breadcrumbsExtraContent`.
 
-// Access parameter in component
-const CodebaseDetailsPage = () => {
-  const { name } = useParams({ from: '/codebases/$name' });
-  const { data: codebase } = trpc.codebases.getByName.useQuery({ name });
-
-  return <CodebaseView codebase={codebase} />;
-};
-```
-
-## Navigation
-
-### Programmatic Navigation
-
-```typescript
-import { useNavigate } from '@tanstack/react-router';
-
-const Component = () => {
-  const navigate = useNavigate();
-
-  const handleCreate = () => {
-    navigate({ to: '/codebases/create' });
-  };
-
-  const handleViewDetails = (name: string) => {
-    navigate({ to: '/codebases/$name', params: { name } });
-  };
-
-  return <Button onClick={handleCreate}>Create</Button>;
-};
-```
-
-### Link Navigation
-
-```typescript
-import { Link } from '@tanstack/react-router';
-
-const CodebaseList = ({ codebases }: { codebases: Codebase[] }) => {
-  return (
-    <List>
-      {codebases.map(codebase => (
-        <Link
-          to="/codebases/$name"
-          params={{ name: codebase.metadata.name }}
-          key={codebase.metadata.name}
-        >
-          {codebase.metadata.name}
-        </Link>
-      ))}
-    </List>
-  );
-};
-```
-
-## Breadcrumbs
-
-### Implement Breadcrumbs
-
-```typescript
-const CodebaseDetailsPage = () => {
-  const { name } = useParams();
-
-  return (
-    <>
-      <nav className="flex items-center space-x-2 text-sm">
-        <Link to="/" className="text-muted-foreground hover:text-foreground">
-          Home
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <Link to="/codebases" className="text-muted-foreground hover:text-foreground">
-          Codebases
-        </Link>
-        <span className="text-muted-foreground">/</span>
-        <span className="text-foreground">{name}</span>
-      </nav>
-      <CodebaseDetails name={name} />
-    </>
-  );
-};
-```
+Discovery: read `apps/client/src/core/components/PageWrapper/types.ts` for the full `Breadcrumb` and `PageWrapperProps` interfaces.
 
 ## Permission System
 
-### Permission Hook Pattern
+Permissions are checked against **Kubernetes RBAC** at runtime via the server. The portal does not use Keycloak roles for resource-level authorization.
+
+### usePermissions Hook
+
+The core hook is `usePermissions` at `apps/client/src/k8s/api/hooks/usePermissions/`. It takes a K8s resource descriptor and returns permission results:
 
 ```typescript
-// Create permission hook for resource
-import { createUsePermissionsHook } from '@/core/permissions/createUsePermissionsHook';
-
-export const useCodebasePermissions = createUsePermissionsHook({
-  resource: 'codebases',
-  apiVersion: 'v2.edp.epam.com/v1',
-  kind: 'Codebase',
+const permissions = usePermissions({
+  group: "v2.edp.epam.com",
+  version: "v1",
+  resourcePlural: "codebases",
 });
+
+// permissions.data has shape:
+// { create: { allowed: boolean, reason: string },
+//   patch:  { allowed: boolean, reason: string },
+//   delete: { allowed: boolean, reason: string } }
 ```
 
-### Use Permissions in Components
-
-```typescript
-const CodebaseList = () => {
-  const permissions = useCodebasePermissions();
-
-  return (
-    <>
-      <ButtonWithPermission
-        allowed={permissions.data?.create.allowed}
-        reason={permissions.data?.create.reason}
-        ButtonProps={{
-          variant: 'default',
-          onClick: () => navigate({ to: '/codebases/create' }),
-        }}
-      >
-        Create Codebase
-      </ButtonWithPermission>
-      <CodebaseTable />
-    </>
-  );
-};
-```
-
-### Resource-Level Permissions
-
-```typescript
-const CodebaseActionsMenu = ({ codebase }: { codebase: Codebase }) => {
-  const permissions = useCodebasePermissions(codebase);
-
-  return (
-    <Menu>
-      <ButtonWithPermission
-        allowed={permissions.data?.update.allowed}
-        reason={permissions.data?.update.reason}
-        ButtonProps={{ onClick: () => handleEdit(codebase) }}
-      >
-        Edit
-      </ButtonWithPermission>
-      <ButtonWithPermission
-        allowed={permissions.data?.delete.allowed}
-        reason={permissions.data?.delete.reason}
-        ButtonProps={{
-          onClick: () => handleDelete(codebase),
-          variant: 'destructive',
-        }}
-      >
-        Delete
-      </ButtonWithPermission>
-    </Menu>
-  );
-};
-```
-
-## Protected Routes
-
-### Auth Guard
-
-```typescript
-const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-
-  if (isLoading) return <LoadingSpinner />;
-  if (!isAuthenticated) return <Navigate to="/login" />;
-
-  return <>{children}</>;
-};
-```
-
-### Permission-Based Route Access
-
-```typescript
-const AdminRoute = ({ children }: { children: ReactNode }) => {
-  const { user } = useAuth();
-
-  if (!user?.roles.includes('admin')) {
-    return <Navigate to="/unauthorized" />;
-  }
-
-  return <>{children}</>;
-};
-```
-
-## Navigation Integration
-
-### Sidebar Navigation
-
-```typescript
-const AppSidebar = () => {
-  const navigate = useNavigate();
-
-  const navItems = [
-    { label: 'Overview', path: '/', icon: DashboardIcon },
-    { label: 'Codebases', path: '/codebases', icon: CodeIcon },
-    { label: 'Pipelines', path: '/pipelines', icon: PipelineIcon },
-  ];
-
-  return (
-    <Sidebar>
-      {navItems.map(item => (
-        <SidebarItem
-          key={item.path}
-          onClick={() => navigate({ to: item.path })}
-          icon={<item.icon />}
-        >
-          {item.label}
-        </SidebarItem>
-      ))}
-    </Sidebar>
-  );
-};
-```
-
-## Query Parameters
-
-### Read Query Params
-
-```typescript
-const CodebaseList = () => {
-  const { search } = useSearch({ from: '/codebases' });
-
-  return (
-    <FilterInput
-      value={search || ''}
-      onChange={(value) => {
-        navigate({
-          to: '/codebases',
-          search: { search: value },
-        });
-      }}
-    />
-  );
-};
-```
-
-### Update Query Params
-
-```typescript
-const updateFilter = (filter: Filter) => {
-  navigate({
-    search: (prev) => ({ ...prev, ...filter }),
-  });
-};
-```
-
-## Permission Patterns
+The hook calls `trpc.k8s.itemPermissions.mutate()` server-side, which performs a `SelfSubjectAccessReview` against the K8s API. Results are cached with `staleTime: Infinity`.
 
 ### ButtonWithPermission
 
+For permission-gated actions, use the `ButtonWithPermission` component:
+
 ```typescript
 <ButtonWithPermission
-  allowed={permissions.data?.create.allowed}
-  reason={permissions.data?.create.reason}  // Tooltip when not allowed
-  ButtonProps={{
-    variant: 'default',
-    onClick: handleAction,
-  }}
+  allowed={permissions.data.create.allowed}
+  reason={permissions.data.create.reason}
+  ButtonProps={{ variant: "default", onClick: handleCreate }}
 >
-  Action Label
+  Create Project
 </ButtonWithPermission>
 ```
 
-### Conditional Rendering
+When `allowed` is false, the button is disabled and wrapped in a tooltip showing the `reason`.
 
-```typescript
-const Component = () => {
-  const permissions = useResourcePermissions();
+Discovery: read `apps/client/src/core/components/ButtonWithPermission/index.tsx` for the full component API.
 
-  return (
-    <>
-      {permissions.data?.update.allowed && (
-        <EditButton onClick={handleEdit} />
-      )}
-      {permissions.data?.delete.allowed && (
-        <DeleteButton onClick={handleDelete} />
-      )}
-    </>
-  );
-};
-```
+### Permission Conventions
 
-## Best Practices
+- Always check permissions before rendering action buttons (create, edit, delete)
+- Use `ButtonWithPermission` rather than hiding buttons -- show disabled state with reason
+- Permission data comes with `placeholderData: defaultPermissions` so UI renders immediately (all denied by default until resolved)
+- The hook uses cluster name and namespace from the Zustand `clusterStore`
 
-1. **Type-Safe Routes**: Use TanStack Router for type safety
-2. **Lazy Loading**: Use lazy routes for code splitting
-3. **Permission Checks**: Always validate permissions for actions
-4. **Loading States**: Handle loading state for permission checks
-5. **Error Boundaries**: Wrap routes in error boundaries
-6. **Breadcrumbs**: Provide clear navigation context
-7. **Query Params**: Use for filters and search
-8. **Protected Routes**: Guard routes requiring authentication
+## Discovery Instructions
 
-## RBAC Integration
+| What | Where to find it |
+|------|-----------------|
+| Route tree assembly | `apps/client/src/core/router/index.ts` |
+| Parent routes (routeCluster, etc.) | `apps/client/src/core/router/routes.ts` |
+| Root route with auth guard | `apps/client/src/core/router/_root.ts` |
+| Route type definitions (RoutePath, etc.) | `apps/client/src/core/router/types.ts` |
+| PageWrapper component | `apps/client/src/core/components/PageWrapper/` |
+| Breadcrumb types | `apps/client/src/core/components/PageWrapper/types.ts` |
+| usePermissions hook | `apps/client/src/k8s/api/hooks/usePermissions/` |
+| ButtonWithPermission | `apps/client/src/core/components/ButtonWithPermission/` |
+| Default permissions shape | `@my-project/shared` -- `defaultPermissions` export |
+| Example page with breadcrumbs | `apps/client/src/modules/platform/codebases/pages/details/view.tsx` |
+| Example route pair | `apps/client/src/modules/platform/configuration/modules/argocd/route.ts` + `route.lazy.ts` |
 
-### Keycloak Roles
+## Additional Reference
 
-Portal integrates with Keycloak for role-based access:
-
-```typescript
-// User roles from Keycloak
-const { user } = useAuth();
-const isAdmin = user?.roles.includes('admin');
-const isDeveloper = user?.roles.includes('developer');
-```
-
-### Resource Permissions
-
-K8s RBAC determines resource-level permissions:
-
-```typescript
-// Check via permission hook
-const permissions = useCodebasePermissions(codebase);
-
-// Allowed actions based on K8s RBAC
-const canCreate = permissions.data?.create.allowed;
-const canUpdate = permissions.data?.update.allowed;
-const canDelete = permissions.data?.delete.allowed;
-```
-
-## Additional Resources
-
-See **`references/navigation-patterns.md`** for complex navigation scenarios including nested routes, route guards, and dynamic breadcrumbs.
+See **`references/navigation-patterns.md`** for portal-specific navigation conventions.

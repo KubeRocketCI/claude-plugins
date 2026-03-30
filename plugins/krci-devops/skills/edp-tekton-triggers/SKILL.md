@@ -1,6 +1,6 @@
 ---
 name: KRCI EDP-Tekton Triggers
-description: This skill should be used when the user asks to "create trigger for GitHub", "configure webhook", "set up EventListener", "debug webhook not triggering", "PipelineRun not created", or mentions Tekton Triggers, EventListeners, TriggerBindings, TriggerTemplates, webhook integration, VCS event handling, interceptor configuration, or trigger setup for GitHub, GitLab, Gerrit, or BitBucket.
+description: This skill should be used when the user asks to "create trigger for GitHub", "configure webhook", "set up EventListener", "debug webhook not triggering", "PipelineRun not created", "webhook not working", "pipeline not starting from webhook", "interceptor chain", "pipeline name wrong", "wrong pipeline executed", "webhook returns 401", "parameter flow", "CEL filter", or mentions Tekton Triggers, EventListeners, TriggerBindings, TriggerTemplates, webhook integration, VCS event handling, interceptor configuration, or trigger setup for GitHub, GitLab, Gerrit, or BitBucket. Make sure to use this skill whenever dealing with webhook-to-pipeline automation or troubleshooting pipeline triggering issues. For pipeline/task naming, onboarding, or Helm chart structure, defer to edp-tekton-standards. For GitLab CI components, defer to gitlab-ci-component-standards.
 ---
 
 # EDP-Tekton Triggers: Webhook-Driven CI/CD
@@ -207,51 +207,21 @@ Enriches webhook payload with Codebase and CodebaseBranch metadata.
 
 ## TriggerBinding Patterns
 
-TriggerBinding extracts parameters from two sources:
+TriggerBindings extract parameters from two sources:
 
-### Source 1: Webhook Body (`body.*`)
+1. **Webhook Body (`body.*`)** — VCS-specific payload fields (repository URL, branch, commit SHA, PR number). Each VCS has different paths for these fields.
+2. **EDP Extensions (`extensions.*`)** — EDP Interceptor-enriched Codebase metadata (codebase name, codebasebranch name, dynamic pipeline name, normalized PR data).
 
-VCS-specific webhook payload fields.
+The most critical parameter is `PIPELINE_NAME` from `extensions.pipelines.{build|review}` — this is what makes pipeline references dynamic rather than hardcoded.
 
-**Common Parameters Extracted**:
+For complete parameter mappings and end-to-end flow examples, see **`references/parameter-flow.md`** (read when implementing or debugging bindings).
 
-- Repository URL: `body.repository.clone_url` (GitHub), `body.project.git_http_url` (GitLab)
-- Branch/Ref: `body.ref`, `body.pull_request.base.ref`
-- Commit SHA: `body.after`, `body.pull_request.head.sha`
-- PR/MR Number: `body.pull_request.number`, `body.object_attributes.iid`
+For VCS-specific `body.*` field paths, see the provider reference file matching the user's VCS:
 
-See `references/vcs-{provider}.md` for complete VCS-specific field mappings.
-
-### Source 2: EDP Extensions (`extensions.*`)
-
-EDP Interceptor-enriched parameters.
-
-**Parameters Available**:
-
-```yaml
-params:
-  - name: CODEBASE_NAME
-    value: $(extensions.codebase)
-  - name: CODEBASEBRANCH_NAME
-    value: $(extensions.codebasebranch)
-  - name: PIPELINE_NAME
-    value: $(extensions.pipelines.build)    # or .review
-  - name: changeNumber
-    value: $(extensions.pullRequest.number)
-  - name: gitsha
-    value: $(extensions.pullRequest.headSha)
-```
-
-### Binding Example Summary
-
-A GitHub build binding extracts `git-source-url` from `body.repository.clone_url`, revision from `body.pull_request.base.ref`, and commit SHA from `body.pull_request.merge_commit_sha`. EDP extensions provide `CODEBASE_NAME`, `CODEBASEBRANCH_NAME`, and critically, `PIPELINE_NAME` from `extensions.pipelines.build` (dynamic).
-
-For complete VCS-specific binding examples, see:
-
-- **GitHub**: `references/vcs-github.md`
-- **GitLab**: `references/vcs-gitlab.md`
-- **Gerrit**: `references/vcs-gerrit.md`
-- **BitBucket**: `references/vcs-bitbucket.md`
+- **`references/vcs-github.md`** — GitHub webhook paths, CEL filters, file layout
+- **`references/vcs-gitlab.md`** — GitLab MR webhook paths, CEL filters, file layout
+- **`references/vcs-gerrit.md`** — Gerrit SSH stream events, unique 2-stage chain
+- **`references/vcs-bitbucket.md`** — BitBucket webhook paths, ClusterInterceptor differences
 
 ## TriggerTemplate Patterns
 
@@ -286,27 +256,13 @@ spec:
 
 **NEVER hardcode pipeline names**. Pipeline names come from CodebaseBranch.Spec.Pipelines.{type} and vary per codebase.
 
-**3. Workspace & Parameters**: Each PipelineRun gets an ephemeral PVC (`shared-workspace` via `volumeClaimTemplate`, size from `.Values.tekton.workspaceSize`) and git credentials from `ci-{{ .Values.vcs.provider }}` secret. All parameters from TriggerBinding are passed through to the PipelineRun. See VCS reference files for full YAML examples.
+Each PipelineRun gets an ephemeral PVC (`shared-workspace` via `volumeClaimTemplate`, size from `.Values.tekton.workspaceSize`) and git credentials from `ci-{{ .Values.vcs.provider }}` secret.
 
-### Build vs Review Templates
-
-**Build Template** (`tt-build.yaml`):
-
-- Uses `extensions.pipelines.build` for pipeline name
-- Label: `app.edp.epam.com/pipelinetype: build`
-- Triggered by merged commits
-
-**Review Template** (`tt-review.yaml`):
-
-- Uses `extensions.pipelines.review` for pipeline name
-- Label: `app.edp.epam.com/pipelinetype: review`
-- Triggered by PR/MR creation/update
+**Build vs Review**: Build templates use `extensions.pipelines.build` with label `pipelinetype: build` (merged commits). Review templates use `extensions.pipelines.review` with label `pipelinetype: review` (PR/MR events). See VCS reference files for full YAML examples.
 
 ## EventListener Configuration
 
-EventListeners receive VCS webhook POST requests and route them to Triggers. Each VCS provider has one EventListener named `el-{provider}` (e.g., `el-github`), running with the `tekton` ServiceAccount. The EventListener creates a Kubernetes Service that must be exposed externally (via Ingress, Route, or LoadBalancer).
-
-For full EventListener YAML examples, see VCS reference files (e.g., `references/vcs-github.md`). For service exposure and webhook setup, see **`references/operations.md`**.
+Each VCS provider has one EventListener named `el-{provider}` (e.g., `el-github`), running with the `tekton` ServiceAccount. The EventListener creates a Kubernetes Service that must be exposed externally (via Ingress, Route, or LoadBalancer). For webhook setup and deployment, see **`references/operations.md`**.
 
 ## Critical Facts & Best Practices
 
@@ -366,22 +322,19 @@ secretName: ci-{{ .Values.vcs.provider }}
 
 For troubleshooting common issues (PipelineRun not created, wrong pipeline, 401/403 errors, enrichment failures) and complete parameter flow summary, see **`references/operations.md`**.
 
-## Additional Resources
+## Reference Files
 
-**VCS-Specific Patterns**:
+Read the reference file matching the user's VCS provider when implementing or debugging triggers for that provider:
 
-- GitHub patterns and examples: `references/vcs-github.md`
-- GitLab patterns and examples: `references/vcs-gitlab.md`
-- Gerrit patterns and examples: `references/vcs-gerrit.md`
-- BitBucket patterns and examples: `references/vcs-bitbucket.md`
+- **`references/vcs-github.md`** — GitHub webhook body paths, CEL filters, file layout
+- **`references/vcs-gitlab.md`** — GitLab MR webhook paths, CEL filters, file layout
+- **`references/vcs-gerrit.md`** — Gerrit SSH events, 2-stage chain, gerrit-notify
+- **`references/vcs-bitbucket.md`** — BitBucket ClusterInterceptor, body paths, file layout
 
-**Parameter Flow Details**:
+Read when implementing or debugging parameter extraction:
 
-- Complete parameter mapping: `references/parameter-flow.md`
-- Operations guide (webhook setup, troubleshooting, quick reference): `references/operations.md`
+- **`references/parameter-flow.md`** — End-to-end parameter mapping from webhook to PipelineRun
 
-**Tekton Triggers Documentation**:
+Read when setting up webhooks, troubleshooting failures, or deploying EventListeners:
 
-- Official docs: <https://tekton.dev/docs/triggers/>
-- Interceptors: <https://tekton.dev/docs/triggers/interceptors/>
-- CEL expressions: <https://github.com/google/cel-spec>
+- **`references/operations.md`** — Webhook setup, troubleshooting, deployment commands

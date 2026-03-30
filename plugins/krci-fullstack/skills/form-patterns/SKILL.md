@@ -3,149 +3,142 @@ name: Form Patterns
 description: This skill should be used when the user asks to "create form", "implement form", "add validation", "TanStack Form", "useAppForm", "Zod validation", "form fields", "multi-step form", "form wizard", "stepper form", or mentions form implementation, field validation, or form state management.
 ---
 
-Implement forms using TanStack Form with custom hooks, Zod validation, and pre-built form components.
+Implement forms using TanStack Form with the portal's `useAppForm` hook, Zod validation, and pre-built field components.
 
 ## Purpose
 
-Guide form implementation following the portal's standardized TanStack Form patterns with custom `useAppForm` hook, type-safe field components, and provider-based multi-step wizards.
+Guide form implementation following the portal's TanStack Form patterns. The portal uses a custom `createFormHook` setup that provides type-safe field components via render props, form-level context, and Zod-based validation.
 
-## Core Stack
+## Architecture Overview
 
-- **TanStack Form**: Form state management with custom `useAppForm` hook
-- **Zod**: Schema validation (inline validators + full schema validation)
-- **Custom Form Components**: Pre-built, accessible form fields from `@/core/components/form`
-- **Multi-Step**: Provider pattern (Stepper + FormGuide) for complex wizards
-- **Type Safety**: Full TypeScript inference from field context
+### How useAppForm Works
 
-## Architecture
+The portal wraps TanStack Form's `createFormHook` to bind a set of field components and form-level components into a single hook. This is the central abstraction:
 
-### Form Components Location
+1. **`useAppForm(options)`** returns a form instance with two key render-prop methods:
+   - **`form.AppField`** renders a named field, providing registered field components (FormTextField, FormCombobox, etc.) as children of the render prop
+   - **`form.AppForm`** renders form-level components (FormSubmitButton, FormResetButton)
+2. **Field components** internally call `useFieldContext()` to access field state, so they never need explicit value/onChange wiring
+3. **Form components** internally call `useFormContext()` to access form state (isSubmitting, canSubmit, etc.)
 
-All form components are in `/core/components/form/`:
+This means you never pass `value`/`onChange` to field components. The context handles it.
 
-- **Components**: `/core/components/form/components/` - 15+ pre-built form fields
-- **Context**: `form-context.ts` - field/form context setup
-- **Main Export**: `index.ts` - exports `useAppForm` hook and all form components
+### Key Files
 
-### Key Concepts
+- **`core/components/form/index.ts`** -- exports `useAppForm`, `withForm`, all field components, and types. Read this file to see the full list of registered field and form components.
+- **`core/components/form/form-context.ts`** -- creates `fieldContext`/`formContext` via `createFormHookContexts()`
+- **`core/components/form/types.ts`** -- shared types like `SelectOption`
+- **`core/components/form/components/`** -- each field component in its own directory. Read individual component files to see their props interface.
 
-1. **Single Form Hook**: `useAppForm()` creates form instance with `form.AppField` for rendering fields
-2. **Field Context**: Components access field state via `useFieldContext<T>()`
-3. **Render Props**: `form.AppField` provides `field` object with component methods
-4. **Inline Validation**: Validators defined directly in `form.AppField`
-5. **Schema Validation**: Zod schemas for complex, cross-field validation
+### Available Field Components
 
-## Available Form Components
+To discover the current list, read `core/components/form/index.ts` and look at the `fieldComponents` map. As of now, registered field components include: FormTextField, FormTextFieldPassword, FormSelect, FormCombobox, FormCheckbox, FormCheckboxGroup, FormSwitch, FormSwitchRich, FormRadioGroup, FormTextarea, FormTextareaPassword, FormControlLabelWithTooltip. Form-level components: FormSubmitButton, FormResetButton.
 
-15+ pre-built components: text fields, password, textarea, select, combobox, radio group, checkbox, checkbox group, switch, rich switch, submit/reset buttons, and utility components.
+To learn a component's props, read its `index.tsx` file under `core/components/form/components/{ComponentName}/`.
 
-See `references/component-api.md` for the full catalog with props, and `references/form-preset-components.md` for integration patterns and examples.
+## Form Patterns
 
-## Implementation Pattern
+### Simple Form (Dialog or Inline)
 
-### 1. Import Hook and Types
+Simple forms use the provider pattern: a FormProvider creates the `useAppForm` instance and exposes it via React context. Child components access it via a custom hook.
 
-```typescript
-import { useAppForm } from "@/core/components/form";
-import { z } from "zod";
+**Structure**:
 
-type CodebaseFormData = {
-  name: string;
-  gitUrl: string;
-  branch?: string;
-};
+```
+SomeForm/
+  providers/form/
+    provider.tsx    # Creates useAppForm, wraps children in context
+    context.ts      # createContext for the form instance
+    hooks.ts        # useMyForm() hook
+    types.ts        # Provider props
+  components/
+    Form/index.tsx  # Renders fields using form.AppField
+    FormActions/    # Submit/cancel buttons
+  schema.ts         # Zod validation schema (if needed)
+  index.tsx          # Composes provider + form + actions
 ```
 
-### 2. Create Form Instance
+**Discovery**: To see this pattern in practice, look at any form under `modules/platform/configuration/`. For example, read the ManageQuickLink dialog at `modules/platform/configuration/modules/quicklinks/dialogs/ManageQuickLink/`.
+
+### Multi-Step Wizard
+
+Wizards use a **single form instance** shared across all steps, with a **Zustand store** for step navigation and a **Zod schema** for validation.
+
+**Key architectural decisions**:
+
+- One `useAppForm` instance covers all steps (no per-step forms)
+- Step state is managed by a Zustand store (`useWizardStore`) with `currentStepIdx`, `goToNextStep`, `goToPreviousStep`, and step validation tracking
+- Fields are grouped by step via `CREATE_FORM_PARTS` constants that map step names to field name arrays
+- The wizard page wraps everything in `FormGuideProvider` for contextual help sidebar
+- Steps render conditionally based on `currentStepIdx`
+
+**Structure**:
+
+```
+CreateResourceWizard/
+  index.tsx           # Mounts FormProvider, renders WizardContent
+  store.ts            # Zustand store: steps, navigation, validation tracking
+  schema.ts           # Zod schema (discriminatedUnion + superRefine)
+  constants.ts        # NAMES, FORM_PARTS, HELP_CONFIG, WIZARD_GUIDE_STEPS
+  names.ts            # Re-exports from constants
+  types.ts            # Form value types
+  providers/form/
+    provider.tsx      # useAppForm with validators + onSubmit
+    context.ts        # Form context
+    hooks.ts          # useWizardForm() hook
+  components/
+    fields/           # Reusable field components (one dir per field)
+    StepOne/          # Step content components
+    StepTwo/
+    Review/           # Read-only review before submit
+    Success/          # Post-submission success view
+    WizardStepper/    # Step indicator UI
+    WizardNavigation/ # Back/Next/Submit buttons
+```
+
+**Discovery**: Read the CreateCodebaseWizard at `modules/platform/codebases/pages/create/components/CreateCodebaseWizard/` as the canonical example. Also see CreateStageWizard and CreateCDPipelineWizard under `modules/platform/cdpipelines/`.
+
+For detailed wizard architecture (step validation, navigation logic, FormGuide integration), see `references/multi-step-forms.md`.
+
+## Validation
+
+### Inline Validators on AppField
+
+Validators go on the `validators` prop of `form.AppField`. TanStack Form does NOT use `zodResolver`. Instead, pass Zod schemas or functions directly:
+
+- **Zod inline**: `validators={{ onChange: z.string().min(1, "Required") }}`
+- **Function**: `validators={{ onChange: ({ value }) => !value ? "Required" : undefined }}`
+- **Timing**: `onChange` (every keystroke), `onBlur` (on blur), `onChangeAsync` (debounced async)
+
+### Form-Level Validation (Zod Schema)
+
+For cross-field validation, pass a Zod schema to the `validators` option of `useAppForm`:
 
 ```typescript
-const form = useAppForm<CodebaseFormData>({
-  defaultValues: {
-    name: "",
-    gitUrl: "",
-    branch: "main",
+const form = useAppForm({
+  defaultValues,
+  validators: {
+    onChange: myZodSchema as FormValidateOrFn<MyFormValues>,
   },
-  onSubmit: async (values) => {
-    // values is fully typed as CodebaseFormData
-    await createCodebase(values);
-  },
+  onSubmit: async ({ value }) => { /* ... */ },
 });
 ```
 
-### 3. Render Form Fields
+The portal's wizard schemas use `z.discriminatedUnion().superRefine()` to validate different field combinations based on strategy or type selections. Read the schema.ts file of any wizard to see this pattern.
 
-```typescript
-<form onSubmit={(e) => { e.preventDefault(); form.handleSubmit(); }}>
-  <div className="space-y-4">
-    <form.AppField
-      name="name"
-      validators={{
-        onChange: z.string().min(1, "Name is required"),
-      }}
-    >
-      {(field) => (
-        <field.FormTextField
-          label="Name"
-          placeholder="Enter codebase name"
-          helperText="Unique identifier for your codebase"
-        />
-      )}
-    </form.AppField>
+### Async Validation
 
-    <form.AppField
-      name="gitUrl"
-      validators={{
-        onChange: z.string().url("Must be valid URL"),
-      }}
-    >
-      {(field) => (
-        <field.FormTextField
-          label="Git URL"
-          placeholder="https://github.com/..."
-        />
-      )}
-    </form.AppField>
+Use `onChangeAsync` with `validatorOptions.onChangeAsyncDebounceMs` for server-side checks. Check `field.state.meta.isValidating` for loading state.
 
-    <form.AppField name="branch">
-      {(field) => (
-        <field.FormTextField
-          label="Branch"
-          placeholder="main"
-        />
-      )}
-    </form.AppField>
-  </div>
+### Error Display
 
-  <div className="flex gap-2 mt-4">
-    <form.AppForm>
-      {(formApi) => (
-        <>
-          <formApi.FormSubmitButton>Create</formApi.FormSubmitButton>
-          <formApi.FormResetButton variant="outline">Reset</formApi.FormResetButton>
-        </>
-      )}
-    </form.AppForm>
-  </div>
-</form>
-```
+All form field components automatically extract and display errors from `field.state.meta.errors`. The `extractErrorMessage` utility handles TanStack Form's error format. You do not need to manually wire error display when using the built-in field components.
 
-## Validation Patterns
-
-Validators are defined inline via `form.AppField`'s `validators` prop:
-
-- **Inline Zod**: `validators={{ onChange: z.string().email("Invalid") }}`
-- **Inline function**: `validators={{ onChange: ({ value }) => !value ? "Required" : undefined }}`
-- **Conditional**: Access `form.store.state.values.otherField` inside validator function
-- **Schema-based**: Use `z.object().superRefine()` for cross-field validation
-- **Timing**: `onChange` (every keystroke), `onBlur` (on blur), or both
-
-**Note**: TanStack Form does NOT use `zodResolver`. Use inline validators or manual schema validation on submit.
-
-**Details**: See `references/validation-patterns.md` for async validation, Zod schemas, error display, and programmatic validation.
+For more on validation patterns (async, conditional, programmatic), see `references/validation-patterns.md`.
 
 ## Field Listeners (Side Effects)
 
-Use `listeners.onChange` to execute side effects (e.g., reset dependent fields):
+Use `listeners.onChange` on `form.AppField` to execute side effects when a field changes:
 
 ```typescript
 <form.AppField
@@ -161,51 +154,30 @@ Use `listeners.onChange` to execute side effects (e.g., reset dependent fields):
 </form.AppField>
 ```
 
-## Multi-Step Form Pattern
-
-The portal uses a **provider pattern** for multi-step wizards with three key components:
-
-1. **StepperProvider** - manages step navigation and per-step validation
-2. **FormGuideProvider** - optional contextual help sidebar
-3. **Single Form Instance** - one `useAppForm` instance shared across all steps
-
-Each wizard follows a standard file structure with `providers/`, `components/steps/`, `components/fields/`, `constants.ts`, `schema.ts`, and `names.ts`.
-
-**Full implementation guide**: See `references/multi-step-forms.md` for provider setup, step validation, navigation, constants pattern, and FormGuide integration.
+This is the standard pattern for cascading dropdowns and dependent field resets.
 
 ## Accessing Form State
 
-Access values via `form.store.state.values`, update via `form.setFieldValue()` / `form.setValues()`, check state via `form.store.state.isSubmitting` / `isValid` / `isDirty`. Use `useStore(form.store, selector)` for reactive subscriptions in components.
+- **Read values**: `form.store.state.values` or `form.store.state.values.fieldName`
+- **Set values**: `form.setFieldValue("name", "value")` or `form.setValues(partialObject)`
+- **Check state**: `form.store.state.isSubmitting`, `form.store.state.canSubmit`, `form.store.state.isDirty`
+- **Reactive subscription**: `useStore(form.store, (s) => s.values.someField)` from `@tanstack/react-store`
+- **Validate**: `form.validateField("name", "change")` or `form.validateAllFields("change")`
+- **Touch fields**: `form.setFieldMeta("name", (prev) => ({ ...prev, isTouched: true }))`
 
-See `references/implementation-guide.md` for the full form state API with examples.
+## Conventions
 
-## Best Practices
+1. **Field names as constants**: Define all field names in a `constants.ts` (or `names.ts`) file using a NAMES object derived from the Zod schema shape
+2. **UI-only field prefix**: Prefix fields not submitted to the API with `ui_` (e.g., `ui_creationMethod`, `ui_searchQuery`)
+3. **Reusable field components**: Extract complex fields (with listeners, conditional logic, data fetching) into standalone components under `components/fields/`
+4. **Provider pattern**: Always wrap the form in a provider component, expose via custom hook
+5. **Zod schema as source of truth**: Define the schema in `schema.ts`, infer types with `z.infer<typeof schema>`, and derive NAMES from schema shape
+6. **Function declarations**: Use `function Component()` not `const Component = () =>` for Vite HMR
+7. **FormGuide integration**: Wizard pages wrap in `FormGuideProvider` with `HELP_CONFIG` and `WIZARD_GUIDE_STEPS` from constants
 
-1. **Field Names as Constants** — define all field names in a `NAMES` constant object (`as const`) in a dedicated `names.ts` or `constants.ts` file
-2. **UI-Only Field Prefix** — prefix fields not submitted to the API with `ui_` (e.g., `ui_creationMethod`, `ui_searchQuery`)
-3. **Reusable Field Components** — extract complex fields (with listeners, validation, options) into standalone components under `components/fields/`
-4. **Type Safety** — define Zod schema and infer form type via `z.infer<typeof schema>`
-5. **Accessibility** — all form components handle `aria-invalid`, `aria-describedby`, and keyboard navigation automatically
-6. **Loading States** — form automatically tracks `isSubmitting`; use it to disable fields during async operations
+## References
 
-See `references/real-examples.md` for code examples of each pattern, and `references/advanced-patterns.md` for error handling, unsaved changes warning, and troubleshooting.
-
-## Real-World Examples
-
-- **CreateCodebaseWizard** — multi-step, conditional steps, FormGuide, shared package integration with `createCodebaseDraft`
-- **CreateStageWizard** — dynamic fields, step-specific validation, review step
-- **Reusable field components** — `Lang/`, `Framework/`, `TemplateSelection/` under `components/fields/`
-
-See `references/real-examples.md` for production patterns and `references/implementation-guide.md` for shared package integration and tRPC form submission.
-
-## Additional Resources
-
-- **Component API**: See `references/component-api.md` (full component catalog with props)
-- **Form Preset Components**: See `references/form-preset-components.md` (integration patterns)
-- **Validation Patterns**: See `references/validation-patterns.md` (async validation, Zod schemas, error display)
-- **Multi-Step Forms**: See `references/multi-step-forms.md` (provider setup, step validation, navigation)
-- **Advanced Patterns**: See `references/advanced-patterns.md` (common patterns, troubleshooting, RHF migration)
-- **Implementation Guide**: See `references/implementation-guide.md` (step-by-step setup, API integration, form dialogs)
-- **Real Examples**: See `references/real-examples.md` (production wizard patterns)
-- **TanStack Form Docs**: [tanstack.com/form](https://tanstack.com/form/latest)
-- **Zod Docs**: [zod.dev](https://zod.dev)
+- **Multi-step wizard details**: See `references/multi-step-forms.md` (when building a wizard -- covers step validation, Zustand store pattern, FormGuide)
+- **Validation details**: See `references/validation-patterns.md` (when implementing complex validation -- async, cross-field, conditional)
+- **TanStack Form docs**: [tanstack.com/form](https://tanstack.com/form/latest)
+- **Zod docs**: [zod.dev](https://zod.dev)
