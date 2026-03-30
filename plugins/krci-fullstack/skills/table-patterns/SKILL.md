@@ -3,312 +3,211 @@ name: Table Patterns
 description: This skill should be used when the user asks to "create table", "implement data table", "add table columns", "table sorting", "table pagination", "data grid", or mentions table implementation, column configuration, or data presentation. For FilterProvider setup and match functions, defer to filter-patterns.
 ---
 
-Implement data tables with sorting, filtering, pagination, and column management following portal's standardized Table component patterns.
+Guide table implementation using the portal's `DataTable` component and `useColumns` hook convention for consistent data presentation across resource views.
 
-## Purpose
+## Architecture Overview
 
-Guide table implementation using the portal's unified Table component for consistent data presentation across all resource views.
+The portal has one primary table component: **`DataTable`**, exported from `@/core/components/Table`. There is no separate `Table` vs `DataGrid` distinction; `DataTable` is the standard component for all tabular data.
 
-## Table Components
+The core architectural pattern is:
 
-Portal provides two table components:
+1. **`DataTable`** - generic component that handles rendering, sorting, pagination, selection, slots
+2. **`useColumns` hook** - per-page hook that defines column configuration
+3. **`FilterProvider`** - optional wrapper that provides `filterFunction` to `DataTable` (see filter-patterns skill)
+4. **Table Settings** - persistent user preferences for column visibility/width via localStorage
 
-- **Table** - Standard table for most use cases
-- **DataGrid** - Advanced table with virtualization for large datasets
+## DataTable Component
 
-Both share the same column configuration API and patterns.
+### Key Props
 
-## Table Component Features
+To see the full props interface, read `apps/client/src/core/components/Table/types.ts` (the `TableProps` interface).
 
-- **Data Display**: Structured resource presentation
-- **Sorting**: Column-based with custom sort functions
-- **Pagination**: Configurable page size
-- **Selection**: Multi-row with bulk operations
-- **Filtering**: Custom filter functions
-- **Settings**: Persistent column visibility/width
-- **Loading States**: Built-in loading and error handling
-- **Responsive**: Adaptive layouts
+The essential props are:
 
-## Standard Table Structure
+- **`id`** (string) - unique table identifier, used for settings persistence
+- **`data`** (array) - the data array to display
+- **`columns`** (TableColumn array) - column definitions from `useColumns`
+- **`isLoading`** (boolean) - shows skeleton rows when true
+- **`filterFunction`** (function) - client-side filter from FilterProvider
+- **`sort`** (object) - initial sort configuration (`{ order, sortBy }`)
+- **`pagination`** (object) - pagination settings (`{ show, rowsPerPage, initialPage, reflectInURL }`)
+- **`selection`** (object) - row selection callbacks and state
+- **`slots`** (object) - header and footer slot injection
+- **`emptyListComponent`** - custom empty state
+- **`blockerError`** / **`blockerComponent`** - error/blocker display
+- **`expandable`** - row expansion configuration
+- **`settings`** - column visibility settings toggle (`{ show: true }`)
 
-### Core Elements
+### Slots API
 
-- **Status Icon**: Visual status indicator (if applicable)
-- **Name Field**: Primary identifier column with link
-- **Resource Fields**: Domain-specific data columns
-- **Actions Column**: Permission-protected action buttons
-- **Column Management**: User-customizable settings
+Slots allow injecting components into the table layout. The `slots` prop has this shape:
 
-### Column Order
-
-1. Status (if applicable)
-2. Name/Primary identifier
-3. Resource-specific fields
-4. Timestamps (created, updated)
-5. Actions (always last)
-
-## Basic Table Implementation
-
-### 1. Define Columns with useColumns Hook
-
-**IMPORTANT**: Always use `useColumns` hook pattern:
-
-```typescript
-import { useColumns } from "./hooks/useColumns";
-
-function CodebaseList() {
-  const { data: codebases } = useWatchList({ config: k8sCodebaseConfig });
-  const columns = useColumns();
-
-  return (
-    <Table
-      id="codebase-list"
-      data={codebases || []}
-      columns={columns}
-    />
-  );
+```text
+slots: {
+  header?: {
+    component: ReactElement,      // The filter/toolbar UI
+    slotProps?: { className?, data-tour?, ... }  // HTML attrs for the wrapper div
+  },
+  footer?: {
+    component: ReactElement,
+    slotProps?: { ... }
+  }
 }
 ```
 
-### 2. Create useColumns Hook
+The header slot renders above the table in a CSS grid (`grid-cols-[1fr_auto]`). The slot component itself is wrapped in a `grid-cols-12` container, so filter fields should use `col-span-*` classes to lay out within that grid.
 
-```typescript
-// hooks/useColumns.tsx
-import React from "react";
-import { TableColumn } from "@/core/components/Table/types";
-import { useTableSettings } from "@/core/components/Table/components/TableSettings/hooks/useTableSettings";
-import { getSyncedColumnData } from "@/core/components/Table/components/TableSettings/utils";
-import { TABLE } from "@/k8s/constants/tables";
+## useColumns Hook Convention
 
-export const useColumns = (): TableColumn<Codebase>[] => {
-  const { loadSettings } = useTableSettings(TABLE.CODEBASE_LIST.id);
-  const tableSettings = loadSettings();
+Every table page defines a `useColumns` hook in `hooks/useColumns.tsx` that returns a memoized array of `TableColumn<T>` objects.
 
-  return React.useMemo(
-    () => [
-      {
-        id: "status",
-        label: "Status",
-        data: {
-          columnSortableValuePath: "status.phase",
-          render: ({ data }) => <StatusIcon {...getStatusIcon(data.status)} />,
-        },
-        cell: {
-          isFixed: true,
-          baseWidth: 10,
-          ...getSyncedColumnData(tableSettings, "status"),
-        },
-      },
-      {
-        id: "name",
-        label: "Name",
-        data: {
-          columnSortableValuePath: "metadata.name",
-          render: ({ data }) => <span>{data.metadata.name}</span>,
-        },
-        cell: {
-          baseWidth: 25,
-          ...getSyncedColumnData(tableSettings, "name"),
-        },
-      },
-      // More columns...
-    ],
-    [tableSettings]
-  );
-};
-```
+### TableColumn Interface
 
-See **`references/column-patterns.md`** for complete column configuration patterns and examples.
+To see the exact type, read `apps/client/src/core/components/Table/types.ts`. The key structure:
 
-## Column Configuration
-
-### TableColumn Type
-
-```typescript
-interface TableColumn<T> {
-  id: string;
-  label: string | ReactElement;
+```text
+TableColumn<DataType> {
+  id: string                    // Unique column key
+  label: string | ReactElement  // Header text
   data: {
-    render: ({ data }: { data: T }) => ReactNode;
-    columnSortableValuePath?: string;    // For simple sorting
-    customSortFn?: (a: T, b: T) => number; // For complex sorting
-  };
+    render: ({ data, meta? }) => ReactNode   // Cell renderer
+    columnSortableValuePath?: string | string[]  // Dot path for sorting
+    customSortFn?: (a, b) => number              // Custom sort comparator
+  }
   cell: {
-    baseWidth?: number;   // Default width %
-    isFixed?: boolean;    // Prevent hiding
-    ...getSyncedColumnData(tableSettings, columnId);
-  };
+    baseWidth: number     // Width as percentage of table
+    show?: boolean        // Column visibility
+    isFixed?: boolean     // Prevent user from hiding this column
+    colSpan?: number
+    props?: TableCellProps
+  }
 }
 ```
 
-### Essential Column Properties
+**Critical detail**: The render function receives `{ data }` (the row item), not `(row)` directly. The destructured shape is `({ data }) => ...`.
 
-**id**: Unique column identifier
-**label**: Column header text or element
-**data.render**: Cell rendering function
-**data.columnSortableValuePath**: Path to sortable value (e.g., `"metadata.name"`)
-**cell.baseWidth**: Default column width as percentage
-**cell.isFixed**: Prevent user from hiding column
-**getSyncedColumnData**: Sync with user's table settings
+### useColumns Pattern
+
+Every `useColumns` hook follows this structure:
+
+1. Load table settings with `useTableSettings(TABLE.TABLE_ID.id)`
+2. Call `loadSettings()` to get persisted column state
+3. Return `useMemo(() => [...columns], [tableSettings, ...])`
+4. Each column's `cell` spreads `getSyncedColumnData(tableSettings, columnId)` to merge user preferences
+
+To see a real example, read any `hooks/useColumns.tsx` file. Good starting points:
+
+- `apps/client/src/modules/platform/security/pages/trivy-config-audits/hooks/useColumns.tsx`
+- Search for other `useColumns.tsx` files with: `find apps/client/src -name "useColumns.tsx"`
+
+### Table Settings Integration
+
+The `useTableSettings` hook and `getSyncedColumnData` utility enable persistent column show/hide and width preferences:
+
+- `useTableSettings(tableId)` - loads/saves settings keyed by table ID
+- `getSyncedColumnData(settings, columnId)` - returns `{ show?, baseWidth? }` overrides for the column
+- Table IDs are registered in `apps/client/src/k8s/constants/tables.ts`
+
+When adding a new table, register its ID in the tables constants file.
 
 ## Sorting
 
-### Simple Sorting
+**Simple sorting**: Set `columnSortableValuePath` to a dot-notation path string (e.g., `"metadata.name"`, `"report.summary.criticalCount"`). The table resolves the path and sorts alphabetically/numerically.
 
-Use `columnSortableValuePath` for direct property access:
+**Array of paths**: `columnSortableValuePath` also accepts `string[]` for fallback sorting paths.
 
-```typescript
-{
-  id: "name",
-  label: "Name",
-  data: {
-    columnSortableValuePath: "metadata.name",  // Sorts by this path
-    render: ({ data }) => data.metadata.name,
-  },
+**Custom sorting**: Use `customSortFn: (a, b) => number` for complex logic like status ordering or computed values.
+
+Only one of `columnSortableValuePath` or `customSortFn` should be set per column.
+
+## Pagination
+
+Pagination is built into `DataTable`. Configure with the `pagination` prop:
+
+```text
+pagination: {
+  show: true,           // Show pagination controls
+  rowsPerPage: 10,      // Items per page (default)
+  initialPage: 0,       // Zero-indexed starting page
+  reflectInURL: true    // Sync page number with URL params
 }
 ```
 
-### Custom Sorting
+The `usePagination` hook (in `core/hooks/`) manages page state internally. Pagination is applied after filtering and sorting.
 
-Use `customSortFn` for complex logic:
+## Selection
 
-```typescript
-{
-  id: "status",
-  label: "Status",
-  data: {
-    customSortFn: (a, b) => {
-      const order = { Running: 1, Pending: 2, Failed: 3 };
-      return (order[a.status?.phase] || 999) - (order[b.status?.phase] || 999);
-    },
-    render: ({ data }) => <StatusIcon {...getStatusIcon(data.status)} />,
-  },
-}
+Row selection is opt-in via the `selection` prop. To see the full `TableSelection<T>` interface, read the types file. Key callbacks:
+
+- `handleSelectRow` - called when a row checkbox is clicked
+- `handleSelectAll` - called when the header checkbox is clicked
+- `isRowSelected` - determines if a row is checked
+- `isRowSelectable` - determines if a row can be selected
+- `renderSelectionInfo` - renders a bar showing "N items selected"
+
+## Loading, Empty, and Error States
+
+`DataTable` handles these natively:
+
+- **Loading**: Pass `isLoading={true}` and the table renders skeleton rows
+- **Empty**: Pass `emptyListComponent` for a custom empty state (typically the `EmptyList` component)
+- **Error**: Pass `blockerError` for API errors or `blockerComponent` for custom error UI
+- **Empty filter result**: The table shows a "no results match filters" state automatically when data exists but all items are filtered out
+
+## File Structure Convention
+
+```text
+modules/{feature}/pages/{page-name}/
+  components/
+    EntityList/
+      hooks/
+        useColumns.tsx      # Column definitions
+      index.tsx             # List component with DataTable
+    EntityFilter/
+      constants.ts          # Filter defaults + match functions
+      types.ts              # Filter value types
+      hooks/
+        useFilter.tsx       # Typed useFilterContext wrapper
+      index.tsx             # Filter UI (rendered in table header slot)
+  page.tsx                  # Wraps with FilterProvider
+  view.tsx                  # Page layout
 ```
 
-## Filtering
+## Integration with K8s Watch Hooks
 
-### Table-Level Filtering
+The most common table data source is `useWatchList`, which returns `{ data: { array, map }, isLoading, ... }`. Pass `data.array` (not `data` directly) to `DataTable`:
 
-Use with FilterProvider pattern:
+```text
+const { data, isLoading } = useCodebaseWatchList();
 
-```typescript
-import { FilterProvider } from "@/core/providers/Filter";
-
-function CodebasesPage() {
-  return (
-    <FilterProvider defaultValues={filterDefaults} matchFunctions={matchFns}>
-      <CodebaseList />
-    </FilterProvider>
-  );
-}
-
-function CodebaseList() {
-  const { filterFunction } = useCodebaseFilter();
-
-  return (
-    <Table
-      id="codebase-list"
-      data={codebases}
-      columns={columns}
-      filterFunction={filterFunction}  // Apply filtering
-    />
-  );
-}
-```
-
-See **filter-patterns** skill for complete filtering implementation.
-
-## Table with DataGrid
-
-For large datasets with virtualization:
-
-```typescript
-import { DataGrid } from "@/core/components/DataGrid";
-
-function LargeResourceList() {
-  const columns = useColumns();
-
-  return (
-    <DataGrid
-      id="resource-list"
-      data={resources}
-      columns={columns}
-      rowHeight={48}  // Fixed row height for virtualization
-    />
-  );
-}
-```
-
-## Table Slots
-
-Customize table sections with slots:
-
-```typescript
-const tableSlots = React.useMemo(
-  () => ({
-    header: <EntityFilter />,  // Above table
-    footer: <CustomPagination />,  // Below table
-  }),
-  []
-);
-
-<Table
-  data={data}
+<DataTable
+  id="codebase-list"
+  data={data.array}         // data.array is the flat array
   columns={columns}
-  slots={tableSlots}
+  isLoading={isLoading}
 />
 ```
 
-## Loading and Empty States
+## Discovery Instructions
 
-Tables handle these automatically:
+| To learn about... | Read this file |
+|-------------------|----------------|
+| DataTable component and full props | `apps/client/src/core/components/Table/index.tsx` |
+| TableProps, TableColumn, slots interface | `apps/client/src/core/components/Table/types.ts` |
+| Table constants and defaults | `apps/client/src/core/components/Table/constants.ts` |
+| Sort utility | `apps/client/src/core/components/Table/utils.ts` |
+| Table settings hook | `apps/client/src/core/components/Table/components/TableSettings/` |
+| Table ID registry | `apps/client/src/k8s/constants/tables.ts` |
+| Real useColumns example | Any `hooks/useColumns.tsx` under `apps/client/src/modules/` |
+| Pagination hook | `apps/client/src/core/hooks/usePagination/` |
 
-```typescript
-function CodebaseList() {
-  const { data, isLoading, error } = useWatchList({ config: k8sCodebaseConfig });
+## Key Conventions
 
-  // Table shows loading spinner when isLoading=true
-  // Table shows error message when error exists
-  // Table shows empty state when data.length=0
-
-  return <Table data={data || []} columns={columns} isLoading={isLoading} />;
-}
-```
-
-## useColumns Hook Benefits
-
-1. **Table Settings Integration** - Syncs column visibility/width with user preferences
-2. **Memoization** - Prevents unnecessary re-renders
-3. **Code Organization** - Separates column logic from component
-4. **Reusability** - Can be shared across multiple components
-5. **Standard Pattern** - Consistent with portal conventions
-
-## File Structure
-
-```
-components/EntityList/
-├── hooks/
-│   └── useColumns.tsx    # Column definitions
-├── components/
-│   └── EntityActions.tsx # Action menu components
-└── index.tsx             # Main list component
-```
-
-## Best Practices
-
-1. **useColumns Hook** - Always define columns in a hook
-2. **Memoize Columns** - Wrap in `React.useMemo` with proper dependencies
-3. **Table Settings** - Use `getSyncedColumnData` for user preferences
-4. **Fixed Columns** - Mark status, name, and actions as `isFixed`
-5. **Appropriate Widths** - Set `baseWidth` based on content type
-6. **Status First** - Always show status as first column (when applicable)
-7. **Actions Last** - Place actions column at the end
-8. **Simple Sorting** - Use `columnSortableValuePath` when possible
-9. **Filter Integration** - Use FilterProvider for complex filtering
-10. **DataGrid for Large Data** - Use DataGrid component for 1000+ rows
-
-## Additional Resources
-
-- **`references/column-patterns.md`** - Complete guide to column configuration, sorting, and useColumns hook patterns
-- **`references/table-implementation-guide.md`** - Advanced patterns including bulk operations, custom renderers, and pagination
+- Always define columns in a `useColumns` hook, never inline in the component
+- Wrap column array in `useMemo` with `[tableSettings]` in dependencies
+- Mark status, name, and actions columns as `isFixed: true`
+- Use `baseWidth` as a percentage; all column widths should sum to roughly 100
+- Place status column first (when applicable) and actions column last
+- Use `columnSortableValuePath` for simple sorting; reserve `customSortFn` for computed values
+- Always spread `getSyncedColumnData(tableSettings, columnId)` into each column's `cell`
+- Use the `DataTable` export name (not `Table`) when importing from `@/core/components/Table`

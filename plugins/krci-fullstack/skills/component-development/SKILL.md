@@ -1,95 +1,182 @@
 ---
 name: Component Development
-description: This skill should be used when the user asks to "create reusable component", "implement UI primitive", "build React component", "add Radix UI component", "common components", "component file structure", "component patterns", or mentions component architecture, reusable UI primitives, or design system components. Not for forms, tables, filters, K8s resources, or tours — use their dedicated skills.
+description: This skill should be used when the user asks to "create reusable component", "implement UI primitive", "build React component", "add Radix UI component", "common components", "component file structure", "component patterns", or mentions component architecture, reusable UI primitives, or design system components. Not for forms, tables, filters, K8s resources, or tours -- use their dedicated skills.
 ---
 
 Implement React components following the KubeRocketCI portal's architecture patterns, component organization, and Radix UI + TailwindCSS design system.
 
 ## Purpose
 
-Guide component creation using established portal patterns, reusable common components, and proper file organization within the domain-driven architecture.
+Guide component creation using established portal patterns. The portal has a three-layer architecture with clear boundaries. Understanding where a component belongs and what already exists is more important than any specific implementation detail.
 
-## Project Structure
+## Three-Layer Architecture
 
-### Three-Layer Architecture
+### Core Layer (`apps/client/src/core/`)
 
-**Core Module (`./core/`)**: Domain-agnostic infrastructure
+Domain-agnostic infrastructure shared across the entire app:
 
-- Authentication and authorization
-- Generic UI components (buttons, inputs, tables)
-- Application-wide providers
-- Generic utilities
+- **`core/components/ui/`** -- Low-level UI primitives built with Radix UI + TailwindCSS + CVA. These are the design system building blocks (button, input, dialog, tabs, etc.).
+- **`core/components/form/`** -- TanStack Form-integrated field components (FormTextField, FormCombobox, etc.). See the form-patterns skill for usage.
+- **`core/components/`** -- Specialized reusable components that combine UI primitives with business logic (ButtonWithPermission, EmptyList, DataGrid, CodeEditor, PageWrapper, etc.).
+- **`core/providers/`** -- App-wide providers (FormGuide, Stepper, etc.).
+- **`core/auth/`** -- Authentication and authorization.
 
-**K8s Module (`./k8s/`)**: Kubernetes API infrastructure
+### K8s Layer (`apps/client/src/k8s/`)
 
-- K8s API group definitions
-- CRUD hooks for resources
-- Permission hooks
-- Resource type definitions
+Kubernetes API infrastructure:
 
-**Feature Modules (`./modules/`)**: User-facing features by domain
+- **`k8s/api/`** -- K8s API group definitions and CRUD hooks for resources
+- **`k8s/components/`** -- K8s-specific UI (currently minimal: ResourceStatusBadge)
+- **`k8s/services/`** -- K8s service integrations
+- **`k8s/store/`** -- Cluster state (selected cluster, namespace)
 
-- Pages and views
-- Feature-specific components
-- Domain business logic
-- Feature-scoped hooks
+### Modules Layer (`apps/client/src/modules/`)
 
-### Module Organization
+User-facing features organized by domain:
 
 ```
-modules/platform/
-├── codebases/           # Codebase + CodebaseBranch
-├── cdpipelines/         # CDPipeline + Stage
-├── tekton/              # Pipeline + PipelineRun
-├── observability/       # Metrics and monitoring
-└── configuration/       # Config submodules
+modules/
+  home/                     # Home/dashboard pages
+  platform/
+    codebases/              # Codebase + CodebaseBranch management
+    cdpipelines/            # CDPipeline + Stage management
+    tekton/                 # Pipeline + PipelineRun views
+    observability/          # Metrics and monitoring
+    overview/               # Project overview dashboards
+    configuration/          # Config submodules (gitservers, registry, sonar, etc.)
+  tours/                    # Tour system (provider, config, services)
 ```
 
-**Related Entities Pattern**: Combine related entities in single module (e.g., Pipeline + PipelineRun in `tekton/`)
+**Related entities pattern**: Combine related entities in a single module (e.g., Pipeline + PipelineRun in `tekton/`, CDPipeline + Stage in `cdpipelines/`).
 
-## Component Structure
+### Import Direction Rule
 
-### Standard Component
+Modules import from core and k8s, never the reverse. Core never imports from modules. K8s never imports from modules. This is a strict architectural boundary.
+
+## Component Placement Decision Framework
+
+When creating a new component, determine its location:
+
+1. **Is it a generic UI primitive** (no business logic, pure presentation)? Place in `core/components/ui/`. Follow the existing pattern of Radix UI + TailwindCSS + CVA.
+2. **Is it a reusable component used across multiple modules** (has some logic but not domain-specific)? Place in `core/components/`. Examples: EmptyList, ButtonWithPermission, DataGrid.
+3. **Is it specific to one feature domain**? Place in `modules/platform/{feature}/components/`. This is the most common case.
+4. **Is it specific to one page within a feature**? Place in `modules/platform/{feature}/pages/{page}/components/`. Keep it close to where it is used.
+
+## Discovering Existing Components
+
+Before creating a new component, check what already exists.
+
+**UI primitives**: List `core/components/ui/` to see all available low-level components. Each is a directory (or file) with its own index. As of now there are 40+ primitives covering inputs, overlays, navigation, display, and layout.
+
+**Specialized components**: List `core/components/` to see higher-level reusable components. Key ones to know about:
+
+- **ButtonWithPermission** -- Button with RBAC check, disables with reason tooltip. Used everywhere actions need permission gating.
+- **EmptyList** -- Empty state for lists/tables with optional create action.
+- **DataGrid** -- Card-based grid layout with pagination. Used for card views of resources.
+- **CodeEditor** -- Monaco-based editor for YAML/JSON. Used in editor views.
+- **PageWrapper** -- Standard page layout with breadcrumbs.
+- **FormGuide** -- Sidebar help panel for form wizards (FormGuideSidebar, FormGuideToggleButton, etc.).
+- **PageGuide** -- Button to trigger interactive page tours.
+- **ActionsInlineList / ActionsMenuList** -- Action buttons in rows or dropdown menus.
+- **InfoColumns** -- Key-value display in grid layout for detail pages.
+- **StatusIcon / StatusBadge** -- Resource status visualization.
+
+For the full component list, see `references/exploration-guide.md`.
+
+**Form components**: See the form-patterns skill. All form-integrated components are in `core/components/form/`.
+
+**Table components**: See the table-patterns skill for DataTable/ServerSideTable patterns.
+
+## Standard Component Structure
 
 ```
 ComponentName/
-├── components/          # Nested private components
-├── hooks/               # Component-specific hooks
-├── constants.ts         # Component constants
-├── types.ts             # Component types
-├── index.tsx            # Main component
-└── index.test.tsx       # Tests
+  index.tsx            # Main component (default export or named export)
+  index.test.tsx       # Tests (Vitest + Testing Library)
+  index.stories.tsx    # Storybook stories
+  types.ts             # Props interface and related types
+  constants.ts         # Component-specific constants
+  hooks/               # Component-specific hooks
+  components/          # Private child components
 ```
 
 ### Page Structure
 
 ```
 page-name/
-├── components/          # Page-specific components
-├── hooks/               # Page hooks
-├── page.tsx             # Entry point with providers
-├── view.tsx             # Main content
-├── view.test.tsx        # Tests
-└── route.ts             # Route definition
+  route.ts             # Route definition (TanStack Router)
+  route.lazy.ts        # Lazy-loaded route component
+  page.tsx             # Entry point (wraps view with providers)
+  view.tsx             # Main content (the actual page UI)
+  view.test.tsx        # View tests
+  view.stories.tsx     # Storybook stories for the view
+  components/          # Page-specific components
+  hooks/               # Page-specific hooks
 ```
 
-## Common Components
+The page/view split separates provider setup and data loading (page.tsx) from presentation (view.tsx).
 
-Check `@/core/components` for reusable components before creating new ones:
+## Key Conventions
 
-**UI Primitives** (`@/core/components/ui/`):
+### Function Declarations
 
-- Button, Input, Textarea, Select, Checkbox, Radio Group
-- Dialog, Sheet, Popover, Tooltip, Command
-- Accordion, Tabs, Card, Badge, Alert
-- Table, Stepper, Sidebar
-- All built with Radix UI + TailwindCSS + CVA
-
-**Navigation**: Sidebar components in `@/core/components/sidebar/`
-
-**Permission & Access**: ButtonWithPermission - Button with permission validation
+Always use function declarations for components, not const arrow functions. This is required for Vite HMR compatibility:
 
 ```typescript
+// Correct
+export function MyComponent({ data }: MyComponentProps) {
+  return <div>{data.name}</div>;
+}
+
+// Wrong - breaks Vite HMR
+export const MyComponent = ({ data }: MyComponentProps) => {
+  return <div>{data.name}</div>;
+};
+```
+
+### TypeScript Props
+
+Define explicit prop interfaces. Use JSDoc for non-obvious props:
+
+```typescript
+interface ResourceCardProps {
+  /** The K8s resource to display */
+  resource: CodebaseKubeObject;
+  /** Called when the user clicks the edit action */
+  onEdit?: () => void;
+  className?: string;
+}
+```
+
+### Styling with Tailwind
+
+Use the `cn()` utility from `core/utils/classname` for conditional classes:
+
+```typescript
+import { cn } from "@/core/utils/classname";
+
+function Component({ className, isActive }: Props) {
+  return (
+    <div className={cn(
+      "rounded-lg border border-border bg-card p-4",
+      isActive && "ring-2 ring-primary",
+      className
+    )}>
+      {/* content */}
+    </div>
+  );
+}
+```
+
+Use design tokens (CSS custom properties) via Tailwind classes: `bg-card`, `text-muted-foreground`, `border-border`, etc. Do not use raw color values.
+
+### Permission Integration
+
+Wrap action buttons with ButtonWithPermission when the action requires RBAC:
+
+```typescript
+const permissions = useCodebasePermissions();
+
 <ButtonWithPermission
   allowed={permissions.data?.create.allowed}
   reason={permissions.data?.create.reason}
@@ -99,127 +186,40 @@ Check `@/core/components` for reusable components before creating new ones:
 </ButtonWithPermission>
 ```
 
-**Status & Feedback**: StatusIcon, EmptyList
+### Import Aliases
 
 ```typescript
-<EmptyList
-  missingItemName="codebases"
-  linkText="Create your first codebase"
-  handleClick={() => setDialog(CREATE_CODEBASE_DIALOG)}
-/>
+// Internal app imports use @ alias
+import { Button } from "@/core/components/ui/button";
+import { useAuth } from "@/core/auth/provider";
+
+// Shared package imports
+import { createCodebaseDraftObject } from "@my-project/shared";
+
+// Cross-module imports (allowed: module -> core, module -> k8s)
+import { useCodebaseCRUD } from "@/k8s/api/groups/KRCI/Codebase";
 ```
 
-**Utility**: ConditionalWrapper, CopyButton
+### File Naming
+
+- Components: PascalCase directories (`UserProfile/index.tsx`)
+- Pages: kebab-case directories (`user-profile/view.tsx`)
+- Utilities: camelCase files (`formatDate.ts`)
+- Type files: `types.ts` (always lowercase)
 
 ## Component Creation Workflow
 
-1. **Check Existing**: Search `@/core/components` and feature modules for similar components
-2. **Determine Location**:
-   - Generic/reusable → `@/core/components`
-   - Feature-specific → `@/modules/platform/{feature}/components`
-3. **Create Structure**: Use standard component structure pattern
-4. **Implement with Radix UI + TailwindCSS**: Use UI primitives from `@/core/components/ui/` and Tailwind utility classes
-5. **Add TypeScript**: Define prop interfaces explicitly
-6. **Add Accessibility**: ARIA labels, keyboard navigation (built into Radix)
-7. **Integrate Permissions**: Use ButtonWithPermission where needed
-8. **Add States**: Loading, error, empty states
-9. **Write Tests**: Vitest + React Testing Library
-10. **Document**: JSDoc comments for complex props
+1. **Search existing components**: List `core/components/ui/`, `core/components/`, and relevant module components
+2. **Determine placement**: Use the decision framework above
+3. **Create the directory structure**: Follow standard component structure
+4. **Implement**: Use Radix UI primitives + Tailwind. Use `cn()` for class merging. Use CVA for variant-driven styling.
+5. **Add TypeScript**: Explicit props interface, no `any` types
+6. **Handle states**: Loading (Skeleton), error (ErrorContent), empty (EmptyList)
+7. **Add accessibility**: ARIA labels where needed (Radix handles most of this)
+8. **Integrate permissions**: Use ButtonWithPermission for gated actions
+9. **Write tests**: Vitest + React Testing Library (see testing-standards skill)
+10. **Add Storybook stories**: Create `index.stories.tsx` (or `view.stories.tsx` for pages) to document component states and variants
 
-## Key Patterns
+## References
 
-### TypeScript Props
-
-**IMPORTANT**: Always use function declarations, not const arrow functions (Vite HMR compatibility).
-
-```typescript
-interface ComponentProps {
-  /** Primary resource data */
-  resource: Resource;
-  /** Click handler */
-  onAction?: () => void;
-  /** Optional styling */
-  className?: string;
-}
-
-export function Component({
-  resource,
-  onAction,
-  className,
-}: ComponentProps) {
-  // Implementation
-}
-```
-
-### TailwindCSS Styling
-
-```typescript
-import { cn } from '@/core/utils/classname';
-
-function Component({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "p-4 rounded-lg",
-        "bg-card text-card-foreground",
-        "border border-border",
-        "shadow-sm",
-        className
-      )}
-    >
-      Content
-    </div>
-  );
-}
-```
-
-### Permission Integration
-
-```typescript
-// Use permission hook
-const permissions = useCodebasePermissions();
-
-// Wrap action button
-<ButtonWithPermission
-  allowed={permissions.data?.delete.allowed}
-  reason={permissions.data?.delete.reason}
-  ButtonProps={{ onClick: handleDelete, color: "error" }}
->
-  Delete
-</ButtonWithPermission>
-```
-
-## Import Patterns
-
-```typescript
-// Internal imports (within app)
-import { Button } from "@/core/components/ui/Button";
-import { useAuth } from "@/core/auth/hooks/useAuth";
-
-// Cross-module imports
-import { usePipelineMetrics } from "@/modules/platform/tekton/hooks/usePipelineMetrics";
-
-// Shared package
-import { K8sResourceConfig } from "@my-project/shared";
-```
-
-## File Naming
-
-- Components: PascalCase directories (`UserProfile/`)
-- Pages: kebab-case (`user-profile/`)
-- Utilities: camelCase (`formatDate.ts`)
-- Types: camelCase (`types.ts`)
-
-## Guidelines
-
-1. **Function Declarations**: **Always** use `function ComponentName()` instead of `const ComponentName = () =>` for Vite HMR compatibility
-2. **Layer Boundaries**: Respect three-layer architecture (core/k8s/modules)
-3. **Domain Boundaries**: Domain-specific code in modules, not core
-4. **Component Isolation**: Self-contained with own types/constants
-5. **Page/View Separation**: Separate page setup from content
-6. **Import Direction**: Modules import from core/k8s, never reverse
-7. **Reuse Before Create**: Check existing components first
-
-## Additional Resources
-
-See **`references/common-components-registry.md`** for complete list of available reusable components with usage examples.
+See `references/exploration-guide.md` for how to discover and evaluate existing components when building something new.

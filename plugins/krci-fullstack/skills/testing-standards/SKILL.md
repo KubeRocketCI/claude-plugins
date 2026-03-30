@@ -3,344 +3,138 @@ name: Testing Standards
 description: This skill should be used when the user asks to "write tests", "test component", "add unit tests", "Vitest", "Testing Library", "test coverage", "testing patterns", "mock", "mocking", or mentions testing, test implementation, or quality assurance for frontend code.
 ---
 
-Implement comprehensive tests using Vitest and React Testing Library following the KubeRocketCI portal's testing patterns and best practices.
-
-## Purpose
-
-Guide test implementation focusing on user behavior, accessibility, and comprehensive coverage for React components and hooks.
-
-## Testing Stack
-
-- **Vitest**: Test runner and assertions
-- **React Testing Library**: Component testing
-- **User Event**: User interaction simulation
-- **MSW**: API mocking (Mock Service Worker)
+Orientation guide for testing in the KubeRocketCI portal -- toolchain, conventions, test providers, and what gets tested where.
 
 ## Testing Philosophy
 
-**Test Behavior, Not Implementation**:
+**Test behavior from the user's perspective**, not implementation details. Focus on what the user sees and interacts with. Avoid testing internal state, private methods, or component internals.
 
-- Focus on what users see and interact with
-- Avoid testing internal component details
-- Test from user perspective
+**Accessibility-first queries**: prefer `getByRole`, `getByLabelText`, `getByText` over `getByTestId` or DOM selectors.
 
-**Accessibility First**:
+## Toolchain
 
-- Query by accessible roles and labels
-- Validate ARIA attributes
-- Ensure keyboard navigation
+| Tool | Purpose | Package |
+|------|---------|---------|
+| Vitest | Test runner, assertions, mocking | root + all packages |
+| React Testing Library | Component rendering and queries | `@testing-library/react` |
+| User Event | User interaction simulation | `@testing-library/user-event` |
+| jest-dom matchers | DOM assertion extensions | `@testing-library/jest-dom/vitest` |
+| Storybook 10 | Visual component testing and development | `storybook`, `@storybook/react-vite` |
 
-## Component Testing
+**Not in the stack**: MSW (Mock Service Worker) is not installed. API mocking is done via `vi.mock()` on tRPC client objects. There is no `@testing-library/react-hooks` -- `renderHook` is exported directly from `@testing-library/react`.
 
-### Basic Component Test
+## Test Strategy: What Gets Tested Where
 
-```typescript
-import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import { CodebaseStatus } from './CodebaseStatus';
+The portal uses a **split testing strategy** defined in the root `vitest.config.ts`:
 
-describe('CodebaseStatus', () => {
-  it('displays running status with success icon', () => {
-    const codebase = {
-      status: { phase: 'Running' },
-      metadata: { name: 'test-codebase' },
-    };
+| What | Tool | Coverage tracked? |
+|------|------|------------------|
+| Utility functions, pure logic | Vitest unit tests | Yes |
+| Custom hooks (data fetching, business logic) | Vitest with `renderHook` | Yes |
+| React components (rendering, interactions) | **Storybook** stories | No (excluded: `**/*.tsx`) |
+| Server routes, procedures | Vitest unit tests | Yes |
 
-    render(<CodebaseStatus codebase={codebase} />);
+**Key insight**: All `.tsx` files are **excluded from Vitest coverage**. Components are tested through Storybook stories, not Vitest unit tests. Vitest coverage tracks `.ts` files only: utilities, hooks, services, and server code.
 
-    expect(screen.getByText(/Status: Running/i)).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /success/i })).toBeInTheDocument();
-  });
+Other coverage exclusions include: route files, type definitions, constants, config files, schemas, context files, barrel exports, and certain UI-only hooks (useTabs, useFilter, useColumns). Read `vitest.config.ts` at the repo root for the full exclusion list.
 
-  it('displays failed status with error icon', () => {
-    const codebase = {
-      status: { phase: 'Failed' },
-      metadata: { name: 'test-codebase' },
-    };
+## Workspace Configuration
 
-    render(<CodebaseStatus codebase={codebase} />);
+Tests run as a **Vitest workspace** with separate configs per package:
 
-    expect(screen.getByText(/Status: Failed/i)).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: /error/i })).toBeInTheDocument();
-  });
-});
-```
+- Root: `vitest.workspace.ts` -- includes `apps/*` and `packages/*`
+- Client: `apps/client/vitest.config.ts` -- jsdom environment, setup file
+- Server: `apps/server/vitest.config.ts` -- jsdom environment
+- Coverage: root `vitest.config.ts` -- Istanbul provider, exclusions
 
-### User Interaction Testing
+The client setup file (`apps/client/src/test/setup.ts`) provides:
 
-```typescript
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect, vi } from 'vitest';
-import { CreateCodebaseButton } from './CreateCodebaseButton';
+- `@testing-library/jest-dom/vitest` matchers
+- Automatic `cleanup()` after each test
+- Global `localStorage` mock with Map-backed storage
+- Global `ResizeObserver` mock
 
-describe('CreateCodebaseButton', () => {
-  it('calls onCreate when button clicked', async () => {
-    const user = userEvent.setup();
-    const onCreateMock = vi.fn();
+## TestProviders Wrapper
 
-    render(<CreateCodebaseButton onCreate={onCreateMock} />);
+The portal has a reusable `TestProviders` component for wrapping components under test with all necessary providers. It is located at `apps/client/src/test/utils/providers.tsx`.
 
-    const button = screen.getByRole('button', { name: /create codebase/i });
-    await user.click(button);
+`TestProviders` wraps children with:
 
-    expect(onCreateMock).toHaveBeenCalledTimes(1);
-  });
+- `TRPCContext.Provider` (with the HTTP tRPC client)
+- `QueryClientProvider` (with a test-configured QueryClient)
+- `RouterProvider` (TanStack Router with memory history)
+- Cluster store setup (via Zustand `setState`)
 
-  it('shows loading state during creation', async () => {
-    const user = userEvent.setup();
-    const onCreateMock = vi.fn(() => new Promise(resolve => setTimeout(resolve, 100)));
+### Configuration Options
 
-    render(<CreateCodebaseButton onCreate={onCreateMock} />);
+| Option | Default | Purpose |
+|--------|---------|---------|
+| `contentWrapper` | none | Wrap content with additional providers (e.g., FilterProvider) |
+| `seedQueryCache` | none | Pre-populate React Query cache with mock data |
+| `enableMultiNamespace` | `true` | Set up multiple namespaces in cluster store |
+| `clusterName` | `"in-cluster"` | Cluster name for tests |
+| `defaultNamespace` | `"default"` | Default namespace |
+| `allowedNamespaces` | `["default", "development", "staging", "production"]` | Namespace list |
+| `queryClient` | auto-created | Custom QueryClient instance |
 
-    const button = screen.getByRole('button', { name: /create codebase/i });
-    await user.click(button);
-
-    expect(screen.getByText(/creating/i)).toBeInTheDocument();
-    expect(button).toBeDisabled();
-  });
-});
-```
-
-### Form Testing
+Import from `@/test/utils`:
 
 ```typescript
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, it, expect } from 'vitest';
-import { CodebaseForm } from './CodebaseForm';
-
-describe('CodebaseForm', () => {
-  it('validates required fields', async () => {
-    const user = userEvent.setup();
-    const onSubmitMock = vi.fn();
-
-    render(<CodebaseForm onSubmit={onSubmitMock} />);
-
-    const submitButton = screen.getByRole('button', { name: /create/i });
-    await user.click(submitButton);
-
-    expect(screen.getByText(/name is required/i)).toBeInTheDocument();
-    expect(screen.getByText(/git url is required/i)).toBeInTheDocument();
-    expect(onSubmitMock).not.toHaveBeenCalled();
-  });
-
-  it('submits valid form data', async () => {
-    const user = userEvent.setup();
-    const onSubmitMock = vi.fn();
-
-    render(<CodebaseForm onSubmit={onSubmitMock} />);
-
-    await user.type(screen.getByLabelText(/name/i), 'my-codebase');
-    await user.type(screen.getByLabelText(/git url/i), 'https://github.com/user/repo');
-
-    const submitButton = screen.getByRole('button', { name: /create/i });
-    await user.click(submitButton);
-
-    expect(onSubmitMock).toHaveBeenCalledWith({
-      name: 'my-codebase',
-      gitUrl: 'https://github.com/user/repo',
-    });
-  });
-});
+import { TestProviders, createTestQueryClient, mockPermissions } from "@/test/utils";
 ```
 
-## Query Patterns
+### Storybook Sharing
 
-### Accessibility-First Queries
+Storybook uses the same `TestProviders` under the hood. The `withAppProviders` decorator in `.storybook/decorators.tsx` wraps stories with `TestProviders`, ensuring stories and tests share identical provider setup.
 
-**Preferred Queries** (in order):
+## Test File Conventions
 
-1. `getByRole`: Most accessible
-2. `getByLabelText`: For form fields
-3. `getByPlaceholderText`: For inputs
-4. `getByText`: For content
-5. `getByTestId`: Last resort
-
-```typescript
-// Good - accessible queries
-screen.getByRole('button', { name: /create/i });
-screen.getByLabelText(/email address/i);
-screen.getByPlaceholderText(/enter email/i);
-screen.getByText(/welcome/i);
-
-// Avoid - implementation details
-screen.getByClassName('submit-button');
-container.querySelector('.error-message');
-```
-
-### Async Queries
-
-```typescript
-// Wait for element to appear
-const successMessage = await screen.findByText(/created successfully/i);
-expect(successMessage).toBeInTheDocument();
-
-// Wait for element to disappear
-await waitForElementToBeRemoved(() => screen.queryByText(/loading/i));
-```
-
-## Mocking
-
-Mock external dependencies (tRPC, router, K8s hooks, permissions) using `vi.mock()`. Use `vi.fn()` for return values and `mockReturnValueOnce` for per-test overrides.
-
-See `references/testing-patterns.md` for complete mocking patterns including tRPC clients, TanStack Router, K8s watch hooks, permissions, filters, dialogs, WebSockets, and custom hook testing with `renderHook`.
-
-## Accessibility Testing
-
-### Test ARIA Attributes
-
-```typescript
-it('has proper ARIA labels', () => {
-  render(<CodebaseList />);
-
-  const table = screen.getByRole('table', { name: /codebases/i });
-  expect(table).toBeInTheDocument();
-
-  const rows = screen.getAllByRole('row');
-  expect(rows.length).toBeGreaterThan(0);
-});
-```
-
-### Test Keyboard Navigation
-
-```typescript
-it('supports keyboard navigation', async () => {
-  const user = userEvent.setup();
-  render(<CodebaseForm />);
-
-  const nameInput = screen.getByLabelText(/name/i);
-  const urlInput = screen.getByLabelText(/git url/i);
-
-  await user.tab();
-  expect(nameInput).toHaveFocus();
-
-  await user.tab();
-  expect(urlInput).toHaveFocus();
-});
-```
-
-## Test Organization
-
-### File Structure
-
-```
-ComponentName/
-├── index.tsx
-└── index.test.tsx
-
-or
-
-page-name/
-├── view.tsx
-└── view.test.tsx
-```
-
-### Describe Blocks
-
-```typescript
-describe('CodebaseList', () => {
-  describe('rendering', () => {
-    it('displays list of codebases', () => {});
-    it('shows empty state when no codebases', () => {});
-  });
-
-  describe('user interactions', () => {
-    it('navigates to details on click', () => {});
-    it('opens create dialog on button click', () => {});
-  });
-
-  describe('error states', () => {
-    it('displays error message on fetch failure', () => {});
-  });
-});
-```
-
-## Coverage Goals
-
-- **Components**: 80%+ coverage
-- **Hooks**: 90%+ coverage
-- **Utilities**: 95%+ coverage
-
-Focus on meaningful tests, not just coverage numbers.
-
-## Best Practices
-
-1. **User Perspective**: Test what users see and do
-2. **Accessibility**: Use semantic queries
-3. **Async Handling**: Use `findBy*` and `waitFor`
-4. **Mocking**: Mock external dependencies (API, router)
-5. **Isolation**: Each test is independent
-6. **Descriptive Names**: Clear test descriptions
-7. **Arrange-Act-Assert**: Structure tests clearly
-8. **Edge Cases**: Test loading, error, empty states
-
-## Common Patterns
-
-### Loading State
-
-```typescript
-it('shows loading spinner while fetching', () => {
-  mockTRPC.codebases.list.useQuery.mockReturnValueOnce({
-    data: null,
-    isLoading: true,
-    error: null,
-  });
-
-  render(<CodebaseList />);
-
-  expect(screen.getByRole('progressbar')).toBeInTheDocument();
-});
-```
-
-### Error State
-
-```typescript
-it('displays error message on failure', () => {
-  mockTRPC.codebases.list.useQuery.mockReturnValueOnce({
-    data: null,
-    isLoading: false,
-    error: { message: 'Network error' },
-  });
-
-  render(<CodebaseList />);
-
-  expect(screen.getByText(/network error/i)).toBeInTheDocument();
-});
-```
-
-### Empty State
-
-```typescript
-it('shows empty state when no data', () => {
-  mockTRPC.codebases.list.useQuery.mockReturnValueOnce({
-    data: [],
-    isLoading: false,
-    error: null,
-  });
-
-  render(<CodebaseList />);
-
-  expect(screen.getByText(/no codebases found/i)).toBeInTheDocument();
-});
-```
+- Test files are colocated with source: `index.test.ts` next to `index.ts`, or `view.test.tsx` next to `view.tsx`
+- Use `describe` blocks to group by behavior category (rendering, interactions, error states)
+- Use `vi.mock()` at module level, `vi.fn()` for individual function mocks
+- Use `vi.hoisted()` when mock state needs to be accessible in `vi.mock()` factory functions
+- Call `vi.clearAllMocks()` in `beforeEach` to reset between tests
 
 ## Running Tests
 
 ```bash
-# Run all tests
-pnpm test
+# All tests with coverage
+pnpm test:coverage
 
-# Watch mode
-pnpm test --watch
+# Watch mode for a specific package
+pnpm --filter=client test -- --watch
 
-# Coverage report
-pnpm test --coverage
-
-# Specific file
-pnpm test CodebaseList.test.tsx
+# Single file
+pnpm --filter=client test -- src/path/to/file.test.ts
 ```
 
-## Additional Resources
+## Mocking Patterns
 
-See **`references/testing-patterns.md`** for advanced testing scenarios including integration tests, E2E patterns, and performance testing.
+The most common mocking scenarios involve tRPC clients, Zustand stores, and K8s hooks. These patterns are genuinely hard to derive from code alone.
+
+See **`references/testing-patterns.md`** for detailed mocking patterns covering:
+
+- tRPC client mocking (creating mock client objects)
+- Zustand store mocking (using `vi.hoisted` + `vi.mock`)
+- Permission hook mocking
+- Real test examples from the codebase
+
+## Discovery Instructions
+
+| What | Where to find it |
+|------|-----------------|
+| TestProviders implementation | `apps/client/src/test/utils/providers.tsx` |
+| Test utilities barrel export | `apps/client/src/test/utils/index.ts` |
+| Test QueryClient factory | `apps/client/src/test/utils/query-client.ts` |
+| Test constants (cluster, namespace, permissions) | `apps/client/src/test/utils/constants.ts` |
+| Setup file (mocks, matchers) | `apps/client/src/test/setup.ts` |
+| Client vitest config | `apps/client/vitest.config.ts` |
+| Root coverage config | `vitest.config.ts` |
+| Root workspace config | `vitest.workspace.ts` |
+| Storybook config | `apps/client/.storybook/` |
+| Storybook decorators (uses TestProviders) | `apps/client/.storybook/decorators.tsx` |
+| Example hook test | `apps/client/src/k8s/api/hooks/usePermissions/index.test.tsx` |
+| Example component test | `apps/client/src/core/components/Table/Table.test.tsx` |
+| Server test examples | `apps/server/src/config/` (env-utils, development, production) |
+| tRPC test examples | `packages/trpc/src/routers/auth/procedures/` |
+| tRPC mocks for server tests | `packages/trpc/src/__mocks__/` |

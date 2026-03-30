@@ -1,6 +1,6 @@
 ---
 name: KRCI EDP-Tekton Standards
-description: This skill should be used when the user asks to "onboard Tekton pipeline", "create new task", "add pipeline to EDP-Tekton", "follow pipeline naming conventions", "configure Helm chart for Tekton", "use onboarding script", "configure Tekton workspaces", "check supported languages", or mentions Tekton pipeline naming conventions, EDP-Tekton repository structure, pipeline/task organization, Helm chart templating for Tekton, KRCI onboarding standards, or onboarding script automation. For trigger/webhook configuration, defer to edp-tekton-triggers.
+description: This skill should be used when the user asks to "onboard Tekton pipeline", "create new task", "add pipeline to EDP-Tekton", "follow pipeline naming conventions", "configure Helm chart for Tekton", "use onboarding script", "configure Tekton workspaces", "check supported languages", "add language support", "pipeline naming", "task naming", "what languages are supported", "helm chart for tekton", "pipeline structure", or mentions Tekton pipeline naming conventions, EDP-Tekton repository structure, pipeline/task organization, Helm chart templating for Tekton, KRCI onboarding standards, or onboarding script automation. Make sure to use this skill whenever working within the EDP-Tekton repository on pipelines or tasks, even if the user doesn't explicitly mention "standards". For trigger/webhook/EventListener configuration, defer to edp-tekton-triggers. For GitLab CI components, defer to gitlab-ci-component-standards.
 ---
 
 # EDP-Tekton Standards and Best Practices
@@ -140,7 +140,7 @@ The repository contains **88 tasks** organized into **6 functional categories**:
 6. **Specialized Tasks** - Init, validation, autotests
    - init-values, check-helm-chart-name, run-autotests, getversion variants
 
-For a complete task catalog with descriptions, see **`references/tasks.md`**.
+For guidance on finding task details, see **`references/tasks.md`** (read when you need to explore task files — it explains the directory structure and how to extract params/workspaces from actual task YAML files).
 
 ## Onboarding Script Usage
 
@@ -266,7 +266,7 @@ metadata:
     # Additional annotations
 ```
 
-For chart validation, testing, and version management, see `references/standards.md`.
+For chart validation, testing, and version management, see **`references/standards.md`**.
 
 ## Workspace Patterns
 
@@ -309,60 +309,19 @@ This pattern ensures:
 - PVC automatically cleaned up after pipeline completion
 - Workspace is NOT shared between different PipelineRuns
 
-## VCS Provider Differences
+## VCS Provider Support
 
-The repository supports **4 VCS providers**, each with specific characteristics:
+The repository supports **4 VCS providers**: GitHub, GitLab, Gerrit, and BitBucket. Each provider has its own trigger files, interceptor chain, and status reporting task.
 
-| Aspect | GitHub | GitLab | Gerrit | BitBucket |
-|--------|--------|--------|--------|-----------|
-| **Build Event Filter** | `merged == true` | `action: merge` | `status: NEW` | `pullrequest:fulfilled` |
-| **Interceptor Type** | ClusterInterceptor | ClusterInterceptor | CEL only | Custom ClusterInterceptor |
-| **Secret Name** | `ci-github` | `ci-gitlab` | `ci-gerrit` | `ci-bitbucket` |
-| **Status Reporting** | `github-set-status` | `gitlab-set-status` | `gerrit-notify` | `bitbucket-set-status` |
-| **Comment Triggering** | `/recheck`, `/ok-to-test` | `/recheck`, `/ok-to-test` | `recheck` comment | Not supported |
-
-### Parameter Enrichment
-
-The EDP Interceptor enriches webhook payloads with Codebase metadata:
-
-```
-VCS Webhook → EDP Interceptor → Enriched Extensions
-    ↓
-TriggerBinding extracts parameters:
-  - body.* (VCS-specific webhook data)
-  - extensions.* (EDP-enriched metadata)
-    ↓
-TriggerTemplate creates PipelineRun with:
-  - Dynamic pipeline name from extensions.pipelines.{type}
-  - Labels: codebase, pipelinetype, codebasebranch
-  - Parameters: git-source-url, CODEBASE_NAME, etc.
-```
-
-**Critical Extensions Parameters**:
-
-- `extensions.codebase` - Codebase resource name
-- `extensions.codebasebranch` - CodebaseBranch resource name
-- `extensions.pipelines.build` - Build pipeline name (dynamic)
-- `extensions.pipelines.review` - Review pipeline name (dynamic)
-- `extensions.pullRequest.*` - Normalized PR/MR metadata
-
-For VCS-specific trigger patterns, load the **edp-tekton-triggers** skill which contains per-VCS reference files.
+For VCS-specific trigger architecture, interceptor chains, webhook configuration, parameter enrichment, and per-provider patterns, see the **edp-tekton-triggers** skill.
 
 ## Supported Languages & Frameworks
 
-The repository contains **394 pipeline files** supporting **10+ languages**:
+The repository supports 10+ languages with pipelines for multiple VCS providers. To see the current list of supported languages, frameworks, and their enabled/disabled status, explore `charts/pipelines-library/values.yaml` — look for the `deployableResources` section which has a clear hierarchical structure (e.g., `java: {java17: true, java21: true}`, `go: {beego: true, gin: true}`).
 
-- **Java**: java17, java21, java25 (Maven & Gradle)
-- **JavaScript/TypeScript**: npm, pnpm (angular, antora, express, next, react, vue)
-- **Python**: python3.8, flask, fastapi, ansible
-- **Go**: beego, gin, operatorsdk
-- **C/C++**: cmake, make
-- **C#/.NET**: dotnet3.1, dotnet6.0
-- **Others**: Groovy, OPA, Terraform, Docker, Helm, RPM, Autotests, CD, Security, GitOps
+For adding new language support, see **`references/languages.md`** (read when onboarding a new language — it explains the process step by step).
 
-For complete language and framework details, see **`references/languages.md`**.
-
-For detailed pipeline and task YAML structure examples, composition patterns, and best practices, see **`references/standards.md`**.
+For pipeline composition patterns (build vs review flow) and validation commands, see **`references/standards.md`** (read when creating new pipelines — for YAML structure, read existing pipeline files in the repo as authoritative reference).
 
 ## Validation Requirements
 
@@ -435,4 +394,4 @@ yamllint .
 - Preserve onboarding script-generated structure
 - Document custom additions clearly
 
-For testing, maintenance, chart validation, quick reference commands, and common task composition patterns, see **`references/standards.md`**.
+For testing, maintenance, chart validation, and common task composition patterns, see **`references/standards.md`**.

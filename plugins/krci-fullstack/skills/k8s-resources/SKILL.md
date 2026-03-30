@@ -1,347 +1,183 @@
 ---
 name: Kubernetes Resource UI Patterns
-description: This skill should be used when the user asks to "implement K8s resource UI", "Kubernetes resource component", "CRD UI", "custom resource display", "K8s watch hooks", "useWatchList", "useWatchItem", "useBasicCRUD", or mentions Kubernetes resource presentation, watch hooks, draft creators, or portal-specific K8s patterns.
+description: This skill should be used when the user asks to "implement K8s resource UI", "Kubernetes resource component", "CRD UI", "custom resource display", "K8s watch hooks", "useWatchList", "useWatchItem", "useBasicCRUD", "usePermissions", or mentions Kubernetes resource presentation, watch hooks, resource configs, draft creators, or portal-specific K8s patterns.
 ---
 
-Implement UI components for Kubernetes Custom Resources following the KubeRocketCI portal's patterns for resource display, watching, and management.
+Guide implementation of UI components that interact with Kubernetes resources using the portal's watch hooks, resource configurations, CRUD operations, and permissions system.
 
-## Purpose
+## Architecture Overview
 
-Guide implementation of UI components that interact with Kubernetes Custom Resources using portal's watch hooks, resource configurations, and presentation patterns.
+K8s resource code is split across two packages:
 
-## K8s Integration Stack
+### `packages/shared/` - Resource Definitions (No UI)
 
-- **K8s API**: Direct integration with cluster API
-- **Watch Hooks**: Real-time resource monitoring via WebSocket
-- **Resource Configs**: Typed K8s resource definitions
-- **Draft Creators**: Resource creation utilities
+Contains everything needed to describe a K8s resource without React:
 
-## K8s Code Organization
+- **Resource configs** (`K8sResourceConfig`) - API group, version, kind, plural name
+- **TypeScript types** - typed interfaces for each resource's spec/status
+- **Zod schemas** - validation schemas for resource creation
+- **Label constants** - label key strings in a `labels.ts` file
+- **Draft creators** - utility functions that build K8s resource manifests
+- **Enum constants** - status values, types, strategies
 
-**IMPORTANT**: K8s code is split between two locations:
+Resource files are organized by API group: `packages/shared/src/models/k8s/groups/{Group}/{Resource}/`
 
-### Client K8s Module (`apps/client/src/k8s/`)
+Each resource directory typically contains: `constants.ts`, `labels.ts`, `types.ts`, `schema.ts`, and `utils/`.
 
-**API integration & UI logic**:
-- Watch hooks (`useWatchList`, `useWatchItem`)
-- Permission hooks (`useCodebasePermissions`)
-- CRUD hooks (`useBasicCRUD`)
-- Status icon utilities (icons, colors, spinning state)
-- UI formatters and display helpers
-- Table configurations
+### `apps/client/src/k8s/` - Client-Side K8s Logic
 
-### Shared Package (`packages/shared/src/models/k8s/`)
+Contains React hooks and UI utilities:
 
-**Resource definitions & business logic**:
-- Resource configs (`k8sCodebaseConfig`)
-- TypeScript types and interfaces (`Codebase`, `CodebaseSpec`)
-- Zod schemas (`codebaseSchema`)
-- Draft creators (`createCodebaseDraft`)
-- **Label key constants** in separate `labels.ts` file (`codebaseLabels`)
-- Business logic utilities (no UI dependencies)
+- **Watch hooks** - `useWatchList`, `useWatchItem` for real-time data
+- **CRUD hooks** - `useBasicCRUD`, `useResourceCRUDMutation` for create/patch/delete
+- **Permission hooks** - `usePermissions` for K8s RBAC checks
+- **Hook creators** - factory functions to bind hooks to specific resource configs
+- **Resource group hooks** - pre-bound hooks per resource (e.g., `useCodebaseWatchList`)
+- **Status utilities** - icon mapping, color mapping for resource status display
 
-**Resource File Structure in Shared:**
-```
-packages/shared/src/models/k8s/groups/{Group}/{Resource}/
-├── constants.ts    # Resource config, enums
-├── labels.ts       # Label key constants
-├── types.ts        # TypeScript interfaces
-├── schema.ts       # Zod schemas
-└── utils/          # Draft creators, utilities
-```
+**Rule of thumb**: If it uses React, hooks, or renders UI --> `apps/client/src/k8s/`. If it defines resource structure or business logic --> `packages/shared/`.
 
-**Rule of thumb**: If it involves React, hooks, icons, or colors → Client. If it defines resource structure or business logic → Shared.
+## K8sResourceConfig
 
-## Resource Configuration
+The central config object that describes how to interact with a K8s resource. Every resource has one defined in `packages/shared/`. To see the schema, read `packages/shared/src/models/k8s/common/schema.ts` (look for `k8sResourceConfigSchema`).
 
-### Define Resource Labels
+Key fields: `apiVersion`, `group`, `version`, `kind`, `singularName`, `pluralName`, `labels` (optional label key constants), `clusterScoped` (optional boolean for non-namespaced resources).
 
-**IMPORTANT**: All resource-specific label keys must be defined in a separate `labels.ts` file in the shared package:
+Example: To see how a config is defined, read `packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts` and look for `k8sCodebaseConfig`.
 
-```typescript
-// packages/shared/src/models/k8s/groups/KRCI/Codebase/labels.ts
-export const codebaseLabels = {
-  codebaseType: 'app.edp.epam.com/codebaseType',
-  gitServer: 'app.edp.epam.com/gitserver',
-  integration: 'app.edp.epam.com/integration',
-} as const;
-```
+## Watch Hooks (Real-Time Data)
 
-### Define Resource Config
+### useWatchList
 
-```typescript
-// packages/shared/src/models/k8s/groups/KRCI/Codebase/constants.ts
-import { K8sResourceConfig } from "../../../common/types.js";
-import { codebaseLabels } from "./labels.js";
+Fetches a list of K8s resources and subscribes to WebSocket updates for real-time changes (add, modify, delete).
 
-export const k8sCodebaseConfig = {
-  apiVersion: "v2.edp.epam.com/v1",
-  group: "v2.edp.epam.com",
-  version: "v1",
-  kind: "Codebase",
-  singularName: "codebase",
-  pluralName: "codebases",
-  labels: codebaseLabels, // Reference imported labels
-} as const satisfies K8sResourceConfig<typeof codebaseLabels>;
-```
+**Returns** a `UseWatchListResult<T>` with:
 
-## Watch Hooks
+- `data.array` - flat array of items (use this for DataTable)
+- `data.map` - Map keyed by resource name
+- `isLoading` - true during initial fetch
+- `isReady` - true when data is loaded
+- `isEmpty` - true when zero items
+- `error` - any fetch error
+- `query` - underlying React Query result
 
-### Watch List of Resources
+**Parameters**: `resourceConfig`, optional `labels` (for label filtering), optional `namespace`, optional `queryOptions`, optional `transform`.
 
-```typescript
-import { useWatchList } from "@/k8s/api/hooks/useWatchList";
+The `labels` parameter accepts a `Record<string, string>` for label-based filtering (sent as `labelSelector` to the K8s API). Always use label constants from the shared package for the keys.
 
-function CodebaseList() {
-  const codebaseWatch = useWatchList({
-    resourceConfig: k8sCodebaseConfig,
-    namespace: 'default',
-  });
+### useWatchItem
 
-  if (!codebaseWatch.query.isFetched) return <LoadingSpinner />;
+Fetches a single resource by name with WebSocket updates.
 
-  return <Table data={codebaseWatch.dataArray} columns={columns} />;
-}
-```
+**Returns** a `UseWatchItemResult<T>` with: `data` (the resource or undefined), `isLoading`, `isReady`, `resourceVersion`, `query`.
 
-### Watch Single Resource
+**Parameters**: `resourceConfig`, `name` (string or undefined to disable), optional `namespace`, optional `queryOptions`, optional `transform`.
 
-```typescript
-import { useWatchItem } from "@/k8s/api/hooks/useWatchItem";
+The item hook automatically reads initial data from the list cache when available, avoiding a redundant API call.
 
-function CodebaseDetails({ name }: { name: string }) {
-  const codebaseWatch = useWatchItem({
-    resourceConfig: k8sCodebaseConfig,
-    name,
-    namespace: 'default',
-  });
+### Hook Creators (Factory Pattern)
 
-  if (!codebaseWatch.query.isFetched) return <LoadingSpinner />;
-  if (!codebaseWatch.data) return <NotFound />;
+Rather than passing `resourceConfig` every time, the portal uses factory functions to create pre-bound hooks per resource:
 
-  return <CodebaseView codebase={codebaseWatch.data} />;
-}
-```
+- `createUseWatchListHook<T>(config)` returns a hook that only needs optional params
+- `createUseWatchItemHook<T>(config)` returns a hook that only needs `{ name }`
+- `createUsePermissionsHook(config)` returns a hook with no params
+- `createUseWatchListMultipleHook<T>(config)` returns a hook for multi-namespace watching
 
-**Watch features:**
-- Real-time WebSocket updates
-- Automatic re-rendering on resource changes
-- Built-in loading and error states
+These factories are in `apps/client/src/k8s/api/hooks/hook-creators/index.ts`.
+
+### Pre-Bound Resource Hooks
+
+Each resource group directory exports pre-bound hooks. For example, the Codebase resource (in `apps/client/src/k8s/api/groups/KRCI/Codebase/hooks/index.ts`) exports:
+
+- `useCodebaseWatchList` - bound to `k8sCodebaseConfig`
+- `useCodebaseWatchItem` - bound to `k8sCodebaseConfig`
+- `useCodebasePermissions` - bound to `k8sCodebaseConfig`
+- `useCodebaseCRUD` - custom CRUD with toast messages
+
+To discover which hooks exist for a resource, read the `hooks/index.ts` file in its group directory.
 
 ## CRUD Operations
 
-### useBasicCRUD Hook
+### useBasicCRUD (Generic)
 
-```typescript
-import { useBasicCRUD } from "@/k8s/api/hooks/useBasicCRUD";
+A generic hook for simple create/patch/delete operations. Takes a `K8sResourceConfig` and returns `{ triggerCreate, triggerEdit, triggerDelete, mutations }`.
 
-const { create, update, delete: deleteResource, isPending } = useBasicCRUD({
-  config: k8sCodebaseConfig,
-});
-```
+Each trigger function accepts `{ data: { resource: T }, callbacks?: { onSuccess?, onError?, onSettled? } }`.
 
-### Create Resource
+To see the exact API, read `apps/client/src/k8s/api/hooks/useBasicCRUD/index.tsx`.
 
-```typescript
-import { createCodebaseDraft } from "@my-project/shared";
+### useResourceCRUDMutation (Low-Level)
 
-const handleCreate = async (formData: CodebaseFormData) => {
-  const draft = createCodebaseDraft(formData);
-  await create(draft);
-};
-```
+The building block under `useBasicCRUD`. Wraps a React Query `useMutation` that calls `trpc.k8s.create.mutate()`, `trpc.k8s.patch.mutate()`, or `trpc.k8s.delete.mutate()` depending on the operation.
 
-### Update Resource
+Provides automatic toast notifications (loading, success, error) with customizable messages. Custom CRUD hooks (like `useCodebaseCRUD`) use this directly for richer behavior (e.g., creating related secrets before the main resource).
 
-```typescript
-const handleUpdate = async (codebase: Codebase, changes: Partial<CodebaseSpec>) => {
-  const updated = { ...codebase, spec: { ...codebase.spec, ...changes } };
-  await update(updated);
-};
-```
+To understand the full mutation chain, read `apps/client/src/k8s/api/hooks/useResourceCRUDMutation/index.tsx`.
 
-### Delete Resource
+### Custom CRUD Hooks
 
-```typescript
-const handleDelete = async (name: string, namespace: string) => {
-  await deleteResource({ name, namespace });
-};
-```
+For resources with complex creation flows (e.g., Codebase needs a secret created alongside it), a custom `useCRUD` hook is defined in the resource's `hooks/useCRUD/` directory. These compose multiple `useResourceCRUDMutation` calls with custom logic.
 
-See **`references/crud-operations.md`** for detailed CRUD patterns, error handling, and permission integration.
+## Permissions
 
-## Resource Display Patterns
+### usePermissions Hook
 
-### Status Icon Pattern
+Checks K8s RBAC permissions for a resource type. Returns a `DefaultPermissionListCheckResult` with entries like `create.allowed`, `delete.allowed`, `patch.allowed`, etc.
 
-Display resource status with consistent icons and colors:
+The hook calls `trpc.k8s.itemPermissions.mutate()` with the resource's group, version, and plural name. Results are cached with `staleTime: Infinity`.
 
-```typescript
-const getCodebaseStatusIcon = (codebase: Codebase) => {
-  switch (codebase.status?.phase) {
-    case 'Running':
-      return { component: CheckCircleIcon, color: 'success', isSpinning: false };
-    case 'Failed':
-      return { component: ErrorIcon, color: 'error', isSpinning: false };
-    case 'Pending':
-      return { component: SyncIcon, color: 'warning', isSpinning: true };
-    default:
-      return { component: HelpIcon, color: 'default', isSpinning: false };
-  }
-};
+Parameters: `{ group, version, resourcePlural }`. Typically consumed via a pre-bound hook like `useCodebasePermissions()`.
 
-function CodebaseStatus({ codebase }: { codebase: Codebase }) {
-  const statusIcon = getCodebaseStatusIcon(codebase);
-  return <StatusIcon {...statusIcon} />;
-}
-```
+To see the hook implementation, read `apps/client/src/k8s/api/hooks/usePermissions/index.ts`.
 
-### Resource Table
+### Using Permissions in UI
 
-```typescript
-function CodebaseTable() {
-  const { data: codebases } = useWatchList({ config: k8sCodebaseConfig });
-  const columns = useColumns(); // Use useColumns hook pattern
+Permissions data is always defined (never undefined) because the hook falls back to `defaultPermissions` on error. Access permissions like `permissions.data.create.allowed` and `permissions.data.create.reason`.
 
-  return <Table data={codebases || []} columns={columns} />;
-}
-```
+Use `ButtonWithPermission` component for permission-gated action buttons; it handles disabled state and tooltip with reason.
 
-### Resource Details View
+## Adding a New K8s Resource to the Portal
 
-```typescript
-function CodebaseDetails({ name }: { name: string }) {
-  const { data: codebase } = useWatchItem({
-    config: k8sCodebaseConfig,
-    name,
-  });
+1. **Define resource in shared package**: Create directory under `packages/shared/src/models/k8s/groups/{Group}/{Resource}/` with `constants.ts` (config), `labels.ts`, `types.ts`, `schema.ts`
+2. **Export from shared**: Add to the shared package's index exports
+3. **Create client hooks**: In `apps/client/src/k8s/api/groups/{Group}/{Resource}/`, create `hooks/index.ts` using the hook creator factories
+4. **Create custom CRUD** (if needed): Add `hooks/useCRUD/index.tsx` for complex creation flows
+5. **Build UI components**: Create list page with DataTable, detail page, filter, etc.
 
-  if (!codebase) return <NotFound />;
+To see a complete example of this pattern, explore the Codebase resource:
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Typography variant="h4">{codebase.metadata.name}</Typography>
-        <CodebaseStatus codebase={codebase} />
-      </div>
-      <Card>
-        <CardContent>
-          {/* Resource details */}
-        </CardContent>
-      </Card>
-      <CodebaseBranches codebaseName={name} />
-    </div>
-  );
-}
-```
+- Shared: `packages/shared/src/models/k8s/groups/KRCI/Codebase/`
+- Client hooks: `apps/client/src/k8s/api/groups/KRCI/Codebase/`
 
-See **`references/resource-display-patterns.md`** for complete patterns including tables, details views, status conditions, and empty states.
+## Discovery Instructions
 
-## Resource Permissions
+| To learn about... | Read this file |
+|-------------------|----------------|
+| K8sResourceConfig schema | `packages/shared/src/models/k8s/common/schema.ts` |
+| K8sResourceConfig TypeScript type | `packages/shared/src/models/k8s/common/types.ts` |
+| Watch hook types (UseWatchListResult, etc.) | `apps/client/src/k8s/api/hooks/useWatch/types.ts` |
+| useWatchList implementation | `apps/client/src/k8s/api/hooks/useWatch/useWatchList/index.ts` |
+| useWatchItem implementation | `apps/client/src/k8s/api/hooks/useWatch/useWatchItem/index.ts` |
+| Hook creator factories | `apps/client/src/k8s/api/hooks/hook-creators/index.ts` |
+| useBasicCRUD hook | `apps/client/src/k8s/api/hooks/useBasicCRUD/index.tsx` |
+| useResourceCRUDMutation | `apps/client/src/k8s/api/hooks/useResourceCRUDMutation/index.tsx` |
+| usePermissions hook | `apps/client/src/k8s/api/hooks/usePermissions/index.ts` |
+| Default permissions shape | Search for `defaultPermissions` in `packages/shared/` |
+| A resource's config + types | `packages/shared/src/models/k8s/groups/{Group}/{Resource}/` |
+| A resource's pre-bound hooks | `apps/client/src/k8s/api/groups/{Group}/{Resource}/hooks/index.ts` |
+| All resource groups | `ls apps/client/src/k8s/api/groups/` |
+| K8s server-side client | `packages/trpc/src/clients/k8s/index.ts` |
+| K8s router (all procedures) | `packages/trpc/src/routers/k8s/index.ts` |
+| Cluster store (namespace, clusterName) | `apps/client/src/k8s/store/` |
 
-### Permission Hook for K8s Resources
+## Key Conventions
 
-```typescript
-import { createUsePermissionsHook } from "@/core/permissions/createUsePermissionsHook";
-
-export const useCodebasePermissions = createUsePermissionsHook({
-  resource: 'codebases',
-  apiVersion: 'v2.edp.epam.com/v1',
-  kind: 'Codebase',
-});
-
-// Use in component
-function CodebaseActions({ codebase }: { codebase: Codebase }) {
-  const permissions = useCodebasePermissions(codebase);
-
-  return (
-    <ButtonWithPermission
-      allowed={permissions.data?.delete.allowed}
-      reason={permissions.data?.delete.reason}
-      ButtonProps={{ onClick: handleDelete }}
-    >
-      Delete
-    </ButtonWithPermission>
-  );
-}
-```
-
-## Resource Relationships
-
-### Parent-Child Resources with Label Selectors
-
-**IMPORTANT**: Always use label constants from shared package, never hardcode label strings:
-
-```typescript
-import { codebaseBranchLabels } from "@my-project/shared";
-
-// Fetch parent resource
-const { data: codebase } = useWatchItem({
-  config: k8sCodebaseConfig,
-  name: codebaseName,
-});
-
-// Fetch child resources (branches) - USE LABEL CONSTANTS
-const { data: branches } = useWatchList({
-  config: k8sCodebaseBranchConfig,
-  namespace: 'default',
-  labelSelector: {
-    [codebaseBranchLabels.codebase]: codebaseName, // Using constant
-  },
-});
-```
-
-**Why use label constants?**
-- Type safety - typos caught at compile time
-- Single source of truth - change label key in one place
-- Refactoring - find all usages easily
-- Consistency - same labels across client and trpc packages
-
-## Draft Creators
-
-Always use draft creator functions from shared package for resource creation:
-
-```typescript
-import { createCodebaseDraft } from "@my-project/shared";
-
-function CodebaseForm() {
-  const handleSubmit = (formData: CodebaseFormData) => {
-    // Draft creator handles K8s resource structure
-    const draft = createCodebaseDraft({
-      name: formData.name,
-      gitUrl: formData.gitUrl,
-      branch: formData.branch,
-      type: formData.type,
-    });
-
-    await create(draft);
-  };
-
-  return <Form onSubmit={handleSubmit} />;
-}
-```
-
-**Draft creators handle:**
-- Kubernetes resource structure (apiVersion, kind, metadata)
-- Default values application
-- Type safety
-- Located in `packages/shared/src/models/k8s/groups/*/utils/`
-
-## Best Practices
-
-1. **Use Watch Hooks** - Real-time updates via WebSocket
-2. **Resource Configs** - Define in shared package with separate `labels.ts` file
-3. **Label Constants** - **Always** use label constants from shared, never hardcode label strings
-4. **Draft Creators** - Use shared utilities for resource creation
-5. **Permission Integration** - Check K8s RBAC before mutations
-6. **Status Display** - Consistent status icon patterns (in client, not shared)
-7. **Error Handling** - Handle API errors gracefully with user feedback
-8. **Type Safety** - Use TypeScript types from shared configs
-9. **Code Organization** - UI logic in client k8s module, definitions in shared package
-10. **Real-Time Updates** - Leverage watch hooks for live data synchronization
-
-## Additional Resources
-
-- **`references/crud-operations.md`** - Detailed CRUD patterns with error handling and permission integration
-- **`references/resource-display-patterns.md`** - Complete UI patterns for tables, details views, and status displays
-- **`references/k8s-patterns.md`** - Advanced patterns including label selectors, transformations, and multi-resource watching
+- Always import resource configs and types from `@my-project/shared`, not from relative paths to the shared package
+- Use label constants from `labels.ts` for label selectors; never hardcode label strings
+- Use pre-bound hooks (e.g., `useCodebaseWatchList`) instead of raw `useWatchList` with inline config
+- Pass `data.array` (not `data` or `data.map`) to DataTable's `data` prop
+- Draft creators in shared handle K8s manifest structure; components should not construct raw manifests
+- The watch system uses WebSocket subscriptions that are managed automatically; you do not need to set up subscriptions manually
+- Resource configs use `as const satisfies K8sResourceConfig<typeof labels>` for full type inference
+- Permissions are always available (fallback to `defaultPermissions`); no need to handle undefined

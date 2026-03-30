@@ -34,7 +34,7 @@ Follow structured phases to implement the feature: `$ARGUMENTS`
 
 **Decide which skills to load based on the feature description:**
 
-- **frontend-tech-stack** — if the feature involves understanding project structure, architecture, auth flow, or monorepo setup
+- **portal-tech-stack** — if the feature involves understanding project structure, architecture, auth flow, or monorepo setup
 - **api-integration** — if the feature involves API endpoints, tRPC, data fetching, or backend integration
 - **component-development** — if the feature involves creating/modifying UI components
 - **routing-permissions** — if the feature involves new pages, routes, navigation, or RBAC
@@ -113,7 +113,7 @@ Follow structured phases to implement the feature: `$ARGUMENTS`
 
 Some skills may already be loaded from Phase 1. Only load skills that are newly relevant:
 
-- Load krci-fullstack:frontend-tech-stack (if not loaded in Phase 1 and now needed)
+- Load krci-fullstack:portal-tech-stack (if not loaded in Phase 1 and now needed)
 - Load krci-fullstack:api-integration (if not loaded in Phase 1 and now needed)
 - Load krci-fullstack:component-development (if UI components - provides project structure)
 - Load krci-fullstack:form-patterns (if forms)
@@ -122,7 +122,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 - Load krci-fullstack:routing-permissions (if routes/RBAC)
 - Load krci-fullstack:k8s-resources (if K8s UIs)
 
-**For authentication features only:** Read frontend-tech-stack/references/auth-integration.md for OAuth flow
+**For authentication features only:** Read portal-tech-stack/references/auth-integration.md for OAuth flow
 
 **CRITICAL**: Do NOT re-load skills already loaded in Phase 1. Only load what's newly needed. DO NOT SKIP this phase.
 
@@ -382,7 +382,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 Skills are loaded **as early as possible** to provide context before exploration. Analyze the feature first, then load what's relevant:
 
 - **Phase 1** (before exploration): Analyze feature description and load relevant skills:
-  - frontend-tech-stack — if feature involves architecture, project structure, auth flow
+  - portal-tech-stack — if feature involves architecture, project structure, auth flow
   - api-integration — if feature involves APIs, tRPC, data fetching
   - component-development — if feature involves UI components
   - routing-permissions — if feature involves routes, navigation, RBAC

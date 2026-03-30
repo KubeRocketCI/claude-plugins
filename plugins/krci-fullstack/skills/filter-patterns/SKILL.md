@@ -3,211 +3,176 @@ name: Filter Patterns
 description: This skill should be used when the user asks to "add filter", "implement filter", "create filtering", "FilterProvider", "search filter", "filter provider setup", "filter match function", "match functions", "URL sync filter", or mentions filter state, filter UI components, or data filtering patterns.
 ---
 
-Implement data filtering using the FilterProvider pattern with TanStack Form for state management, URL synchronization, and declarative match functions.
+Guide filter implementation using the portal's FilterProvider pattern with TanStack Form for state management, URL synchronization, and declarative match functions.
 
-## Purpose
+## Architecture Overview
 
-Guide filter implementation using the portal's FilterProvider pattern, enabling list views to support search, multi-field filtering, and URL-based filter state.
+The portal uses a **FilterProvider** component that wraps a page and provides:
 
-## Core Architecture
+1. **Form state** via TanStack Form (`useAppForm`) for filter inputs
+2. **A `filterFunction`** derived from form values + match functions, passed to `DataTable`
+3. **URL synchronization** (optional) so filter state persists in query params
+4. **A `reset` function** to clear all filters back to defaults
 
-**FilterProvider Pattern**: Centralized filter state management using TanStack Form with debounced updates (300ms), URL synchronization, and type-safe match functions.
+All filtering code lives in `apps/client/src/core/providers/Filter/`. The provider, context, hooks, types, and built-in match functions are all in that directory.
 
-**Key Components**:
+## How FilterProvider Works
 
-- `@/core/providers/Filter` - FilterProvider, useFilterContext hook
-- Match functions - Declarative filtering logic per field
-- Form integration - TanStack Form fields for filter inputs
+FilterProvider is a generic component: `FilterProvider<Item, Values>` where:
 
-## Standard Filter Structure
+- `Item` is the type of data being filtered (e.g., `Pipeline`, `Codebase`)
+- `Values` is a record type mapping filter field names to their value types
 
-```
-components/EntityFilter/
-├── constants.ts      # Filter names, defaults, match functions
-├── types.ts          # TypeScript filter value types
-├── hooks/
-│   └── useFilter.tsx # Typed useFilterContext wrapper
-└── index.tsx         # Filter UI component
-```
+It accepts three props:
+
+- **`defaultValues`** - initial filter state (all fields at "show everything" values)
+- **`matchFunctions`** - an object mapping each filter field name to a function `(item, value) => boolean`
+- **`syncWithUrl`** (optional) - enables bidirectional URL query param synchronization
+
+Internally, FilterProvider creates a TanStack Form with the default values, subscribes to form changes, and recomputes the `filterFunction` on every change. The `filterFunction` tests each item against ALL match functions (AND logic): an item passes only if every match function returns true.
+
+When `syncWithUrl` is enabled, non-default filter values are written to URL search params, and on mount the provider reads URL params to restore filter state.
 
 ## Implementation Steps
 
-### 1. Define Filter Constants
+### 1. Define types, constants, and match functions
 
-Create filter field names, default values, and match functions:
+Create a filter component directory with:
 
-```typescript
-// constants.ts
-import { MatchFunctions, createSearchMatchFunction } from "@/core/providers/Filter";
-import { EntityType } from "@my-project/shared";
-import { EntityFilterValues } from "./types";
-
-export const ENTITY_FILTER_NAMES = {
-  SEARCH: "search",
-} as const;
-
-export const entityFilterDefaultValues: EntityFilterValues = {
-  [ENTITY_FILTER_NAMES.SEARCH]: "",
-};
-
-export const matchFunctions: MatchFunctions<EntityType, EntityFilterValues> = {
-  [ENTITY_FILTER_NAMES.SEARCH]: createSearchMatchFunction<EntityType>(),
-};
+```text
+components/EntityFilter/
+  constants.ts    # Filter names, defaults, match functions
+  types.ts        # Filter value type
+  hooks/
+    useFilter.tsx # Typed context hook
+  index.tsx       # Filter UI component
 ```
 
-### 2. Define Filter Types
+**constants.ts** defines three things:
 
-```typescript
-// types.ts
-export type EntityFilterValues = {
-  [ENTITY_FILTER_NAMES.SEARCH]: string;
-};
-```
+- `ENTITY_FILTER_NAMES` - a const object mapping semantic names to string keys
+- `entityFilterDefaultValues` - the default values object (empty strings, empty arrays, `"all"`)
+- `matchFunctions` - the match function map
 
-### 3. Create Custom Hook
+**types.ts** defines the filter value type using the filter name constants as keys.
 
-```typescript
+To see a real example of this pattern, read:
+`apps/client/src/modules/platform/tekton/pages/pipeline-list/components/PipelineFilter/constants.ts` and its sibling `types.ts`.
+
+### 2. Create a typed context hook
+
+```text
 // hooks/useFilter.tsx
 import { useFilterContext } from "@/core/providers/Filter";
-import { EntityType } from "@my-project/shared";
-import { EntityFilterValues } from "../types";
 
 export const useEntityFilter = () =>
   useFilterContext<EntityType, EntityFilterValues>();
 ```
 
-### 4. Build Filter UI
+This thin wrapper provides type safety so consumers get typed `form` and `filterFunction`.
 
-```typescript
-// index.tsx
-import { Button } from "@/core/components/ui/button";
-import { Label } from "@/core/components/ui/label";
-import { X } from "lucide-react";
-import { ENTITY_FILTER_NAMES } from "./constants";
-import { useEntityFilter } from "./hooks/useFilter";
+### 3. Build the filter UI component
 
-export const EntityFilter = () => {
-  const { form, reset } = useEntityFilter();
+The filter UI component uses the form from the typed context hook. It renders form fields (typically `form.AppField` with `field.FormTextField`, `field.FormSelectField`, etc.) and a clear button shown when `form.state.isDirty`.
 
-  return (
-    <>
-      <div className="col-span-3">
-        <form.AppField name={ENTITY_FILTER_NAMES.SEARCH}>
-          {(field) => <field.FormTextField label="Search" placeholder="Search..." />}
-        </form.AppField>
-      </div>
+Filter UI components are rendered inside the table's header slot, which uses a `grid-cols-12` layout. Each filter field should use `col-span-*` to size itself within that grid.
 
-      {form.state.isDirty && (
-        <div className="col-span-1 flex flex-col gap-2">
-          <Label> </Label>
-          <Button variant="secondary" onClick={reset} size="sm" className="mt-0.5">
-            <X size={16} />
-            Clear
-          </Button>
-        </div>
-      )}
-    </>
-  );
-};
+### 4. Wrap the page with FilterProvider
+
+The page component (`page.tsx`) wraps the view with `FilterProvider`, passing the generic type parameters, default values, match functions, and optionally `syncWithUrl`:
+
+```text
+<FilterProvider<EntityType, EntityFilterValues>
+  defaultValues={entityFilterDefaultValues}
+  matchFunctions={matchFunctions}
+  syncWithUrl
+>
+  <PageView />
+</FilterProvider>
 ```
 
-### 5. Wrap Page with FilterProvider
+### 5. Connect to DataTable
 
-```typescript
-// pages/list/page.tsx
-import { FilterProvider } from "@/core/providers/Filter";
-import { EntityType } from "@my-project/shared";
-import { EntityFilterValues } from "./components/EntityFilter/types";
-import { entityFilterDefaultValues, matchFunctions } from "./components/EntityFilter/constants";
-import PageView from "./view";
+In the list component, consume the filter context and pass `filterFunction` to `DataTable`, and render the filter UI in the header slot:
 
-export default function EntityPage() {
-  return (
-    <FilterProvider<EntityType, EntityFilterValues>
-      defaultValues={entityFilterDefaultValues}
-      matchFunctions={matchFunctions}
-      syncWithUrl
-    >
-      <PageView />
-    </FilterProvider>
-  );
+```text
+const { filterFunction } = useEntityFilter();
+
+<DataTable
+  id="entity-list"
+  data={data.array}
+  columns={columns}
+  filterFunction={filterFunction}
+  slots={{
+    header: { component: <EntityFilter /> }
+  }}
+/>
+```
+
+## Match Functions
+
+Match functions are the core filtering logic. Each one receives an item and the current filter value, returning `true` if the item should be shown.
+
+### Built-in Match Functions
+
+The portal provides factory functions in `@/core/providers/Filter/matchFunctions.ts`:
+
+| Factory | Purpose | Empty value behavior |
+|---------|---------|---------------------|
+| `createSearchMatchFunction<T>()` | Search by name or labels; supports `label:value` syntax | Returns true for empty/falsy search |
+| `createNamespaceMatchFunction<T>()` | Filter by namespace from a string array | Returns true for empty array |
+| `createExactMatchFunction<T, V>(getValue)` | Exact value match; treats `"all"` as no filter | Returns true for empty or `"all"` |
+| `createArrayIncludesMatchFunction<T>(getValue)` | Multi-select: checks if item value is in the selected array | Returns true for empty array |
+| `createLabelMatchFunction<T>(labelKey)` | Match a specific K8s label value; treats `"all"` as no filter | Returns true for empty or `"all"` |
+| `createBooleanMatchFunction<T>(getValue)` | Show items where a boolean condition is true | Returns true when filter is false |
+
+To see the exact implementation of each, read `apps/client/src/core/providers/Filter/matchFunctions.ts`.
+
+### Custom Match Functions
+
+When built-in factories do not fit, write a custom match function inline in the `matchFunctions` object:
+
+```text
+matchFunctions: {
+  search: createSearchMatchFunction<Pipeline>(),
+  pipelineType: (item, value) => {
+    if (value === "all") return true;
+    return item.metadata?.labels?.[pipelineLabels.pipelineType] === value;
+  },
 }
 ```
 
-### 6. Integrate with Table
+A match function must always return `true` when the filter value represents "no filter" (empty string, empty array, `"all"`). This prevents items from being hidden when no filter is active.
 
-```typescript
-import { Table } from "@/core/components/Table";
-import { EntityFilter } from "../EntityFilter";
-import { useEntityFilter } from "../EntityFilter/hooks/useFilter";
+## URL Synchronization Details
 
-export const EntityList = () => {
-  const { filterFunction } = useEntityFilter();
+When `syncWithUrl` is enabled:
 
-  const tableSlots = React.useMemo(
-    () => ({
-      header: <EntityFilter />,
-    }),
-    []
-  );
+- On mount, the provider reads URL search params and merges them with defaults
+- On form change, non-default values are written to URL params (`replace: true`)
+- On reset, filter-related URL params are removed while preserving unrelated params (e.g., `tab`)
+- Array values appear as URL arrays; empty/default values are omitted from URL
 
-  return (
-    <Table
-      id="entity-list"
-      data={entities}
-      columns={columns}
-      filterFunction={filterFunction}
-      slots={tableSlots}
-    />
-  );
-};
-```
+This means filter state survives page refreshes and can be shared via URL.
 
-## Built-in Match Functions
+## Discovery Instructions
 
-Predefined match functions from `@/core/providers/Filter`:
+| To learn about... | Read this file |
+|-------------------|----------------|
+| FilterProvider implementation | `apps/client/src/core/providers/Filter/provider.tsx` |
+| Types (FilterValueMap, MatchFunction, etc.) | `apps/client/src/core/providers/Filter/types.ts` |
+| Built-in match function factories | `apps/client/src/core/providers/Filter/matchFunctions.ts` |
+| useFilterContext hook | `apps/client/src/core/providers/Filter/hooks.ts` |
+| Real filter: Pipeline list | `apps/client/src/modules/platform/tekton/pages/pipeline-list/components/PipelineFilter/` |
+| All filter implementations | Search for `FilterProvider` across `apps/client/src/modules/` |
 
-**createSearchMatchFunction** - Search by name or labels, supports `label:value` syntax
-**createNamespaceMatchFunction** - Filter by namespace array
-**createExactMatchFunction** - Exact value match with "all" support
-**createArrayIncludesMatchFunction** - Multi-select array filtering
-**createLabelMatchFunction** - Specific Kubernetes label match
-**createBooleanMatchFunction** - Boolean condition filtering
+## Key Conventions
 
-See **`references/match-functions.md`** for detailed usage and custom implementations.
-
-## Key Features
-
-**URL Synchronization**: Enable `syncWithUrl` prop to persist filter state in URL parameters for shareable links and browser navigation support.
-
-**Debounced Updates**: 300ms debounce prevents excessive filtering during user input.
-
-**Type Safety**: Fully typed filter values and match functions with TypeScript generics.
-
-**Form State**: Access `form.state.isDirty` to show/hide clear button based on filter changes.
-
-**Performance**: Memoize table slots to prevent unnecessary re-renders.
-
-## Reference Examples
-
-Real implementations in codebase:
-
-- `apps/client/src/modules/platform/configuration/modules/quicklinks/components/QuickLinkFilter/`
-- `apps/client/src/modules/platform/cdpipelines/pages/list/components/CDPipelineFilter/`
-
-## Additional Resources
-
-- **`references/implementation-guide.md`** - Step-by-step implementation details
-- **`references/match-functions.md`** - Built-in and custom match function patterns
-- **`examples/simple-search-filter.md`** - Basic search-only filter
-- **`examples/multi-field-filter.md`** - Complex multi-field filter
-
-## Best Practices
-
-1. **Consistent Naming**: Use `ENTITY_FILTER_NAMES` constant pattern
-2. **URL Sync**: Enable for shareable filter states on list pages
-3. **Type Safety**: Define explicit filter value types
-4. **Performance**: Use built-in match functions when possible
-5. **UX**: Show clear button only when `form.state.isDirty` is true
-6. **Memoization**: Wrap table slots in `React.useMemo`
-7. **Reusability**: Extract common match functions for reuse
+- Always define filter names as a `const` object (e.g., `ENTITY_FILTER_NAMES`)
+- Default values must make all match functions return `true` (show everything)
+- Use built-in factory functions from `matchFunctions.ts` when possible
+- Enable `syncWithUrl` on all top-level list pages for shareable filter state
+- Memoize table slots (`useMemo`) to avoid unnecessary re-renders
+- Show the clear button only when `form.state.isDirty` is true
+- Filter UI components render inside the table header slot's `grid-cols-12` layout
+- Create a typed `useEntityFilter` hook wrapper for each filter rather than using `useFilterContext` directly

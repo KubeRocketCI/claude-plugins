@@ -1,493 +1,53 @@
 # Language Profiles
 
-Per-language configurations for KubeRocketCI GitLab CI component libraries. Each profile defines the container image, test/build/lint commands, cache configuration, version extraction, SonarQube settings, and Dockerfile.
+Guide for discovering and implementing language-specific customizations in KubeRocketCI GitLab CI component libraries.
 
-**Note**: These profiles are recommended patterns based on the `ci-template` golden reference extension points and standard toolchain conventions. They may differ from the actual published component repositories at gitlab.com/kuberocketci. Always verify against the latest published component when customizing for production use.
+## Learning from Published Components
 
-## Profile Summary
+The best way to learn per-language patterns is to study actual published components at `gitlab.com/kuberocketci`. Clone the one closest to your target stack:
 
-| Aspect | Go | Java/Gradle | Java/Maven | Node.js/npm | Python/uv |
-|--------|-------|-------------|------------|-------------|-----------|
-| Image | `golang:1.24-bookworm` | `gradle:8-jdk17` | `maven:3.9-temurin-17` | `node:20-alpine` | `python:3.13-slim` |
-| Test | `make test` | `gradle test` | `mvn verify` | `npm test` | `uv run pytest` |
-| Build | `make build` | `gradle build` | `mvn package -DskipTests` | `npm run build` | `uv build` |
-| Lint | `golangci-lint run` | `gradle checkstyleMain` | `mvn checkstyle:check` | `npm run lint` | `ruff check .` |
-| Cache key | `go.sum` | `build.gradle` | `pom.xml` | `package-lock.json` | `uv.lock` |
-| Cache paths | `${GOPATH}/pkg/mod` | `~/.gradle/caches` | `~/.m2/repository` | `node_modules/` | `.venv/` |
+```bash
+# Clone an existing component as reference
+git clone https://gitlab.com/kuberocketci/ci-golang.git /tmp/ci-golang
+git clone https://gitlab.com/kuberocketci/ci-java17-mvn.git /tmp/ci-java17-mvn
+git clone https://gitlab.com/kuberocketci/ci-nodejs-npm.git /tmp/ci-nodejs-npm
+git clone https://gitlab.com/kuberocketci/ci-python-uv.git /tmp/ci-python-uv
+git clone https://gitlab.com/kuberocketci/ci-java17-gradle.git /tmp/ci-java17-gradle
 
-## Go Profile
-
-**Repository**: `ci-golang`
-
-### common.yml Customizations
-
-```yaml
-.dependency-cache:
-  variables:
-    GOPATH: "${CI_PROJECT_DIR}/.go"
-    GOCACHE: "${CI_PROJECT_DIR}/.go-cache"
-    CACHE_DIR: "${CI_PROJECT_DIR}/.go"
-  cache:
-    key:
-      files:
-        - go.sum
-    paths:
-      - ${GOPATH}/pkg/mod
-      - ${GOCACHE}
-
-.test-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - make test
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-    paths:
-      - coverage/
-    expire_in: 1 week
-    when: always
-
-.build-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_build ]]
-  script:
-    - make build
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 1 week
-
-.lint-job:
-  extends: .dependency-cache
-  image: golangci/golangci-lint:v2.1-alpine
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - golangci-lint run ./...
+# Study the template files
+cat /tmp/ci-golang/templates/common.yml
+cat /tmp/ci-golang/templates/review.yml
+cat /tmp/ci-golang/templates/build.yml
 ```
 
-### build.yml init-values (version extraction)
+Always verify against the actual repo — these are the authoritative source for current patterns.
 
-```yaml
-# Go version from git describe
-BUILD_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.1.0")
-VCS_TAG="${BUILD_VERSION}-${BUILD_NUMBER}"
-IMAGE_TAG="${VCS_TAG}"
-```
+## The 4 Extension Points
 
-### sonar-project.properties
+Every language customization boils down to filling these 4 extension points in `templates/common.yml`:
 
-```properties
-sonar.projectKey=kuberocketci_ci-golang
-sonar.projectName=ci-golang
-sonar.organization=kuberocketci
-sonar.sources=.
-sonar.exclusions=**/*_test.go,**/vendor/**,**/mocks/**
-sonar.tests=.
-sonar.test.inclusions=**/*_test.go
-sonar.go.coverage.reportPaths=coverage.out
-sonar.go.tests.reportPaths=report.json
-```
+| Extension Point | What to Customize | Example (Go) |
+|----------------|-------------------|--------------|
+| `.dependency-cache` | Cache key file, cache paths, env vars | `go.sum`, `${GOPATH}/pkg/mod` |
+| `.test-job` script | Test command producing coverage | `make test` |
+| `.build-job` script | Build command producing artifacts | `make build` |
+| `.lint-job` script | Linter command | `golangci-lint run` |
 
-### Dockerfile
+Plus these per-language files:
 
-```dockerfile
-FROM alpine:3.22.1
-WORKDIR /app
-COPY dist/app .
-EXPOSE 8080
-ENTRYPOINT ["./app"]
-```
+- **`init-values` in build.yml** — Version extraction logic (from `pom.xml`, `package.json`, `pyproject.toml`, `Cargo.toml`, etc.)
+- **`sonar-project.properties`** — Language-specific source paths, exclusions, coverage report format
+- **`Dockerfile`** — Packaging-only (runtime base image + pre-built artifacts)
 
-## Java 17 Gradle Profile
+## Customization Checklist
 
-**Repository**: `ci-java17-gradle`
+When adding a new language, customize these areas by studying an existing component for a similar stack:
 
-### common.yml Customizations
-
-```yaml
-.dependency-cache:
-  variables:
-    GRADLE_USER_HOME: "${CI_PROJECT_DIR}/.gradle"
-    CACHE_DIR: "${CI_PROJECT_DIR}/.gradle"
-  cache:
-    key:
-      files:
-        - build.gradle
-        - build.gradle.kts
-    paths:
-      - ${GRADLE_USER_HOME}/caches
-      - ${GRADLE_USER_HOME}/wrapper
-
-.test-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - gradle test jacocoTestReport
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: build/reports/jacoco/test/jacocoTestReport.xml
-    paths:
-      - build/reports/
-    expire_in: 1 week
-    when: always
-
-.build-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_build ]]
-  script:
-    - gradle build -x test
-  artifacts:
-    paths:
-      - build/libs/
-    expire_in: 1 week
-
-.lint-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - gradle checkstyleMain checkstyleTest
-```
-
-### sonar-project.properties
-
-```properties
-sonar.projectKey=kuberocketci_ci-java17-gradle
-sonar.projectName=ci-java17-gradle
-sonar.organization=kuberocketci
-sonar.sources=src/main
-sonar.tests=src/test
-sonar.java.binaries=build/classes
-sonar.coverage.jacoco.xmlReportPaths=build/reports/jacoco/test/jacocoTestReport.xml
-```
-
-### Dockerfile
-
-```dockerfile
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-COPY build/libs/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
-
-## Java 17 Maven Profile
-
-**Repository**: `ci-java17-mvn`
-
-### common.yml Customizations
-
-```yaml
-.dependency-cache:
-  variables:
-    MAVEN_OPTS: "-Dmaven.repo.local=${CI_PROJECT_DIR}/.m2/repository"
-    CACHE_DIR: "${CI_PROJECT_DIR}/.m2"
-  cache:
-    key:
-      files:
-        - pom.xml
-    paths:
-      - ${CI_PROJECT_DIR}/.m2/repository
-
-.test-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - mvn verify
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: target/site/jacoco/jacoco.xml
-    paths:
-      - target/site/jacoco/
-    expire_in: 1 week
-    when: always
-
-.build-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_build ]]
-  script:
-    - mvn package -DskipTests
-  artifacts:
-    paths:
-      - target/*.jar
-    expire_in: 1 week
-
-.lint-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - mvn checkstyle:check
-```
-
-### build.yml init-values (version extraction)
-
-```yaml
-# Maven version from pom.xml
-BUILD_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout 2>/dev/null | sed 's/-SNAPSHOT//')
-VCS_TAG="${BUILD_VERSION}-${BUILD_NUMBER}"
-IMAGE_TAG="${VCS_TAG}"
-```
-
-### sonar-project.properties
-
-```properties
-sonar.projectKey=kuberocketci_ci-java17-mvn
-sonar.projectName=ci-java17-mvn
-sonar.organization=kuberocketci
-sonar.sources=src/main
-sonar.tests=src/test
-sonar.java.binaries=target/classes
-sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-```
-
-### Dockerfile
-
-```dockerfile
-FROM eclipse-temurin:17-jre-alpine
-WORKDIR /app
-COPY target/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar"]
-```
-
-## Node.js npm Profile
-
-**Repository**: `ci-nodejs-npm`
-
-### common.yml Customizations
-
-```yaml
-.dependency-cache:
-  variables:
-    NPM_CONFIG_CACHE: "${CI_PROJECT_DIR}/.npm-cache"
-    CACHE_DIR: "${CI_PROJECT_DIR}/.npm-cache"
-  before_script:
-    - npm ci --cache ${NPM_CONFIG_CACHE}
-  cache:
-    key:
-      files:
-        - package-lock.json
-    paths:
-      - ${NPM_CONFIG_CACHE}
-      - node_modules/
-
-.test-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - npm test -- --coverage
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage/cobertura-coverage.xml
-    paths:
-      - coverage/
-    expire_in: 1 week
-    when: always
-
-.build-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_build ]]
-  script:
-    - npm run build
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 1 week
-
-.lint-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - npm run lint
-
-.type-check-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - npm run type-check
-```
-
-### build.yml init-values (version extraction)
-
-```yaml
-# Node.js version from package.json
-BUILD_VERSION=$(node -p "require('./package.json').version" 2>/dev/null || echo "0.1.0")
-VCS_TAG="${BUILD_VERSION}-${BUILD_NUMBER}"
-IMAGE_TAG="${VCS_TAG}"
-```
-
-### build.yml package-publish (npm registry)
-
-```yaml
-package-publish:
-  stage: $[[ inputs.stage_package ]]
-  image: $[[ inputs.container_image ]]
-  extends: .dependency-cache
-  script:
-    - echo "//${NPM_REGISTRY}/:_authToken=${NPM_TOKEN}" > .npmrc
-    - npm publish --access public
-  needs: [init-values, build]
-  dependencies: [init-values, build]
-```
-
-### sonar-project.properties
-
-```properties
-sonar.projectKey=kuberocketci_ci-nodejs-npm
-sonar.projectName=ci-nodejs-npm
-sonar.organization=kuberocketci
-sonar.sources=src
-sonar.tests=src
-sonar.test.inclusions=**/*.test.ts,**/*.test.tsx,**/*.spec.ts,**/*.spec.tsx
-sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**
-sonar.typescript.lcov.reportPaths=coverage/lcov.info
-sonar.javascript.lcov.reportPaths=coverage/lcov.info
-```
-
-### Dockerfile
-
-```dockerfile
-FROM nginx:1.27-alpine
-COPY dist/ /usr/share/nginx/html/
-EXPOSE 8080
-```
-
-## Python uv Profile
-
-**Repository**: `ci-python-uv`
-
-### common.yml Customizations
-
-```yaml
-.dependency-cache:
-  variables:
-    UV_CACHE_DIR: "${CI_PROJECT_DIR}/.uv-cache"
-    VIRTUAL_ENV: "${CI_PROJECT_DIR}/.venv"
-    CACHE_DIR: "${CI_PROJECT_DIR}/.uv-cache"
-  before_script:
-    - pip install uv
-    - uv sync
-  cache:
-    key:
-      files:
-        - uv.lock
-    paths:
-      - ${UV_CACHE_DIR}
-      - ${VIRTUAL_ENV}
-
-.test-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - uv run pytest --cov --cov-report=xml:coverage.xml --cov-report=html:coverage/
-  artifacts:
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage.xml
-    paths:
-      - coverage/
-    expire_in: 1 week
-    when: always
-
-.build-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_build ]]
-  script:
-    - uv build
-  artifacts:
-    paths:
-      - dist/
-    expire_in: 1 week
-
-.lint-job:
-  extends: .dependency-cache
-  image: $[[ inputs.container_image ]]
-  stage: $[[ inputs.stage_test ]]
-  script:
-    - uv run ruff check .
-    - uv run ruff format --check .
-```
-
-### build.yml init-values (version extraction)
-
-```yaml
-# Python version from pyproject.toml
-BUILD_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])" 2>/dev/null || echo "0.1.0")
-VCS_TAG="${BUILD_VERSION}-${BUILD_NUMBER}"
-IMAGE_TAG="${VCS_TAG}"
-```
-
-### build.yml package-publish (PyPI)
-
-```yaml
-package-publish:
-  stage: $[[ inputs.stage_package ]]
-  image: $[[ inputs.container_image ]]
-  extends: .dependency-cache
-  script:
-    - uv publish --token ${PYPI_TOKEN}
-  needs: [init-values, build]
-  dependencies: [init-values, build]
-```
-
-### sonar-project.properties
-
-```properties
-sonar.projectKey=kuberocketci_ci-python-uv
-sonar.projectName=ci-python-uv
-sonar.organization=kuberocketci
-sonar.sources=src
-sonar.tests=tests
-sonar.exclusions=**/migrations/**,**/__pycache__/**,**/venv/**,.venv/**
-sonar.python.coverage.reportPaths=coverage.xml
-sonar.python.version=3.13
-```
-
-### Dockerfile
-
-```dockerfile
-FROM python:3.13-slim
-WORKDIR /app
-COPY dist/*.whl .
-RUN pip install --no-cache-dir *.whl && rm *.whl
-EXPOSE 8080
-ENTRYPOINT ["python", "-m", "app"]
-```
-
-## Custom Stack Guidelines
-
-For technology stacks not listed above, follow this template:
-
-1. Choose an appropriate base Docker image
-2. Implement the 4 extension points in common.yml:
-   - `.dependency-cache` — lock file and cache paths
-   - `.test-job` script — test command with coverage output
-   - `.build-job` script — build command producing artifacts
-   - `.lint-job` script — linter command
-3. Configure version extraction in build.yml `init-values`
-4. Set language-specific SonarQube properties
-5. Create a packaging-only Dockerfile
-6. Update README.md with stack-specific examples
+1. **Container image** — Set the `container_image` default in `spec:` inputs
+2. **Cache configuration** — Identify the lock file and dependency paths
+3. **Test command** — Must produce coverage output (Cobertura XML preferred)
+4. **Build command** — Must produce artifacts in a known directory (e.g., `dist/`, `target/`, `build/`)
+5. **Lint command** — Language-specific linter
+6. **Version extraction** — How to get the version from the project's metadata file
+7. **SonarQube properties** — Source paths, test paths, coverage report path, exclusions
+8. **Dockerfile** — Runtime base image, copy pre-built artifacts, expose port
