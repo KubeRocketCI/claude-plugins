@@ -1,9 +1,4 @@
----
-name: KRCI Operator Best Practices
-description: This skill should be used when the user asks to "implement Kubernetes operator", "create Custom Resource", "design CRD", "implement controller", "setup reconciliation loop", "handle finalizers", "configure operator RBAC", or mentions operator development, CRD patterns, controller architecture, or Cloud Native best practices.
----
-
-# Operator Best Practices
+# Operator Best Practices Reference
 
 ## Development
 

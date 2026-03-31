@@ -31,7 +31,6 @@ claude plugin install krci-architect krci-fullstack krci-godev krci-devops krci-
 | `/krci-architect:technical-review`    | Validate designs against KRCI reference architecture             |
 | `/krci-fullstack:implement-feature`   | Phased workflow for implementing portal features                 |
 | `/krci-fullstack:fix-issue`           | Phased workflow for diagnosing and fixing portal issues          |
-| `/krci-godev:implement-new-cr`        | Scaffold and implement a new Kubernetes Custom Resource          |
 | `/krci-godev:review-code`             | Review Go code for best practices and standards                  |
 | `/krci-devops:add-pipeline`           | Onboard new Tekton Build and Review pipelines                    |
 | `/krci-devops:add-task`               | Onboard a new Tekton Task                                        |
