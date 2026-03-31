@@ -1,9 +1,4 @@
----
-name: KRCI Go Coding Standards
-description: This skill should be used when the user asks to "review Go code", "check Go best practices", "follow idiomatic Go", "implement error handling", "write Go tests", "fix naming conventions", "improve Go code quality", or mentions Effective Go, Google Go Style Guide, or Go coding standards. Covers general Go language idioms. For Kubernetes operator patterns (CRDs, reconciliation, finalizers), defer to operator-best-practices.
----
-
-# Go Development Instructions
+# Go Coding Standards Reference
 
 Follow idiomatic Go practices and community standards when writing Go code. These instructions are based on [Effective Go](https://go.dev/doc/effective_go), [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments), and [Google's Go Style Guide](https://google.github.io/styleguide/go/).
 
@@ -261,17 +256,6 @@ Follow idiomatic Go practices and community standards when writing Go code. Thes
 - Provide usage examples
 - Document configuration options
 - Include troubleshooting section
-
-## Tools and Development Workflow
-
-### Essential Tools
-
-- `go fmt`: Format code
-- `go vet`: Find suspicious constructs
-- `golint` or `golangci-lint`: Additional linting
-- `go test`: Run tests
-- `go mod`: Manage dependencies
-- `go generate`: Code generation
 
 ### Development Practices
 
