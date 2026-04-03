@@ -1,7 +1,7 @@
 ---
 description: Onboard a new Tekton Task to EDP-Tekton repository
 argument-hint: <task-name>
-allowed-tools: [Read, Grep, Glob, Bash, Skill, Task, AskUserQuestion]
+allowed-tools: [Bash, Skill]
 ---
 
 # Task: Onboard New Tekton Task

@@ -1,7 +1,7 @@
 ---
 description: Create Tekton Triggers for VCS webhook integration
 argument-hint: <vcs> <trigger-type>
-allowed-tools: [Read, Grep, Glob, Bash, Skill, Task, AskUserQuestion]
+allowed-tools: [Bash, Skill]
 ---
 
 # Task: Create Tekton Trigger for VCS Webhook Integration

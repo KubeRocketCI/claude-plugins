@@ -1,7 +1,7 @@
 ---
 description: Onboard new Tekton Pipelines (Build and Review) to EDP-Tekton repository
 argument-hint: <vcs> <language> <framework>
-allowed-tools: [Read, Grep, Glob, Bash, Skill, Task, AskUserQuestion]
+allowed-tools: [Bash, Skill]
 ---
 
 # Task: Onboard New Tekton Pipelines (Build & Review)
