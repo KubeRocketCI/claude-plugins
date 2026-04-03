@@ -1,7 +1,7 @@
 ---
 description: Scaffold a new GitLab CI/CD component library for KubeRocketCI
 argument-hint: <language>
-allowed-tools: [Read, Grep, Glob, Bash, Skill, Task, AskUserQuestion]
+allowed-tools: [Bash, Skill]
 ---
 
 # Task: Scaffold GitLab CI/CD Component Library

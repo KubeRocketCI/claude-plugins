@@ -2,7 +2,7 @@
 name: KRCI Go Code Review
 description: This skill should be used when the user asks to "review Go code", "check Go best practices", "review operator code", "check CRD implementation", "review controller", or "check error handling". Applies Effective Go, Google Style Guide, and Kubernetes operator patterns.
 argument-hint: <file, folder, or scope>
-allowed-tools: [Read, Grep, Glob, Task]
+allowed-tools: [Bash]
 disable-model-invocation: true
 ---
 

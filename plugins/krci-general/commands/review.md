@@ -1,7 +1,7 @@
 ---
 description: Review code for bugs, security issues, and project convention violations
 argument-hint: <file-path-or-scope>
-allowed-tools: [Read, Grep, Glob, Bash, Task]
+allowed-tools: [Bash]
 ---
 
 # Code Review

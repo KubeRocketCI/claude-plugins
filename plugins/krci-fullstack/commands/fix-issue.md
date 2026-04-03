@@ -1,7 +1,7 @@
 ---
 description: Guided phased workflow for diagnosing and fixing frontend/backend portal issues
 argument-hint: <issue-description>
-allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestion, TodoWrite]
+allowed-tools: [Write, Edit, Bash, Skill]
 ---
 
 # Fix Issue - Phased Workflow
@@ -323,7 +323,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 **Actions**:
 
 1. Mark Phase 6 as in_progress in TodoWrite
-2. Launch **3 code-reviewer agents in parallel** using the Task tool, each with a different review focus:
+2. Launch **3 code-reviewer agents in parallel** using the Agent tool, each with a different review focus:
    - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, and code elegance. Focus on readability and maintainability."
    - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
    - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
@@ -435,7 +435,7 @@ Skills are loaded **as early as possible** to provide context before exploration
 - **Phase 2**: Identify affected components (no loading unless new areas discovered)
 - **Phase 3**: Load any additional skills newly identified as relevant from Phase 2 analysis (do NOT re-load skills from Phase 1)
 - **Phase 5**: testing-standards (if writing tests for logic bugs)
-- **Phase 6**: code-reviewer agents launched via Task tool (krci-general:code-reviewer)
+- **Phase 6**: code-reviewer agents launched via Agent tool (krci-general:code-reviewer)
 
 ### Quality Standards for Fixes
 

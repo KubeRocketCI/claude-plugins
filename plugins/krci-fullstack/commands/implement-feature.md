@@ -1,7 +1,7 @@
 ---
 description: Guided phased workflow for implementing portal features (components, APIs, routes, tables, permissions)
 argument-hint: [feature-description]
-allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Skill, Task, AskUserQuestion, TodoWrite, WebFetch, WebSearch, BashOutput]
+allowed-tools: [Write, Edit, Bash, Skill, WebFetch, WebSearch]
 ---
 
 You are helping a developer implement a new feature. Follow a systematic approach: understand the codebase deeply, identify and ask about all unspecified details, design elegant architectures, then implement.

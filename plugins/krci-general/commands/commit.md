@@ -1,6 +1,6 @@
 ---
 description: Generate conventional commit message from staged changes
-allowed-tools: [Read, Grep, Bash, AskUserQuestion]
+allowed-tools: [Bash]
 model: haiku
 ---
 

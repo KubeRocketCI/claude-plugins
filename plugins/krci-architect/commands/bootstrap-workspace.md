@@ -1,6 +1,6 @@
 ---
 description: Create a workspace with KubeRocketCI repositories for feature development
-allowed-tools: [Bash, AskUserQuestion]
+allowed-tools: [Bash]
 ---
 
 Bootstrap the current directory as a KubeRocketCI workspace by cloning selected repositories into it.

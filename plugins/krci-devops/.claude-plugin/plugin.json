@@ -1,7 +1,7 @@
 {
   "name": "krci-devops",
   "description": "KubeRocketCI DevOps agent - Expert EDP-Tekton pipeline/task automation and GitLab CI component development",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"
