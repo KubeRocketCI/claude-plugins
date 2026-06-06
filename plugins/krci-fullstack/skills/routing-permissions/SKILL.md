@@ -1,6 +1,6 @@
 ---
 name: Routing and Permissions
-description: This skill should be used when the user asks to "add route", "create page", "implement navigation", "add permissions", "RBAC", "permission check", "protect route", or mentions routing, navigation, breadcrumbs, or role-based access control.
+description: This skill should be used whenever the user is adding or modifying routes, pages, navigation, or permission gating in the KubeRocketCI portal — phrasings like "add a route or page", "route.ts / route.lazy.ts", "register it in the route tree", "navigation", "breadcrumbs", "PageWrapper", "protect a route / redirect unauthenticated users", "RBAC", "permission check", or "ButtonWithPermission". The portal uses TanStack Router with a manually assembled route tree and checks Kubernetes RBAC at runtime. Use it even when the user just says "make a new page". Note these boundaries — the resource-specific usePermissions and watch/CRUD hooks live in k8s-resources; building the page's table is table-patterns; its filter UI is filter-patterns; its create form is form-patterns; a high-level explanation of the auth system is portal-tech-stack.
 ---
 
 Orientation guide for the KubeRocketCI portal's routing architecture (TanStack Router), permission system (K8s RBAC), and page layout conventions.
@@ -24,60 +24,32 @@ All portal URLs follow a cluster-scoped pattern:
 The cluster segment `/c/$clusterName` is a route parameter. Under it, sub-routes are grouped by domain:
 
 - `/c/$clusterName/projects` -- codebases
+- `/c/$clusterName/cdpipelines` -- CDPipeline + Stage management
+- `/c/$clusterName/overview/$namespace` -- project overview
 - `/c/$clusterName/cicd/...` -- pipelines, tasks, pipeline runs
 - `/c/$clusterName/configuration/...` -- ArgoCD, GitServers, etc.
 - `/c/$clusterName/security/...` -- Trivy, SAST, SCA
 - `/c/$clusterName/observability/...` -- pipeline metrics
+- `/c/$clusterName/k8s/...` -- raw Kubernetes resource browser
+
+There is also one notable non-cluster-scoped authenticated route: `/settings/tours` (a direct child of `contentLayoutRoute`).
 
 ### Route Definition Pattern
 
-Each page has two files: `route.ts` (route config, always loaded) and `route.lazy.tsx` (component, lazy-loaded).
+Each page has two colocated files: `route.ts` (route config, always loaded — `createRoute({ getParentRoute, path, head }).lazy(() => import("./route.lazy")…)`) and `route.lazy.ts` (the code-split component — `createLazyRoute(ROUTE_ID)({ component })`). Read the canonical pair at `modules/platform/configuration/modules/argocd/route.ts` + `route.lazy.ts` for the exact shape and copy it.
 
-**`route.ts`** -- defines the route, its parent, path, and metadata:
-
-```typescript
-import { createRoute } from "@tanstack/react-router";
-import { routeConfiguration } from "@/core/router/routes";
-
-export const PATH_CONFIG_ARGOCD = "argocd" as const;
-export const PATH_CONFIG_ARGOCD_FULL = "/c/$clusterName/configuration/argocd" as const;
-export const ROUTE_ID_CONFIG_ARGOCD = "/_layout/c/$clusterName/configuration/argocd" as const;
-
-export const routeArgocdConfiguration = createRoute({
-  getParentRoute: () => routeConfiguration,
-  path: PATH_CONFIG_ARGOCD,
-  head: () => ({
-    meta: [{ title: "ArgoCD Configuration | KRCI" }],
-  }),
-}).lazy(() => import("./route.lazy").then((res) => res.default));
-```
-
-**`route.lazy.tsx`** -- defines the component (code-split):
-
-```typescript
-import { createLazyRoute } from "@tanstack/react-router";
-import { ROUTE_ID_CONFIG_ARGOCD } from "./route";
-import ArgocdConfigurationPage from "./view";
-
-const ArgocdConfigurationRoute = createLazyRoute(ROUTE_ID_CONFIG_ARGOCD)({
-  component: ArgocdConfigurationPage,
-});
-
-export default ArgocdConfigurationRoute;
-```
-
-Key conventions:
+What you can't read off a single file — the conventions that matter:
 
 - Export three constants: `PATH_*` (relative segment), `PATH_*_FULL` (full path pattern), `ROUTE_ID_*` (internal route ID including layout prefix)
 - The route ID includes the `/_layout` prefix because routes sit under `contentLayoutRoute` which has `id: "_layout"`
 - Use `createRoute().lazy()` chaining -- the route definition calls `.lazy()` and the lazy file uses `createLazyRoute(ROUTE_ID)()`
-- The actual page component lives in `view.tsx` next to the route files
+- The lazy component is the page entry: simple pages import `view.tsx` directly (as the ArgoCD example does), but pages that need providers import an intermediary `page.tsx` that wraps `view.tsx` (e.g. `route.lazy.ts` → `page.tsx` → `view.tsx`, as in the codebases list/details pages)
 
 ### Route Tree Registration
 
 All routes must be registered in `apps/client/src/core/router/index.ts`. This file imports every route and builds the tree using `.addChildren()`. To add a new route:
 
-1. Create `route.ts` and `route.lazy.tsx` in the page directory
+1. Create `route.ts` and `route.lazy.ts` in the page directory
 2. Create `view.tsx` with the page component
 3. Import the route in `core/router/index.ts`
 4. Add it to the correct position in the `routeTree`
@@ -90,7 +62,7 @@ Parent routes are defined in `apps/client/src/core/router/routes.ts`:
 - `authRoute` -- parent for `/auth/*`
 - `contentLayoutRoute` -- layout wrapper for authenticated pages
 - `routeCluster` -- parent for `/c/$clusterName/*`
-- `routeCICD`, `routeConfiguration`, `routeSecurity`, `routeObservability` -- domain grouping routes
+- `routeCICD`, `routeConfiguration`, `routeSecurity`, `routeObservability`, `routeK8sMode` -- domain grouping routes (each parents its own sub-routes)
 
 ### Authentication Guard
 
@@ -142,8 +114,9 @@ const permissions = usePermissions({
   resourcePlural: "codebases",
 });
 
-// permissions.data has shape:
+// permissions.data has shape (keys: create, update, patch, delete):
 // { create: { allowed: boolean, reason: string },
+//   update: { allowed: boolean, reason: string },
 //   patch:  { allowed: boolean, reason: string },
 //   delete: { allowed: boolean, reason: string } }
 ```

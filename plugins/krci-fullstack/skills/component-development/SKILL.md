@@ -1,6 +1,6 @@
 ---
 name: Component Development
-description: This skill should be used when the user asks to "create reusable component", "implement UI primitive", "build React component", "add Radix UI component", "common components", "component file structure", "component patterns", or mentions component architecture, reusable UI primitives, or design system components. Not for forms, tables, filters, K8s resources, or tours -- use their dedicated skills.
+description: This skill should be used whenever the user is building or organizing a reusable React UI component in the KubeRocketCI portal — phrasings like "create reusable component", "implement UI primitive", "build a React component", "add a Radix UI component", "where should this component live", "common components", "component file structure", "component variants with CVA", or anything about component architecture, the design system, or reusable presentational primitives (badges, cards, buttons, empty states, icons). Use it even when the user does not say the word "component". Do NOT use it for forms or form fields (use form-patterns), data tables or columns (use table-patterns), filtering UI (use filter-patterns), Kubernetes resource hooks or CRUD (use k8s-resources), interactive tours (use tour-patterns), or tRPC and data fetching (use api-integration).
 ---
 
 Implement React components following the KubeRocketCI portal's architecture patterns, component organization, and Radix UI + TailwindCSS design system.
@@ -44,6 +44,8 @@ modules/
     observability/          # Metrics and monitoring
     overview/               # Project overview dashboards
     configuration/          # Config submodules (gitservers, registry, sonar, etc.)
+    security/               # Trivy, SCA, SAST security pages
+  k8s/                      # Raw Kubernetes resource browser
   tours/                    # Tour system (provider, config, services)
 ```
 
@@ -76,7 +78,7 @@ Before creating a new component, check what already exists.
 - **CodeEditor** -- Monaco-based editor for YAML/JSON. Used in editor views.
 - **PageWrapper** -- Standard page layout with breadcrumbs.
 - **FormGuide** -- Sidebar help panel for form wizards (FormGuideSidebar, FormGuideToggleButton, etc.).
-- **PageGuide** -- Button to trigger interactive page tours.
+- **PageGuide** -- Exports `PageGuideButton`, a button to trigger interactive page tours (import `{ PageGuideButton }`, not `PageGuide`).
 - **ActionsInlineList / ActionsMenuList** -- Action buttons in rows or dropdown menus.
 - **InfoColumns** -- Key-value display in grid layout for detail pages.
 - **StatusIcon / StatusBadge** -- Resource status visualization.
@@ -177,9 +179,11 @@ Wrap action buttons with ButtonWithPermission when the action requires RBAC:
 ```typescript
 const permissions = useCodebasePermissions();
 
+// permissions.data is always defined (the hook falls back to defaultPermissions),
+// so access it without optional chaining.
 <ButtonWithPermission
-  allowed={permissions.data?.create.allowed}
-  reason={permissions.data?.create.reason}
+  allowed={permissions.data.create.allowed}
+  reason={permissions.data.create.reason}
   ButtonProps={{ variant: "default", onClick: handleCreate }}
 >
   Create Resource

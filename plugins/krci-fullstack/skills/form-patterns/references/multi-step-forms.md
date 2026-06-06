@@ -29,14 +29,18 @@ Read `CreateCodebaseWizard/constants.ts` to see the canonical example.
 
 ## Schema Pattern
 
-Wizard schemas typically use `z.discriminatedUnion().superRefine()`:
+All wizard schemas use `.superRefine()` for cross-field validation. Whether they wrap it in a discriminated union depends on the wizard:
 
-1. Define strategy-specific schemas with shared base fields
-2. Compose into a discriminated union on the strategy/type field
-3. Add cross-field validation via `.superRefine()` with helper functions per step
-4. Export the schema type with `z.infer<typeof schema>`
+- **`CreateCodebaseWizard`** uses `z.discriminatedUnion("strategy", [...]).superRefine(...)` — strategy-specific schemas with shared base fields, composed into a discriminated union, then refined. Schema lives in `schema.ts`.
+- **`CreateCDPipelineWizard`** and **`CreateStageWizard`** use a plain `z.object(...).superRefine(...)` with no discriminated union. Their schema lives in `names.ts` (e.g. `createCDPipelineFormSchema`, `createStageFormSchema`), not a separate `schema.ts`.
 
-The schema file also separates UI-only fields (prefixed `ui_`) from core fields that map to the API model. Core fields often extend schemas from `@my-project/shared`.
+Steps:
+
+1. (Codebase only) Define strategy-specific schemas with shared base fields and compose into a discriminated union on the strategy field
+2. Add cross-field validation via `.superRefine()` with helper functions per step
+3. Export the schema type with `z.infer<typeof schema>`
+
+The schema also separates UI-only fields (prefixed `ui_`) from core fields that map to the API model. Core fields often extend schemas from `@my-project/shared`.
 
 ## FormProvider Pattern
 
@@ -94,22 +98,25 @@ The `FormGuideProvider` and components are in `core/providers/FormGuide/` and `c
 
 Steps render conditionally in the wizard content based on `currentStepIdx`:
 
+Steps are named semantically by purpose, not `StepOne`/`StepTwo`. For example `CreateCodebaseWizard` renders `InitialSelection`, `GitAndProjectInfo`, `BuildConfig`, `Review`, `Success`:
+
 ```typescript
-{currentStepIdx === 1 && <StepOne />}
-{currentStepIdx === 2 && <StepTwo />}
-{currentStepIdx === 3 && <Review />}
-{currentStepIdx === 4 && <Success />}
+{currentStepIdx === 1 && <InitialSelection />}
+{currentStepIdx === 2 && <GitAndProjectInfo />}
+{currentStepIdx === 3 && <BuildConfig />}
+{currentStepIdx === 4 && <Review />}
+{currentStepIdx === 5 && <Success />}
 ```
 
 Each step component accesses the form via the custom hook (e.g., `useCreateCodebaseForm()`) and renders fields using `form.AppField`.
 
 ## Navigation Component
 
-The WizardNavigation component handles Back/Next/Submit with a back route for the first step:
+The WizardNavigation component handles Back / Continue / submit with a back route for the first step. Note the actual button labels are **Continue** (advance a step) and a domain-specific submit label (e.g. **Create Project** with a rocket icon), not literally "Next"/"Submit":
 
 - First step: Back navigates to the list page (via router link)
 - Middle steps: Back calls `goToPreviousStep()`
-- Last data step: Next triggers `form.handleSubmit()`
+- Last data step: the submit button triggers `form.handleSubmit()`
 - Success step: Navigation is hidden
 
 Read any wizard's `WizardNavigation/index.tsx` for the implementation.

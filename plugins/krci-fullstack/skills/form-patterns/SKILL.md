@@ -1,6 +1,6 @@
 ---
 name: Form Patterns
-description: This skill should be used when the user asks to "create form", "implement form", "add validation", "TanStack Form", "useAppForm", "Zod validation", "form fields", "multi-step form", "form wizard", "stepper form", or mentions form implementation, field validation, or form state management.
+description: This skill should be used whenever the user is building or modifying a data-entry form in the KubeRocketCI portal — phrasings like "create a form", "add a form field", "form validation", "TanStack Form", "useAppForm", "Zod validation", "cross-field or async validation", "cascading/dependent fields", "multi-step form", "wizard", "stepper", or form state and submission. All portal forms use TanStack Form via useAppForm (not React Hook Form, no zodResolver). Use it even when the user just says "let the user enter or submit X". Note that a filter or search UI over a list also uses useAppForm but belongs to filter-patterns, not here; the submit endpoint belongs to api-integration; turning form values into a K8s manifest (draft creator plus CRUD) belongs to k8s-resources; a generic input primitive belongs to component-development.
 ---
 
 Implement forms using TanStack Form with the portal's `useAppForm` hook, Zod validation, and pre-built field components.
@@ -32,9 +32,12 @@ This means you never pass `value`/`onChange` to field components. The context ha
 
 ### Available Field Components
 
-To discover the current list, read `core/components/form/index.ts` and look at the `fieldComponents` map. As of now, registered field components include: FormTextField, FormTextFieldPassword, FormSelect, FormCombobox, FormCheckbox, FormCheckboxGroup, FormSwitch, FormSwitchRich, FormRadioGroup, FormTextarea, FormTextareaPassword, FormControlLabelWithTooltip. Form-level components: FormSubmitButton, FormResetButton.
+Read the `fieldComponents` map in `core/components/form/index.ts` for the authoritative, current list of registered field components, plus the form-level components (FormSubmitButton, FormResetButton) — it drifts as components are added, so don't trust a hardcoded copy. They cover the usual inputs: text, password, select, combobox, checkbox (+ group), switch, radio group, textarea. To learn a component's props, read its `index.tsx` under `core/components/form/components/{ComponentName}/`.
 
-To learn a component's props, read its `index.tsx` file under `core/components/form/components/{ComponentName}/`.
+Gotchas worth knowing before you read it:
+
+- The select field is named `FormSelect` (not `FormSelectField`) — a common wrong guess.
+- `SwitchGroup` is exported for direct import but is intentionally **not** a `form.AppField` field component — use it standalone, not via the `field.` render prop.
 
 ## Form Patterns
 
@@ -78,9 +81,9 @@ Wizards use a **single form instance** shared across all steps, with a **Zustand
 CreateResourceWizard/
   index.tsx           # Mounts FormProvider, renders WizardContent
   store.ts            # Zustand store: steps, navigation, validation tracking
-  schema.ts           # Zod schema (discriminatedUnion + superRefine)
+  schema.ts           # Zod schema (location varies — see note below)
   constants.ts        # NAMES, FORM_PARTS, HELP_CONFIG, WIZARD_GUIDE_STEPS
-  names.ts            # Re-exports from constants
+  names.ts            # Re-exports from constants (some wizards define the schema here instead)
   types.ts            # Form value types
   providers/form/
     provider.tsx      # useAppForm with validators + onSubmit
@@ -88,12 +91,11 @@ CreateResourceWizard/
     hooks.ts          # useWizardForm() hook
   components/
     fields/           # Reusable field components (one dir per field)
-    StepOne/          # Step content components
-    StepTwo/
+    <SemanticStep>/   # Step content components, named by purpose (e.g. InitialSelection, GitAndProjectInfo, BuildConfig)
     Review/           # Read-only review before submit
     Success/          # Post-submission success view
     WizardStepper/    # Step indicator UI
-    WizardNavigation/ # Back/Next/Submit buttons
+    WizardNavigation/ # Back / Continue / Submit buttons
 ```
 
 **Discovery**: Read the CreateCodebaseWizard at `modules/platform/codebases/pages/create/components/CreateCodebaseWizard/` as the canonical example. Also see CreateStageWizard and CreateCDPipelineWizard under `modules/platform/cdpipelines/`.
@@ -124,7 +126,7 @@ const form = useAppForm({
 });
 ```
 
-The portal's wizard schemas use `z.discriminatedUnion().superRefine()` to validate different field combinations based on strategy or type selections. Read the schema.ts file of any wizard to see this pattern.
+Wizard schemas use `.superRefine()` for cross-field validation. The `CreateCodebaseWizard` additionally wraps it in a `z.discriminatedUnion("strategy", [...])` to validate different field combinations per strategy; the `CreateCDPipelineWizard` and `CreateStageWizard` use a plain `z.object(...).superRefine(...)` instead. The schema also lives in different files per wizard — `schema.ts` in `CreateCodebaseWizard`, but inside `names.ts` for the CDPipeline and Stage wizards. Read the specific wizard to confirm.
 
 ### Async Validation
 
@@ -161,7 +163,7 @@ This is the standard pattern for cascading dropdowns and dependent field resets.
 - **Read values**: `form.store.state.values` or `form.store.state.values.fieldName`
 - **Set values**: `form.setFieldValue("name", "value")` or `form.setValues(partialObject)`
 - **Check state**: `form.store.state.isSubmitting`, `form.store.state.canSubmit`, `form.store.state.isDirty`
-- **Reactive subscription**: `useStore(form.store, (s) => s.values.someField)` from `@tanstack/react-store`
+- **Reactive subscription**: `useStore(form.store, (s) => s.values.someField)` — import `useStore` from `@tanstack/react-form` (it is re-exported there; `@tanstack/react-store` is not a direct dependency)
 - **Validate**: `form.validateField("name", "change")` or `form.validateAllFields("change")`
 - **Touch fields**: `form.setFieldMeta("name", (prev) => ({ ...prev, isTouched: true }))`
 
@@ -171,7 +173,7 @@ This is the standard pattern for cascading dropdowns and dependent field resets.
 2. **UI-only field prefix**: Prefix fields not submitted to the API with `ui_` (e.g., `ui_creationMethod`, `ui_searchQuery`)
 3. **Reusable field components**: Extract complex fields (with listeners, conditional logic, data fetching) into standalone components under `components/fields/`
 4. **Provider pattern**: Always wrap the form in a provider component, expose via custom hook
-5. **Zod schema as source of truth**: Define the schema in `schema.ts`, infer types with `z.infer<typeof schema>`, and derive NAMES from schema shape
+5. **Zod schema as source of truth**: Define the schema (in `schema.ts` or, for some wizards, `names.ts`), infer types with `z.infer<typeof schema>`, and derive NAMES from schema shape
 6. **Function declarations**: Use `function Component()` not `const Component = () =>` for Vite HMR
 7. **FormGuide integration**: Wizard pages wrap in `FormGuideProvider` with `HELP_CONFIG` and `WIZARD_GUIDE_STEPS` from constants
 

@@ -108,14 +108,14 @@ export const OverviewHelp = () => (
 
 ## Completion Tracking
 
-Tours are tracked in localStorage:
+Tours are tracked in localStorage. Each record is a `TourCompletionRecord` (defined in `modules/tours/types.ts`), stored as a map value keyed by tour `id` inside `ToursStorageData.tours` — the tour id is the map key, not a field on the record:
 
 ```typescript
 // Auto-tracked by ToursProvider
-interface TourCompletion {
-  tourId: string;
+interface TourCompletionRecord {
   completed: boolean;
-  completedAt: string;
+  completedAt: number;   // Unix timestamp (Date.now()), not a string
+  version: string;       // app version when completed
   trigger?: TourTriggerInfo;
 }
 

@@ -1,6 +1,6 @@
 ---
 name: API Integration
-description: This skill should be used when the user asks to "add API endpoint", "create tRPC procedure", "implement React Query hook", "API integration", "tRPC router", "data fetching", "mutations", or mentions backend API, tRPC patterns, or React Query integration.
+description: This skill should be used whenever the user is adding or consuming a tRPC API endpoint in the KubeRocketCI portal — phrasings like "add an API endpoint", "create a tRPC procedure or router", "protectedProcedure", "call a query or mutation", "implement a React Query hook", "data fetching with useQuery/useMutation", or integrating an external service such as SonarQube, DependencyTrack, Tekton Results, or Prometheus. The portal uses a vanilla tRPC client plus standard React Query (no @trpc/react-query). Use it even when the user just says "fetch X from the backend". For Kubernetes resource data prefer k8s-resources (watch hooks and CRUD go through the generic k8s router); for the form UI that submits a mutation prefer form-patterns; for high-level monorepo or architecture questions prefer portal-tech-stack.
 ---
 
 Guide tRPC API endpoint creation and React Query integration following the portal's type-safe patterns for client-server communication.
@@ -16,7 +16,7 @@ The portal uses a **monorepo with three packages** that participate in the API l
 | `apps/client/` | React frontend that consumes tRPC via a vanilla client + React Query |
 | `apps/server/` | Fastify server that mounts the tRPC handler |
 
-The tRPC package does **not** use `@trpc/react-query`. Instead, the frontend uses a **vanilla tRPC client** (`createTRPCClient`) obtained through React context, and wraps calls in standard `@tanstack/react-query` hooks (`useQuery`, `useMutation`).
+The frontend does **not** use the `@trpc/react-query` adapter in source code (the package is a dependency but is never imported). Instead, the frontend uses a **vanilla tRPC client** (`createTRPCClient`) obtained through React context, and wraps calls in standard `@tanstack/react-query` hooks (`useQuery`, `useMutation`).
 
 ## tRPC Server Architecture
 
@@ -33,9 +33,9 @@ To discover the exact initialization and middleware chain, read `packages/trpc/s
 
 ### Router Composition
 
-All routers are composed in `packages/trpc/src/routers/index.ts` into a single `appRouter`. To see the current router tree, read that file. Current top-level namespaces include: `auth`, `config`, `dependencyTrack`, `gitfusion`, `k8s`, `sonarqube`, `tektonResults`.
+All routers are composed in `packages/trpc/src/routers/index.ts` into a single `appRouter` — **read that file for the current, authoritative namespace list** (it grows over time). It includes `auth`, `config`, and `k8s`, plus roughly one namespace per external service (SonarQube, DependencyTrack, Tekton Results, Prometheus, GitFusion) and pipeline runs.
 
-The `k8s` router is the largest, containing generic CRUD procedures (`get`, `list`, `create`, `patch`, `delete`, `watchItem`, `watchList`) plus composite procedures for integration management.
+The `k8s` router is the largest, containing generic CRUD procedures (`get`, `list`, `create`, `update`, `applyYaml`, `delete`, `watchItem`, `watchList`) plus many workload/pod procedures (scale, restart, logs, exec) and composite procedures for integration management. Note the mutation is named `update` — there is **no** `patch` procedure.
 
 ### Context and Authentication
 
@@ -45,13 +45,7 @@ The `protectedProcedure` middleware checks the session for a valid user. If no c
 
 ### Client Classes for External Services
 
-Each external service integration has a client class in `packages/trpc/src/clients/`:
-
-- `k8s/` - K8sClient wrapping `@kubernetes/client-node` KubeConfig + fetch
-- `oidc/` - OIDC authentication client
-- `sonarqube/`, `dependencyTrack/`, `gitfusion/`, `tektonResults/` - external tool clients
-
-To understand how a specific service is called, read its client class and the corresponding router.
+Each external service integration has a client class under `packages/trpc/src/clients/` — `k8s/` (K8sClient wrapping `@kubernetes/client-node` KubeConfig + fetch), `oidc/` (auth), and one per external tool. `ls` that directory for the current set, then read a specific client class plus its router to see how that service is called.
 
 ## Frontend tRPC Integration
 
@@ -59,8 +53,8 @@ To understand how a specific service is called, read its client class and the co
 
 The frontend creates a vanilla `TRPCClient<AppRouter>` and provides it via React context. Two clients exist:
 
-1. **Full client** (in `TRPCProvider`) - uses `splitLink`: HTTP for queries/mutations, WebSocket for subscriptions. Created after authentication.
-2. **HTTP-only client** (`trpcHttpClient`) - available before auth for login/logout operations.
+1. **Full client** (in `TRPCProvider`) - uses `splitLink`: `httpBatchStreamLink` for queries/mutations, WebSocket for subscriptions. Created after authentication.
+2. **HTTP-only client** (`trpcHttpClient`) - uses the simpler `httpBatchLink`; available before auth for login/logout operations.
 
 To access the client in components, use `useTRPCClient()` from `@/core/providers/trpc`.
 
@@ -109,7 +103,7 @@ For Zod input schemas shared between client validation and server input validati
 
 ## Key Conventions
 
-- **No `@trpc/react-query`**: The project uses vanilla tRPC client + standard React Query. Do not use `trpc.procedure.useQuery()` syntax.
+- **No `@trpc/react-query` in source**: Even though the package is installed, it is never imported. The project uses a vanilla tRPC client + standard React Query. Do not use `trpc.procedure.useQuery()` syntax.
 - **No `createTRPCRouter`**: Routers are created with `t.router()`.
 - **Session-based auth**: The `protectedProcedure` reads tokens from `ctx.session.user.secret`. The K8sClient uses `session.user.secret.idToken` for cluster authentication.
 - **Error formatting**: tRPC errors include a `source` field extracted from the cause (see `formatError` in `trpc.ts`).

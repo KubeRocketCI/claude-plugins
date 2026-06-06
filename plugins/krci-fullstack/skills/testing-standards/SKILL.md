@@ -1,6 +1,6 @@
 ---
 name: Testing Standards
-description: This skill should be used when the user asks to "write tests", "test component", "add unit tests", "Vitest", "Testing Library", "test coverage", "testing patterns", "mock", "mocking", or mentions testing, test implementation, or quality assurance for frontend code.
+description: This skill should be used whenever the user is writing, running, or configuring tests for the KubeRocketCI portal frontend — phrasings like "write tests", "add unit tests", "test this hook or utility", "Vitest", "Testing Library", "renderHook", "mock the tRPC client / Zustand store / a hook", "TestProviders", "seed the query cache", "test coverage", "what gets tested where", or "add a Storybook story to test states". The portal uses a split strategy — Vitest for .ts utilities/hooks/server code, Storybook for .tsx components (which are excluded from Vitest coverage). Use it even when testing is only part of the request. Do NOT use it when the user is implementing the feature itself rather than testing it — defer to component-development, form-patterns, table-patterns, filter-patterns, api-integration, k8s-resources, or routing-permissions for the implementation.
 ---
 
 Orientation guide for testing in the KubeRocketCI portal -- toolchain, conventions, test providers, and what gets tested where.
@@ -36,16 +36,15 @@ The portal uses a **split testing strategy** defined in the root `vitest.config.
 
 **Key insight**: All `.tsx` files are **excluded from Vitest coverage**. Components are tested through Storybook stories, not Vitest unit tests. Vitest coverage tracks `.ts` files only: utilities, hooks, services, and server code.
 
-Other coverage exclusions include: route files, type definitions, constants, config files, schemas, context files, barrel exports, and certain UI-only hooks (useTabs, useFilter, useColumns). Read `vitest.config.ts` at the repo root for the full exclusion list.
+Other coverage exclusions include: route files, type definitions, constants, config files, schemas, context files, barrel exports (including every `**/hooks.ts`), and certain UI-only hooks (useTabs, useFilter, useColumns, useDefaultValues). Read `vitest.config.ts` at the repo root for the full exclusion list.
 
 ## Workspace Configuration
 
-Tests run as a **Vitest workspace** with separate configs per package:
+Tests run as a **Vitest workspace** with separate configs per package. The workspace is defined inline (Vitest 4 syntax) via the `projects: ["apps/*", "packages/*"]` key in the root `vitest.config.ts` — there is no separate `vitest.workspace.ts` file.
 
-- Root: `vitest.workspace.ts` -- includes `apps/*` and `packages/*`
+- Workspace + coverage: root `vitest.config.ts` -- `projects` key + Istanbul provider + exclusions
 - Client: `apps/client/vitest.config.ts` -- jsdom environment, setup file
 - Server: `apps/server/vitest.config.ts` -- jsdom environment
-- Coverage: root `vitest.config.ts` -- Istanbul provider, exclusions
 
 The client setup file (`apps/client/src/test/setup.ts`) provides:
 
@@ -53,6 +52,8 @@ The client setup file (`apps/client/src/test/setup.ts`) provides:
 - Automatic `cleanup()` after each test
 - Global `localStorage` mock with Map-backed storage
 - Global `ResizeObserver` mock
+- Global `window.matchMedia` mock
+- `Element.prototype` mocks (`scrollIntoView`, `hasPointerCapture`, `setPointerCapture`, `releasePointerCapture`) — needed by Radix/cmdk components
 
 ## TestProviders Wrapper
 
@@ -129,8 +130,7 @@ See **`references/testing-patterns.md`** for detailed mocking patterns covering:
 | Test constants (cluster, namespace, permissions) | `apps/client/src/test/utils/constants.ts` |
 | Setup file (mocks, matchers) | `apps/client/src/test/setup.ts` |
 | Client vitest config | `apps/client/vitest.config.ts` |
-| Root coverage config | `vitest.config.ts` |
-| Root workspace config | `vitest.workspace.ts` |
+| Root coverage + workspace config (`projects` key) | `vitest.config.ts` |
 | Storybook config | `apps/client/.storybook/` |
 | Storybook decorators (uses TestProviders) | `apps/client/.storybook/decorators.tsx` |
 | Example hook test | `apps/client/src/k8s/api/hooks/usePermissions/index.test.tsx` |

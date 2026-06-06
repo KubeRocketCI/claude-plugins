@@ -1,6 +1,6 @@
 ---
 name: Tour Patterns
-description: This skill should be used when the user asks to "add tour", "create guide", "implement walkthrough", "Joyride", "tour steps", "page guide", "help popup", "feature intro", or mentions interactive tours, user onboarding, or guided experiences.
+description: This skill should be used whenever the user is building an interactive tour, walkthrough, onboarding flow, or guided help in the KubeRocketCI portal — phrasings like "add a tour", "create a guide or walkthrough", "react-joyride", "tour steps", "page guide", "PageGuideButton", "help popup / feature intro", "onboarding", "highlight this element on first visit", or cross-page tours with step prerequisites. Tours live in modules/tours and use react-joyride. Use it even when the user just says "walk new users through X". Note these near-misses — a static Radix tooltip or popover component is component-development, not a tour; the form wizard help sidebar (FormGuide) is form-patterns, not the tour PageGuide; plain navigation between pages is routing-permissions.
 ---
 
 Implement interactive tours and help popups using react-joyride with modular configuration, step navigation, and visual feedback.
@@ -40,27 +40,7 @@ There are four trigger types:
 
 ### TourMetadata Interface
 
-The full interface is defined in `modules/tours/types.ts`. Key fields:
-
-```typescript
-interface TourMetadata {
-  id: string;                       // Unique identifier (used for completion tracking)
-  title: string;                    // Human-readable title
-  description: string;              // What this tour demonstrates
-  type?: TourType;                  // "tour" | "popup" (default: "tour")
-  showOnce: boolean;                // Only show once per user
-  trigger: TourTrigger;             // "manual" | "onMount" | "route" | "feature"
-  routePattern?: string;            // For route trigger: pattern to match
-  featureId?: string;               // For feature trigger: feature identifier
-  minVersion?: string;              // Min app version (semver) for this tour
-  maxVersion?: string;              // Max app version (semver) for this tour
-  prerequisite?: TourPrerequisite;  // Conditions for activation
-  route?: string;                   // Route pattern for navigation from tours settings
-  steps: StepWithPrerequisite[];    // Joyride steps with optional navigation
-}
-```
-
-Always read `modules/tours/types.ts` directly for the authoritative interface definition.
+A tour is described by a `TourMetadata` object. The fields you set most are `id`, `title`, `description`, `type` (`"tour"` | `"popup"`, default `"tour"`), `trigger` (`"manual"` | `"onMount"` | `"route"` | `"feature"`), `showOnce`, and `steps`; plus, depending on the trigger, `routePattern` / `featureId` / `prerequisite`, and optional `minVersion`/`maxVersion` version gates. Read `modules/tours/types.ts` for the authoritative, current interface — it is the source of truth and it drifts.
 
 ## Implementation Steps
 
@@ -209,7 +189,7 @@ Route patterns use `:param` syntax for dynamic segments. The `isTourEligible` fu
 
 Tours are tracked in localStorage via the services in `modules/tours/services/index.ts`. Completion records include timestamp, app version, and trigger type. Records are automatically cleaned up after 180 days.
 
-The `useTours()` hook (from `modules/tours/providers/hooks.ts`) provides `startTour`, `skipTour`, `isTourCompleted`, `isRunning`, and other context values.
+The `useTours()` hook (from `modules/tours/providers/hooks.ts`) provides `startTour`, `skipTour`, `isTourCompleted`, `isRunning`, `isTourNavigating`, `currentTourTab` (used by the tab-highlighting feature), `setOnTourEnd`, `setStepCallback`, and other context values. Read `modules/tours/providers/types.ts` for the full `ToursContextValue`.
 
 ## Key Files Summary
 

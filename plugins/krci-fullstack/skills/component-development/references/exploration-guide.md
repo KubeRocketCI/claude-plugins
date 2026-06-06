@@ -10,7 +10,7 @@ List this directory first. It contains 40+ low-level components built with Radix
 
 **Key categories**:
 
-- **Inputs**: input, input-password, input-editable, textarea, textarea-password, select, combobox, combobox-with-input, combobox-multiple-with-input, checkbox, checkbox-group-with-buttons, radio-group, radio-group-with-buttons, tile-radio-group, toggle-button-group, switch
+- **Inputs**: input, input-password, input-editable, textarea, textarea-password, select, combobox, combobox-with-input, combobox-multiple-with-input, checkbox, checkbox-group-with-buttons, radio-group, radio-group-with-buttons, tile-radio-group, toggle-button-group, switch, slider
 - **Overlays**: dialog, sheet, popover, tooltip, command, dropdown-menu
 - **Layout**: card, accordion, tabs, sidebar, breadcrumb, separator, collapsible, stepper
 - **Display**: badge, chip, alert, avatar, title-status, skeleton, progress, LoadingSpinner, LoadingProgressBar
