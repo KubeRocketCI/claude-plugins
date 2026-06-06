@@ -1,6 +1,6 @@
 ---
 name: Portal Tech Stack
-description: This skill should be used when the user asks about "tech stack", "what framework", "what libraries", "monorepo structure", "project architecture", "authentication system", "how packages connect", "import paths", "shared package", or needs context about the KubeRocketCI portal's technology choices, monorepo organization, package roles, or architectural decisions. Covers the entire portal monorepo (client, server, shared, tRPC packages), not just the frontend.
+description: This skill should be used whenever the user needs to understand how the KubeRocketCI portal is built or where something belongs — phrasings like "what's the tech stack", "what framework or library does it use", "how is the monorepo organized", "project architecture", "how do the client/server/shared/trpc packages connect", "build order", "import aliases / what does @/ map to", "where should this code live", "how does authentication and the session flow work", or any question about technology choices, package roles, or architectural decisions. It covers the whole monorepo, not just the frontend. Use it for orientation and "where/how is it structured" questions; for actually implementing a feature, prefer the specific skill (api-integration, component-development, form-patterns, table-patterns, filter-patterns, routing-permissions, k8s-resources, testing-standards, tour-patterns).
 ---
 
 Orientation guide for the KubeRocketCI portal's technology stack, monorepo architecture, and authentication system.
@@ -45,11 +45,11 @@ Always use **pnpm**. The workspace is defined in `pnpm-workspace.yaml`. Filterin
 
 | Layer | Technology | Notes |
 |-------|------------|-------|
-| Framework | React + TypeScript + Vite | |
+| Framework | React 19 + TypeScript + Vite | |
 | Routing | TanStack Router | Type-safe, code-split via `route.ts` + `route.lazy.tsx` |
 | Server state | TanStack React Query + tRPC Client | React Query v5, tRPC v11 |
 | Client state | Zustand | Lightweight stores (cluster, UI state) |
-| Forms | TanStack Form + Zod adapter | New forms only; legacy wizards may still use React Hook Form |
+| Forms | TanStack Form + Zod | All forms use TanStack Form (`useAppForm`); React Hook Form is not a dependency |
 | UI primitives | Radix UI | Accordion, Dialog, Select, Tabs, Tooltip, etc. |
 | Styling | Tailwind CSS v4 | Utility-first; custom design tokens |
 | Component variants | class-variance-authority (CVA) | Used with `cn()` utility |
@@ -73,14 +73,14 @@ Always use **pnpm**. The workspace is defined in `pnpm-workspace.yaml`. Filterin
 Contains only code needed by **both** client and server. Explore `packages/shared/src/` for current structure. Key areas:
 
 - `models/` -- K8s resource type definitions, draft creators, schemas
-- `interfaces/` -- Client configuration interfaces
+- `interfaces/` -- Shared interfaces (e.g., the server session store interface `ISessionStore`)
 - `utils/` -- Shared utility functions (versioning, encoding, sorting)
 
 ### tRPC Package (`packages/trpc/`)
 
 Defines the full tRPC router used by both server (execution) and client (type inference). Key areas:
 
-- `routers/` -- auth, config, k8s, sonarqube, dependencyTrack, tektonResults, gitfusion
+- `routers/` -- auth, config, k8s, prometheus, pipelineRun, sonarqube, dependencyTrack, tektonResults, gitfusion
 - `procedures/` -- public and protected procedure builders
 - `clients/` -- K8s client, OIDC client wrappers
 - `context/` -- Request context creation (session, user)
@@ -100,7 +100,7 @@ Defines the full tRPC router used by both server (execution) and client (type in
 The client uses a module-based organization:
 
 - `core/` -- Shared components, hooks, providers, router, auth, utilities
-- `modules/` -- Feature modules (home, platform, tours)
+- `modules/` -- Feature modules (home, platform, k8s, tours)
 - `k8s/` -- Kubernetes API integration (watch hooks, CRUD hooks, resource groups)
 - `test/` -- Test utilities (`TestProviders`, `createTestQueryClient`, constants)
 - `types/` -- Global type declarations

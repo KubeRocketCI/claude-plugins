@@ -1,6 +1,6 @@
 ---
 name: Table Patterns
-description: This skill should be used when the user asks to "create table", "implement data table", "add table columns", "table sorting", "table pagination", "data grid", or mentions table implementation, column configuration, or data presentation. For FilterProvider setup and match functions, defer to filter-patterns.
+description: This skill should be used whenever the user is building or modifying a data table or list view in the KubeRocketCI portal — phrasings like "create a table", "implement a data table", "DataTable", "add or define table columns", "useColumns", "table sorting", "custom sort comparator", "table pagination", "row selection", "expandable rows", "column visibility settings", or column configuration and tabular data presentation. Use it even if the user only says "list view" or "grid". For the filter UI, FilterProvider, search, and match functions that sit above the table defer to filter-patterns; for the watch hook that supplies the table data (useWatchList) defer to k8s-resources; for a generic non-table presentational component defer to component-development.
 ---
 
 Guide table implementation using the portal's `DataTable` component and `useColumns` hook convention for consistent data presentation across resource views.
@@ -57,34 +57,17 @@ slots: {
 
 The header slot renders above the table in a CSS grid (`grid-cols-[1fr_auto]`). The slot component itself is wrapped in a `grid-cols-12` container, so filter fields should use `col-span-*` classes to lay out within that grid.
 
+Note: the `header` slot's `slotProps` are applied to its wrapper div, but the `footer` slot's `slotProps` are currently **not** spread onto a wrapper in the implementation — don't rely on `footer.slotProps` (e.g. `data-tour`) taking effect.
+
 ## useColumns Hook Convention
 
 Every table page defines a `useColumns` hook in `hooks/useColumns.tsx` that returns a memoized array of `TableColumn<T>` objects.
 
 ### TableColumn Interface
 
-To see the exact type, read `apps/client/src/core/components/Table/types.ts`. The key structure:
+A `TableColumn<T>` has two halves: `data` (how the cell behaves — `render`, plus `columnSortableValuePath` or `customSortFn` for sorting) and `cell` (how it lays out — `baseWidth`, `isFixed`, `show`, `colSpan`). Read `apps/client/src/core/components/Table/types.ts` for the exact, current fields, and any `useColumns.tsx` for a worked example.
 
-```text
-TableColumn<DataType> {
-  id: string                    // Unique column key
-  label: string | ReactElement  // Header text
-  data: {
-    render: ({ data, meta? }) => ReactNode   // Cell renderer
-    columnSortableValuePath?: string | string[]  // Dot path for sorting
-    customSortFn?: (a, b) => number              // Custom sort comparator
-  }
-  cell: {
-    baseWidth: number     // Width as percentage of table
-    show?: boolean        // Column visibility
-    isFixed?: boolean     // Prevent user from hiding this column
-    colSpan?: number
-    props?: TableCellProps
-  }
-}
-```
-
-**Critical detail**: The render function receives `{ data }` (the row item), not `(row)` directly. The destructured shape is `({ data }) => ...`.
+**The one non-obvious gotcha**: the `render` function receives `{ data }` (the row item destructured), not `(row)` — write `render: ({ data }) => ...`. This is the most common mistake; everything else you can read straight off the type.
 
 ### useColumns Pattern
 
@@ -105,7 +88,7 @@ To see a real example, read any `hooks/useColumns.tsx` file. Good starting point
 The `useTableSettings` hook and `getSyncedColumnData` utility enable persistent column show/hide and width preferences:
 
 - `useTableSettings(tableId)` - loads/saves settings keyed by table ID
-- `getSyncedColumnData(settings, columnId)` - returns `{ show?, baseWidth? }` overrides for the column
+- `getSyncedColumnData(settings, columnId)` - returns only `{ show: boolean }` (the persisted visibility override). It does **not** return `baseWidth`, so always set each column's `baseWidth` explicitly in `cell` alongside the spread
 - Table IDs are registered in `apps/client/src/k8s/constants/tables.ts`
 
 When adding a new table, register its ID in the tables constants file.
@@ -137,13 +120,7 @@ The `usePagination` hook (in `core/hooks/`) manages page state internally. Pagin
 
 ## Selection
 
-Row selection is opt-in via the `selection` prop. To see the full `TableSelection<T>` interface, read the types file. Key callbacks:
-
-- `handleSelectRow` - called when a row checkbox is clicked
-- `handleSelectAll` - called when the header checkbox is clicked
-- `isRowSelected` - determines if a row is checked
-- `isRowSelectable` - determines if a row can be selected
-- `renderSelectionInfo` - renders a bar showing "N items selected"
+Row selection is opt-in via the `selection` prop — an object of callbacks/predicates (select-row, select-all, is-selected, is-selectable, and a render for the "N selected" bar). Read the `TableSelection<T>` interface in the types file for the exact callback names and signatures, and grep an existing table that sets `selection` for a worked example.
 
 ## Loading, Empty, and Error States
 
@@ -175,18 +152,7 @@ modules/{feature}/pages/{page-name}/
 
 ## Integration with K8s Watch Hooks
 
-The most common table data source is `useWatchList`, which returns `{ data: { array, map }, isLoading, ... }`. Pass `data.array` (not `data` directly) to `DataTable`:
-
-```text
-const { data, isLoading } = useCodebaseWatchList();
-
-<DataTable
-  id="codebase-list"
-  data={data.array}         // data.array is the flat array
-  columns={columns}
-  isLoading={isLoading}
-/>
-```
+The most common table data source is a watch hook (`useWatchList` / `useCodebaseWatchList`), which returns `{ data: { array, map }, ... }`. **Gotcha**: pass `data.array` (the flat array) to `DataTable`'s `data` prop — not `data` (an object) or `data.map`. See the k8s-resources skill for the watch hooks themselves.
 
 ## Discovery Instructions
 
@@ -199,7 +165,7 @@ const { data, isLoading } = useCodebaseWatchList();
 | Table settings hook | `apps/client/src/core/components/Table/components/TableSettings/` |
 | Table ID registry | `apps/client/src/k8s/constants/tables.ts` |
 | Real useColumns example | Any `hooks/useColumns.tsx` under `apps/client/src/modules/` |
-| Pagination hook | `apps/client/src/core/hooks/usePagination/` |
+| Pagination hook | `apps/client/src/core/hooks/usePagination.ts` |
 
 ## Key Conventions
 

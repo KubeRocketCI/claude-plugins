@@ -1,6 +1,6 @@
 ---
 name: Filter Patterns
-description: This skill should be used when the user asks to "add filter", "implement filter", "create filtering", "FilterProvider", "search filter", "filter provider setup", "filter match function", "match functions", "URL sync filter", or mentions filter state, filter UI components, or data filtering patterns.
+description: This skill should be used whenever the user is adding or modifying filtering or search over a list in the KubeRocketCI portal — phrasings like "add a filter", "implement filtering", "FilterProvider", "search filter", "status or namespace or type filter", "filter match function", "match functions", "createSearchMatchFunction", "URL-synced filters", "clear filters or isDefaultValue", or filter state and filter UI components. Use it even when the user just says "let users search or filter the list". Building the table, columns, sorting, or pagination itself is table-patterns; a form with validated inputs (even comboboxes) is form-patterns; persisting a tab selection in the URL is routing-permissions; a server-side search endpoint is api-integration.
 ---
 
 Guide filter implementation using the portal's FilterProvider pattern with TanStack Form for state management, URL synchronization, and declarative match functions.
@@ -13,6 +13,7 @@ The portal uses a **FilterProvider** component that wraps a page and provides:
 2. **A `filterFunction`** derived from form values + match functions, passed to `DataTable`
 3. **URL synchronization** (optional) so filter state persists in query params
 4. **A `reset` function** to clear all filters back to defaults
+5. **An `isDefaultValue` boolean** that is `true` when all filters equal their defaults — use it to show/hide the clear button
 
 All filtering code lives in `apps/client/src/core/providers/Filter/`. The provider, context, hooks, types, and built-in match functions are all in that directory.
 
@@ -73,7 +74,7 @@ This thin wrapper provides type safety so consumers get typed `form` and `filter
 
 ### 3. Build the filter UI component
 
-The filter UI component uses the form from the typed context hook. It renders form fields (typically `form.AppField` with `field.FormTextField`, `field.FormSelectField`, etc.) and a clear button shown when `form.state.isDirty`.
+The filter UI component uses the form from the typed context hook. It renders form fields (typically `form.AppField` with `field.FormTextField`, `field.FormSelect`, etc.) and a clear button shown when `!isDefaultValue` (destructured from the filter context, e.g. `const { form, reset, isDefaultValue } = useEntityFilter()`).
 
 Filter UI components are rendered inside the table's header slot, which uses a `grid-cols-12` layout. Each filter field should use `col-span-*` to size itself within that grid.
 
@@ -173,6 +174,6 @@ This means filter state survives page refreshes and can be shared via URL.
 - Use built-in factory functions from `matchFunctions.ts` when possible
 - Enable `syncWithUrl` on all top-level list pages for shareable filter state
 - Memoize table slots (`useMemo`) to avoid unnecessary re-renders
-- Show the clear button only when `form.state.isDirty` is true
+- Show the clear button based on `isDefaultValue` from the filter context (render it when `!isDefaultValue`), not from `form.state`
 - Filter UI components render inside the table header slot's `grid-cols-12` layout
 - Create a typed `useEntityFilter` hook wrapper for each filter rather than using `useFilterContext` directly

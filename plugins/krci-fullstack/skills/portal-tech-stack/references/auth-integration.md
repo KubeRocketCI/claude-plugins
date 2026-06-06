@@ -28,6 +28,8 @@ trpc.auth.loginWithToken.mutate({ token, redirectSearchParam })
   -> Client receives user info, navigates
 ```
 
+There is also a separate `trpc.auth.loginWithServiceAccountToken.mutate()` flow (a `publicProcedure`) for service-account token login. The corresponding mutation is exposed as `loginWithServiceAccountTokenMutation` on `useAuth()`.
+
 ## Security Conventions
 
 - **Session storage**: SQLite database via `better-sqlite3` (server-side only)
@@ -42,18 +44,15 @@ Auth state lives in React Query cache, not in a Zustand store:
 
 - Query key: `["auth.me"]` -- holds user info when authenticated
 - `AuthProvider` wraps the app and manages login/logout mutations
-- `useAuth()` hook provides: `user`, `isAuthenticated`, `isLoading`, `loginMutation`, `logoutMutation`
+- `useAuth()` hook provides (read `provider/context.ts` for the authoritative `AuthContextValue`): `user`, `isAuthenticated`, `isLoading`, `loginMutation`, `logoutMutation`, `loginCallbackMutation`, `loginWithTokenMutation`, `loginWithServiceAccountTokenMutation`, `authInProgress`, `oidcEnabled`
 - Auth in-progress state uses query cache keys `["authInProgress"]` and `["authLogoutInProgress"]`
 
 ## Server Config Integration
 
-On startup, `AuthProvider` also fetches server configuration (`trpc.config.get.query()`), which provides:
+Server configuration is **not** loaded by `AuthProvider`. Two different providers handle config:
 
-- Cluster name
-- Default namespace
-- Security tool URLs (SonarQube, DependencyTrack)
-
-This data is stored in the Zustand `clusterStore`, not in React Query.
+- `AuthProvider` fetches only `trpc.auth.me.query()` and `trpc.config.oidc.query()` (the public OIDC config, used to decide whether to show OIDC login controls — exposed as `oidcEnabled`).
+- A separate `ConfigProvider` (mounted inside `PageLayout`, after authentication) fetches `trpc.config.get.query()`, which provides cluster name, default namespace, and security tool URLs (SonarQube, DependencyTrack). This data is stored in the Zustand `clusterStore`, not in React Query.
 
 ## Discovery Instructions
 

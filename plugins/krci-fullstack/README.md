@@ -34,28 +34,30 @@ The **krci-fullstack** plugin provides comprehensive guidance and automation for
 
 ### Skills
 
-The plugin provides 8 comprehensive skills covering frontend development patterns:
+The plugin provides 10 comprehensive skills covering frontend development patterns:
 
 1. **portal-tech-stack**: Overview of React, Radix UI, Tailwind CSS, tRPC, monorepo structure, and authentication
 2. **component-development**: Component architecture, common components, and project structure
-3. **form-patterns**: Form implementation with validation and error handling
-4. **table-patterns**: Data table implementation with filters, sorting, and pagination
-5. **api-integration**: tRPC hooks, React Query patterns, and API integration
-6. **routing-permissions**: Routing, navigation, and RBAC permission patterns
-7. **k8s-resources**: Kubernetes resource UI patterns for portal
-8. **testing-standards**: Vitest and Testing Library patterns with error handling
+3. **form-patterns**: TanStack Form (`useAppForm`) implementation with Zod validation and error handling
+4. **filter-patterns**: FilterProvider pattern, match functions, and URL-synced filtering
+5. **table-patterns**: DataTable implementation with filters, sorting, and pagination
+6. **api-integration**: Vanilla tRPC client, React Query patterns, and API integration
+7. **routing-permissions**: TanStack Router routing, navigation, and K8s RBAC permission patterns
+8. **k8s-resources**: Kubernetes resource UI patterns (watch hooks, CRUD, resource configs)
+9. **testing-standards**: Vitest + Storybook split testing strategy and Testing Library patterns
+10. **tour-patterns**: Interactive tours with react-joyride, page guides, and feature intros
 
 ## Tech Stack
 
 The plugin is designed for projects using:
 
-- **Frontend**: React 18+ with TypeScript
+- **Frontend**: React 19 with TypeScript
 - **UI Components**: Radix UI primitives
 - **Styling**: Tailwind CSS 4.0+ with CVA (class-variance-authority)
-- **API Layer**: tRPC with React Query (TanStack Query)
+- **API Layer**: tRPC (vanilla client) with React Query (TanStack Query)
 - **State Management**: Zustand for client state
-- **Forms**: React Hook Form with Zod validation
-- **Testing**: Vitest + React Testing Library
+- **Forms**: TanStack Form (`useAppForm`) with Zod validation
+- **Testing**: Vitest + React Testing Library + Storybook
 - **Permissions**: RBAC with custom hooks
 - **Monorepo**: pnpm workspace structure
 - **Build Tools**: Vite 6+ with esbuild

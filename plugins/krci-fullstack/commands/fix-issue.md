@@ -1,7 +1,7 @@
 ---
 description: Guided phased workflow for diagnosing and fixing frontend/backend portal issues
 argument-hint: <issue-description>
-allowed-tools: [Write, Edit, Bash, Skill]
+allowed-tools: [Read, Write, Edit, Bash, Grep, Glob, Skill, TodoWrite, AskUserQuestion, Task]
 ---
 
 # Fix Issue - Phased Workflow
@@ -270,7 +270,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
    - Verify expected behavior is now achieved
    - Check no new console errors or warnings
 3. **Check TypeScript compilation**:
-   - Run Bash: `npm run type-check` or `tsc --noEmit`
+   - Run Bash: `pnpm tsc:check` (all packages) or `pnpm --filter=client tsc` (client only)
    - Fix any type errors introduced by changes
 4. **Manual verification checklist**:
    - [ ] Original issue is fixed
@@ -284,12 +284,12 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 5. **Testing decision** (based on issue severity):
    - **Write tests if**: Logic bug, data flow issue, API bug, state management bug
    - **Skip tests if**: Simple typo, minor styling fix, documentation update
-   - If writing tests, follow testing-standards skill patterns:
-     - Component tests for UI fixes
-     - Integration tests for API fixes
-     - Accessibility tests if applicable
+   - If writing tests, follow the testing-standards skill split strategy:
+     - Storybook stories (`*.stories.tsx`) for React component (`.tsx`) fixes — `.tsx` is excluded from Vitest coverage
+     - Vitest `*.test.ts` for hook, utility, and business-logic (`.ts`) fixes, and for server/tRPC fixes
+     - Accessibility checks belong in the Storybook story (use accessible queries)
 6. If tests are written:
-   - Run tests: `npm test` or `vitest`
+   - Run tests: `pnpm test:coverage` (full suite) or `pnpm --filter=client test` (client only)
    - Ensure new tests pass
    - Ensure existing tests still pass
    - Fix any test failures
@@ -323,7 +323,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 **Actions**:
 
 1. Mark Phase 6 as in_progress in TodoWrite
-2. Launch **3 code-reviewer agents in parallel** using the Agent tool, each with a different review focus:
+2. Launch **3 code-reviewer agents in parallel** using the Task tool, each with a different review focus:
    - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, and code elegance. Focus on readability and maintainability."
    - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
    - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
@@ -435,7 +435,7 @@ Skills are loaded **as early as possible** to provide context before exploration
 - **Phase 2**: Identify affected components (no loading unless new areas discovered)
 - **Phase 3**: Load any additional skills newly identified as relevant from Phase 2 analysis (do NOT re-load skills from Phase 1)
 - **Phase 5**: testing-standards (if writing tests for logic bugs)
-- **Phase 6**: code-reviewer agents launched via Agent tool (krci-general:code-reviewer)
+- **Phase 6**: code-reviewer agents launched via Task tool (krci-general:code-reviewer)
 
 ### Quality Standards for Fixes
 

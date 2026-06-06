@@ -1,6 +1,6 @@
 ---
 name: Kubernetes Resource UI Patterns
-description: This skill should be used when the user asks to "implement K8s resource UI", "Kubernetes resource component", "CRD UI", "custom resource display", "K8s watch hooks", "useWatchList", "useWatchItem", "useBasicCRUD", "usePermissions", or mentions Kubernetes resource presentation, watch hooks, resource configs, draft creators, or portal-specific K8s patterns.
+description: This skill should be used whenever the user is presenting or mutating Kubernetes resources in the KubeRocketCI portal — phrasings like "implement a K8s resource UI", "CRD or custom resource", "watch hooks", "useWatchList / useWatchItem / useWatchListMultiple", "useBasicCRUD / useResourceCRUDMutation", "usePermissions for a resource", "K8sResourceConfig", "draft creator", "resource labels or schema", or "add a new resource to the portal". Resource definitions live in the shared package and the client hooks under apps/client/src/k8s. Use it even when the user just says "load, create or update Codebases (or any CRD) with live updates". For non-Kubernetes external APIs prefer api-integration; for rendering resources in a table prefer table-patterns; for the create form UI prefer form-patterns; for the list filter prefer filter-patterns; for routes and breadcrumbs prefer routing-permissions.
 ---
 
 Guide implementation of UI components that interact with Kubernetes resources using the portal's watch hooks, resource configurations, CRUD operations, and permissions system.
@@ -49,31 +49,13 @@ Example: To see how a config is defined, read `packages/shared/src/models/k8s/gr
 
 ### useWatchList
 
-Fetches a list of K8s resources and subscribes to WebSocket updates for real-time changes (add, modify, delete).
+Fetches a list of K8s resources and subscribes to WebSocket updates for real-time changes (add, modify, delete). It returns a `UseWatchListResult<T>` (read `useWatch/types.ts` for the exact fields) — the parts you'll use most are `data.array` (the flat array), `data.map` (keyed by name), the `isLoading`/`isReady`/`isEmpty` flags, and `query` (the underlying React Query result). **Gotcha**: feed `data.array` to `DataTable`, not `data`.
 
-**Returns** a `UseWatchListResult<T>` with:
-
-- `data.array` - flat array of items (use this for DataTable)
-- `data.map` - Map keyed by resource name
-- `isLoading` - true during initial fetch
-- `isReady` - true when data is loaded
-- `isEmpty` - true when zero items
-- `error` - any fetch error
-- `query` - underlying React Query result
-
-**Parameters**: `resourceConfig`, optional `labels` (for label filtering), optional `namespace`, optional `queryOptions`, optional `transform`.
-
-The `labels` parameter accepts a `Record<string, string>` for label-based filtering (sent as `labelSelector` to the K8s API). Always use label constants from the shared package for the keys.
+It accepts `resourceConfig` plus optional `labels`, `namespace`, `queryOptions`, and `transform`. The `labels` param is a `Record<string, string>` sent as `labelSelector` to the K8s API — always use the label-key constants from the shared package, never hardcoded strings.
 
 ### useWatchItem
 
-Fetches a single resource by name with WebSocket updates.
-
-**Returns** a `UseWatchItemResult<T>` with: `data` (the resource or undefined), `isLoading`, `isReady`, `resourceVersion`, `query`.
-
-**Parameters**: `resourceConfig`, `name` (string or undefined to disable), optional `namespace`, optional `queryOptions`, optional `transform`.
-
-The item hook automatically reads initial data from the list cache when available, avoiding a redundant API call.
+Fetches a single resource by name with WebSocket updates. Returns a `UseWatchItemResult<T>` (`data`, the usual loading flags, `resourceVersion`, `query` — see `useWatch/types.ts`). It takes `resourceConfig` and `name` (pass `undefined` to disable), plus optional `namespace`/`queryOptions`/`transform`. **Worth knowing**: it seeds initial data from the list cache when available, avoiding a redundant API call.
 
 ### Hook Creators (Factory Pattern)
 
@@ -88,28 +70,17 @@ These factories are in `apps/client/src/k8s/api/hooks/hook-creators/index.ts`.
 
 ### Pre-Bound Resource Hooks
 
-Each resource group directory exports pre-bound hooks. For example, the Codebase resource (in `apps/client/src/k8s/api/groups/KRCI/Codebase/hooks/index.ts`) exports:
-
-- `useCodebaseWatchList` - bound to `k8sCodebaseConfig`
-- `useCodebaseWatchItem` - bound to `k8sCodebaseConfig`
-- `useCodebasePermissions` - bound to `k8sCodebaseConfig`
-- `useCodebaseCRUD` - custom CRUD with toast messages
-
-To discover which hooks exist for a resource, read the `hooks/index.ts` file in its group directory.
+Each resource group directory exports hooks already bound to that resource's config — typically a watch-list, multi-namespace watch-list, watch-item, permissions, and a custom CRUD hook (for Codebase: `useCodebaseWatchList`, `useCodebaseWatchItem`, `useCodebasePermissions`, `useCodebaseCRUD`, and `useCodebaseWatchListMultiple`). Read the `hooks/index.ts` in the resource's group directory (e.g. `apps/client/src/k8s/api/groups/KRCI/Codebase/hooks/index.ts`) for that resource's exact set — prefer these over calling raw `useWatchList` with an inline config.
 
 ## CRUD Operations
 
 ### useBasicCRUD (Generic)
 
-A generic hook for simple create/patch/delete operations. Takes a `K8sResourceConfig` and returns `{ triggerCreate, triggerEdit, triggerDelete, mutations }`.
-
-Each trigger function accepts `{ data: { resource: T }, callbacks?: { onSuccess?, onError?, onSettled? } }`.
-
-To see the exact API, read `apps/client/src/k8s/api/hooks/useBasicCRUD/index.tsx`.
+A generic hook for simple create/edit/delete on a `K8sResourceConfig`. It returns trigger functions (create/edit/delete) plus the underlying `mutations`; each trigger takes the resource plus optional success/error/settled callbacks. Read `apps/client/src/k8s/api/hooks/useBasicCRUD/index.tsx` for the exact argument and return shapes.
 
 ### useResourceCRUDMutation (Low-Level)
 
-The building block under `useBasicCRUD`. Wraps a React Query `useMutation` that calls `trpc.k8s.create.mutate()`, `trpc.k8s.patch.mutate()`, or `trpc.k8s.delete.mutate()` depending on the operation.
+The building block under `useBasicCRUD`. Wraps a React Query `useMutation` that calls `trpc.k8s.create.mutate()`, `trpc.k8s.update.mutate()`, or `trpc.k8s.delete.mutate()` depending on the operation. (The edit/patch operation maps to the `update` procedure — there is no `trpc.k8s.patch`.)
 
 Provides automatic toast notifications (loading, success, error) with customizable messages. Custom CRUD hooks (like `useCodebaseCRUD`) use this directly for richer behavior (e.g., creating related secrets before the main resource).
 
@@ -123,7 +94,7 @@ For resources with complex creation flows (e.g., Codebase needs a secret created
 
 ### usePermissions Hook
 
-Checks K8s RBAC permissions for a resource type. Returns a `DefaultPermissionListCheckResult` with entries like `create.allowed`, `delete.allowed`, `patch.allowed`, etc.
+Checks K8s RBAC permissions for a resource type. Returns a `DefaultPermissionListCheckResult` whose keys are `create`, `update`, `patch`, and `delete` (each `{ allowed, reason }`).
 
 The hook calls `trpc.k8s.itemPermissions.mutate()` with the resource's group, version, and plural name. Results are cached with `staleTime: Infinity`.
 

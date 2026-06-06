@@ -1,7 +1,7 @@
 ---
 description: Guided phased workflow for implementing portal features (components, APIs, routes, tables, permissions)
 argument-hint: [feature-description]
-allowed-tools: [Write, Edit, Bash, Skill, WebFetch, WebSearch]
+allowed-tools: [Read, Write, Edit, Bash, Grep, Glob, Skill, TodoWrite, AskUserQuestion, Task, WebFetch, WebSearch]
 ---
 
 You are helping a developer implement a new feature. Follow a systematic approach: understand the codebase deeply, identify and ask about all unspecified details, design elegant architectures, then implement.
@@ -178,16 +178,16 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
    - Mark sub-task complete in TodoWrite
 
    **For API Endpoints**:
-   - Define tRPC router with Zod schema for input validation
+   - Define tRPC router with `t.router()` and a Zod schema for input validation
    - Implement business logic following backend patterns
-   - Create React Query hooks using `createUseQueryHook`/`createUseMutationHook`
+   - Consume on the frontend via `useTRPCClient()` from `@/core/providers/trpc`, wrapped in standard React Query `useQuery`/`useMutation` (the project does NOT use `@trpc/react-query`; `createUseQueryHook`/`createUseMutationHook` do not exist) — see api-integration skill
    - Handle errors with user-friendly messages
    - Mark sub-task complete in TodoWrite
 
    **For Forms**:
    - Use form-implementation patterns from form-patterns skill
-   - Create form component with controlled inputs
-   - Add validation using React Hook Form or similar
+   - Build the form with `useAppForm` (TanStack Form) and the portal's registered field components (FormTextField, FormSelect, etc.)
+   - Add validation by passing Zod schemas/functions directly to `validators` (TanStack Form does NOT use `zodResolver`; React Hook Form is not used in this project)
    - Implement error handling and user feedback
    - Integrate with API mutation hooks
    - Mark sub-task complete in TodoWrite
@@ -245,16 +245,17 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 **Actions**:
 
 1. Mark Phase 5 as in_progress in TodoWrite
-2. Write tests following testing-standards skill patterns:
-   - **Component Tests**: Test rendering, user interactions, prop variations, edge cases
-   - **Integration Tests**: Test component integration with APIs and routing
-   - **Accessibility Tests**: Verify ARIA attributes, keyboard navigation, screen reader support
-   - Use Vitest and React Testing Library
+2. Write tests following the **split testing strategy** in the testing-standards skill (read it first):
+   - **Utilities, hooks, business logic (`.ts`)**: Vitest unit tests (`*.test.ts`) — these are what coverage tracks
+   - **React components (`.tsx`)**: Storybook stories (`*.stories.tsx`) for rendering, interactions, and accessibility — `.tsx` files are EXCLUDED from Vitest coverage; do NOT write Vitest unit tests for components
+   - Use the shared `TestProviders` (and `withAppProviders` Storybook decorator) for any test/story needing providers
    - Focus on user behavior, not implementation details
-3. Run tests and fix any failures:
-   - Execute tests with Bash tool: `pnpm run lint:check` or `pnpm run tsc:check`
-   - Address failing tests
-   - Ensure coverage is comprehensive
+3. Run quality checks and fix any failures (Bash):
+   - Type check: `pnpm tsc:check` (all packages) or `pnpm --filter=client tsc`
+   - Lint: `pnpm lint:check`
+   - Run tests: `pnpm test:coverage` (full suite) or `pnpm --filter=client test` (client only)
+   - Format check: `pnpm format:check`
+   - Address any failures and ensure coverage is comprehensive
 4. Perform manual verification:
    - Check feature in browser (if possible, guide user on local testing)
    - Verify all states: loading, error, empty, success
