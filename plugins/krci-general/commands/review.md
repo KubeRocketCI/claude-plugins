@@ -18,7 +18,7 @@ If `$ARGUMENTS` is empty, review unstaged changes from `git diff`.
 
 Use the Task tool to launch **3 code-reviewer agents in parallel**, each with a different review focus:
 
-1. **Simplicity & DRY**: "Review the following scope for simplicity, DRY violations, code elegance, and readability issues. Scope: [determined scope]"
+1. **Simplicity & DRY**: "Review the following scope for simplicity, DRY violations, code elegance, readability, and comment hygiene — flag comments that merely restate the code or describe the obvious, and keep only those explaining non-obvious 'why' or genuinely complex logic. Scope: [determined scope]"
 2. **Bugs & Correctness**: "Review the following scope for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness issues. Scope: [determined scope]"
 3. **Conventions & Architecture**: "Review the following scope for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization. Scope: [determined scope]"
 
@@ -32,20 +32,20 @@ After all 3 agents complete:
 2. Sort by severity (Critical first, then Important)
 3. Present a unified report to the user:
 
-```
-### Review Summary
+   ```
+   ### Review Summary
 
-**Scope**: [what was reviewed]
-**Issues found**: [count critical] critical, [count important] important
+   **Scope**: [what was reviewed]
+   **Issues found**: [count critical] critical, [count important] important
 
-### Critical Issues
-- [issue with file:line, confidence score, and fix suggestion]
+   ### Critical Issues
+   - [issue with file:line, confidence score, and fix suggestion]
 
-### Important Issues
-- [issue with file:line, confidence score, and fix suggestion]
+   ### Important Issues
+   - [issue with file:line, confidence score, and fix suggestion]
 
-### Verdict
-[Overall assessment - clean / needs fixes / significant concerns]
-```
+   ### Verdict
+   [Overall assessment - clean / needs fixes / significant concerns]
+   ```
 
 4. If issues were found, ask the user: "Would you like me to fix these issues now, or would you prefer to address them yourself?"

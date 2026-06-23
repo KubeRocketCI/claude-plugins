@@ -21,6 +21,7 @@ This Claude Code plugin consolidates general-purpose development utilities used 
 
 - Launches 3 parallel review agents with different focuses (simplicity, bugs, conventions)
 - Confidence-based filtering (only reports issues with confidence >= 80)
+- Enforces comment hygiene: flags redundant comments that restate the code, keeping only those that explain non-obvious "why" or genuinely complex logic
 - Reviews unstaged changes by default, or specific files/scope
 - Produces unified report grouped by severity (Critical vs Important)
 - Used standalone via `/krci-general:review` or automatically by lead agent commands (implement-feature, fix-issue, etc.)
