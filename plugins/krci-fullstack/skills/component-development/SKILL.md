@@ -1,6 +1,8 @@
 ---
 name: Component Development
 description: This skill should be used whenever the user is building or organizing a reusable React UI component in the KubeRocketCI portal — phrasings like "create reusable component", "implement UI primitive", "build a React component", "add a Radix UI component", "where should this component live", "common components", "component file structure", "component variants with CVA", or anything about component architecture, the design system, or reusable presentational primitives (badges, cards, buttons, empty states, icons). Use it even when the user does not say the word "component". Do NOT use it for forms or form fields (use form-patterns), data tables or columns (use table-patterns), filtering UI (use filter-patterns), Kubernetes resource hooks or CRUD (use k8s-resources), interactive tours (use tour-patterns), or tRPC and data fetching (use api-integration).
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Implement React components following the KubeRocketCI portal's architecture patterns, component organization, and Radix UI + TailwindCSS design system.

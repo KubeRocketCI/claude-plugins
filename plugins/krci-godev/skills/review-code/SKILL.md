@@ -4,6 +4,8 @@ description: This skill should be used when the user asks to "review Go code", "
 argument-hint: <file, folder, or scope>
 allowed-tools: [Bash]
 disable-model-invocation: true
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 # Go Code Review

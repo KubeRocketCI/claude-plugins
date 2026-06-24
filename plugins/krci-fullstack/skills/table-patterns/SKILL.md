@@ -1,6 +1,8 @@
 ---
 name: Table Patterns
 description: This skill should be used whenever the user is building or modifying a data table or list view in the KubeRocketCI portal — phrasings like "create a table", "implement a data table", "DataTable", "add or define table columns", "useColumns", "table sorting", "custom sort comparator", "table pagination", "row selection", "expandable rows", "column visibility settings", or column configuration and tabular data presentation. Use it even if the user only says "list view" or "grid". For the filter UI, FilterProvider, search, and match functions that sit above the table defer to filter-patterns; for the watch hook that supplies the table data (useWatchList) defer to k8s-resources; for a generic non-table presentational component defer to component-development.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Guide table implementation using the portal's `DataTable` component and `useColumns` hook convention for consistent data presentation across resource views.

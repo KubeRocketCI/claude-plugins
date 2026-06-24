@@ -1,6 +1,8 @@
 ---
 name: Routing and Permissions
 description: This skill should be used whenever the user is adding or modifying routes, pages, navigation, or permission gating in the KubeRocketCI portal — phrasings like "add a route or page", "route.ts / route.lazy.ts", "register it in the route tree", "navigation", "breadcrumbs", "PageWrapper", "protect a route / redirect unauthenticated users", "RBAC", "permission check", or "ButtonWithPermission". The portal uses TanStack Router with a manually assembled route tree and checks Kubernetes RBAC at runtime. Use it even when the user just says "make a new page". Note these boundaries — the resource-specific usePermissions and watch/CRUD hooks live in k8s-resources; building the page's table is table-patterns; its filter UI is filter-patterns; its create form is form-patterns; a high-level explanation of the auth system is portal-tech-stack.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Orientation guide for the KubeRocketCI portal's routing architecture (TanStack Router), permission system (K8s RBAC), and page layout conventions.

@@ -1,6 +1,8 @@
 ---
 name: Kubernetes Resource UI Patterns
 description: This skill should be used whenever the user is presenting or mutating Kubernetes resources in the KubeRocketCI portal — phrasings like "implement a K8s resource UI", "CRD or custom resource", "watch hooks", "useWatchList / useWatchItem / useWatchListMultiple", "useBasicCRUD / useResourceCRUDMutation", "usePermissions for a resource", "K8sResourceConfig", "draft creator", "resource labels or schema", or "add a new resource to the portal". Resource definitions live in the shared package and the client hooks under apps/client/src/k8s. Use it even when the user just says "load, create or update Codebases (or any CRD) with live updates". For non-Kubernetes external APIs prefer api-integration; for rendering resources in a table prefer table-patterns; for the create form UI prefer form-patterns; for the list filter prefer filter-patterns; for routes and breadcrumbs prefer routing-permissions.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Guide implementation of UI components that interact with Kubernetes resources using the portal's watch hooks, resource configurations, CRUD operations, and permissions system.

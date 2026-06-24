@@ -1,6 +1,8 @@
 ---
 name: KRCI EDP-Tekton Standards
 description: This skill should be used when the user asks to "onboard Tekton pipeline", "create new task", "add pipeline to EDP-Tekton", "follow pipeline naming conventions", "configure Helm chart for Tekton", "use onboarding script", "configure Tekton workspaces", "check supported languages", "add language support", "pipeline naming", "task naming", "what languages are supported", "helm chart for tekton", "pipeline structure", or mentions Tekton pipeline naming conventions, EDP-Tekton repository structure, pipeline/task organization, Helm chart templating for Tekton, KRCI onboarding standards, or onboarding script automation. Make sure to use this skill whenever working within the EDP-Tekton repository on pipelines or tasks, even if the user doesn't explicitly mention "standards". For trigger/webhook/EventListener configuration, defer to edp-tekton-triggers. For GitLab CI components, defer to gitlab-ci-component-standards.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 # EDP-Tekton Standards and Best Practices

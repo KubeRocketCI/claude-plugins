@@ -1,6 +1,8 @@
 ---
 name: Form Patterns
 description: This skill should be used whenever the user is building or modifying a data-entry form in the KubeRocketCI portal — phrasings like "create a form", "add a form field", "form validation", "TanStack Form", "useAppForm", "Zod validation", "cross-field or async validation", "cascading/dependent fields", "multi-step form", "wizard", "stepper", or form state and submission. All portal forms use TanStack Form via useAppForm (not React Hook Form, no zodResolver). Use it even when the user just says "let the user enter or submit X". Note that a filter or search UI over a list also uses useAppForm but belongs to filter-patterns, not here; the submit endpoint belongs to api-integration; turning form values into a K8s manifest (draft creator plus CRUD) belongs to k8s-resources; a generic input primitive belongs to component-development.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Implement forms using TanStack Form with the portal's `useAppForm` hook, Zod validation, and pre-built field components.

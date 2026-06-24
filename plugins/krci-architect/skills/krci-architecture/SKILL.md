@@ -1,6 +1,8 @@
 ---
 name: KRCI Architecture
 description: This skill should be used when planning KubeRocketCI features, validating technical designs, making architectural decisions for the KRCI platform, or when the user asks about "KRCI reference architecture", "platform architecture", "DevSecOps principles", "deployment patterns", "validate design against KRCI", "check KRCI architecture alignment", "plan KRCI feature implementation", "multi-cluster architecture", or mentions KRCI platform design decisions. For delegating implementation to specialized agents, defer to agent-delegation.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 # KubeRocketCI Reference Architecture

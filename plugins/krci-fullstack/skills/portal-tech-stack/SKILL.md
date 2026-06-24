@@ -1,6 +1,8 @@
 ---
 name: Portal Tech Stack
 description: This skill should be used whenever the user needs to understand how the KubeRocketCI portal is built or where something belongs — phrasings like "what's the tech stack", "what framework or library does it use", "how is the monorepo organized", "project architecture", "how do the client/server/shared/trpc packages connect", "build order", "import aliases / what does @/ map to", "where should this code live", "how does authentication and the session flow work", or any question about technology choices, package roles, or architectural decisions. It covers the whole monorepo, not just the frontend. Use it for orientation and "where/how is it structured" questions; for actually implementing a feature, prefer the specific skill (api-integration, component-development, form-patterns, table-patterns, filter-patterns, routing-permissions, k8s-resources, testing-standards, tour-patterns).
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Orientation guide for the KubeRocketCI portal's technology stack, monorepo architecture, and authentication system.

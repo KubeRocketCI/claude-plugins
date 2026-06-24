@@ -1,6 +1,8 @@
 ---
 name: Filter Patterns
 description: This skill should be used whenever the user is adding or modifying filtering or search over a list in the KubeRocketCI portal — phrasings like "add a filter", "implement filtering", "FilterProvider", "search filter", "status or namespace or type filter", "filter match function", "match functions", "createSearchMatchFunction", "URL-synced filters", "clear filters or isDefaultValue", or filter state and filter UI components. Use it even when the user just says "let users search or filter the list". Building the table, columns, sorting, or pagination itself is table-patterns; a form with validated inputs (even comboboxes) is form-patterns; persisting a tab selection in the URL is routing-permissions; a server-side search endpoint is api-integration.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Guide filter implementation using the portal's FilterProvider pattern with TanStack Form for state management, URL synchronization, and declarative match functions.

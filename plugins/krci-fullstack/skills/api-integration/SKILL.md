@@ -1,6 +1,8 @@
 ---
 name: API Integration
 description: This skill should be used whenever the user is adding or consuming a tRPC API endpoint in the KubeRocketCI portal — phrasings like "add an API endpoint", "create a tRPC procedure or router", "protectedProcedure", "call a query or mutation", "implement a React Query hook", "data fetching with useQuery/useMutation", or integrating an external service such as SonarQube, DependencyTrack, Tekton Results, or Prometheus. The portal uses a vanilla tRPC client plus standard React Query (no @trpc/react-query). Use it even when the user just says "fetch X from the backend". For Kubernetes resource data prefer k8s-resources (watch hooks and CRUD go through the generic k8s router); for the form UI that submits a mutation prefer form-patterns; for high-level monorepo or architecture questions prefer portal-tech-stack.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Guide tRPC API endpoint creation and React Query integration following the portal's type-safe patterns for client-server communication.
