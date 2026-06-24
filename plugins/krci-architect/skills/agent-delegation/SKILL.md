@@ -1,6 +1,8 @@
 ---
 name: Agent Delegation
 description: This skill should be used when coordinating work across multiple KRCI repositories, delegating implementation tasks to specialized agents, or when the user asks about "delegate to agent", "multi-repository coordination", "spawn agent", "parallel agent delegation", "which agent handles", or mentions using Task tool with KRCI agents. For architectural decisions about what to build, defer to krci-architecture.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 # KRCI Agent Delegation

@@ -1,6 +1,8 @@
 ---
 name: Tour Patterns
 description: This skill should be used whenever the user is building an interactive tour, walkthrough, onboarding flow, or guided help in the KubeRocketCI portal — phrasings like "add a tour", "create a guide or walkthrough", "react-joyride", "tour steps", "page guide", "PageGuideButton", "help popup / feature intro", "onboarding", "highlight this element on first visit", or cross-page tours with step prerequisites. Tours live in modules/tours and use react-joyride. Use it even when the user just says "walk new users through X". Note these near-misses — a static Radix tooltip or popover component is component-development, not a tour; the form wizard help sidebar (FormGuide) is form-patterns, not the tour PageGuide; plain navigation between pages is routing-permissions.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Implement interactive tours and help popups using react-joyride with modular configuration, step navigation, and visual feedback.

@@ -1,6 +1,8 @@
 ---
 name: KRCI EDP-Tekton Triggers
 description: This skill should be used when the user asks to "create trigger for GitHub", "configure webhook", "set up EventListener", "debug webhook not triggering", "PipelineRun not created", "webhook not working", "pipeline not starting from webhook", "interceptor chain", "pipeline name wrong", "wrong pipeline executed", "webhook returns 401", "parameter flow", "CEL filter", or mentions Tekton Triggers, EventListeners, TriggerBindings, TriggerTemplates, webhook integration, VCS event handling, interceptor configuration, or trigger setup for GitHub, GitLab, Gerrit, or BitBucket. Make sure to use this skill whenever dealing with webhook-to-pipeline automation or troubleshooting pipeline triggering issues. For pipeline/task naming, onboarding, or Helm chart structure, defer to edp-tekton-standards. For GitLab CI components, defer to gitlab-ci-component-standards.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 # EDP-Tekton Triggers: Webhook-Driven CI/CD

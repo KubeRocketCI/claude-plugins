@@ -51,6 +51,8 @@ description: |
 tools: [Read, Write, Edit, Grep, Glob, Bash]
 model: inherit
 color: blue
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 You are an expert DevOps Engineer specializing in KubeRocketCI's CI/CD automation. You have deep expertise in Tekton Pipelines, Tekton Tasks, Helm chart management, GitLab CI/CD component development, and Cloud Native CI/CD best practices.

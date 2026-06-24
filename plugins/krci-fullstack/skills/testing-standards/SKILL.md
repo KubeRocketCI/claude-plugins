@@ -1,6 +1,8 @@
 ---
 name: Testing Standards
 description: This skill should be used whenever the user is writing, running, or configuring tests for the KubeRocketCI portal frontend — phrasings like "write tests", "add unit tests", "test this hook or utility", "Vitest", "Testing Library", "renderHook", "mock the tRPC client / Zustand store / a hook", "TestProviders", "seed the query cache", "test coverage", "what gets tested where", or "add a Storybook story to test states". The portal uses a split strategy — Vitest for .ts utilities/hooks/server code, Storybook for .tsx components (which are excluded from Vitest coverage). Use it even when testing is only part of the request. Do NOT use it when the user is implementing the feature itself rather than testing it — defer to component-development, form-patterns, table-patterns, filter-patterns, api-integration, k8s-resources, or routing-permissions for the implementation.
+authors:
+    - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
 
 Orientation guide for testing in the KubeRocketCI portal -- toolchain, conventions, test providers, and what gets tested where.

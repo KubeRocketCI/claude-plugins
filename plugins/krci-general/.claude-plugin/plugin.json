@@ -1,6 +1,6 @@
 {
   "name": "krci-general",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "General-purpose KubeRocketCI development utilities including commit message generation and code review",
   "author": {
     "name": "KubeRocketCI Team",
