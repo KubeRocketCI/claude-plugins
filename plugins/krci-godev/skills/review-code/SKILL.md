@@ -55,6 +55,26 @@ Prioritized list of recommended fixes:
 3. Nice-to-have enhancements
 </review_output_format>
 
+## Comment Hygiene
+
+Flag comments that add nothing beyond what the code already states — Go code should be self-documenting through clear naming and structure. Recommend deleting redundant comments rather than letting them pass as harmless noise.
+
+Permit a comment only when it earns its place:
+
+- Explains *why*, not *what* — non-obvious rationale, trade-offs, workarounds, or a link to an issue/spec/ticket.
+- Clarifies genuinely complex or non-obvious logic — intricate algorithms, tricky regex, bit manipulation, concurrency invariants, or surprising edge cases.
+- Is a godoc comment on an exported identifier (`// FuncName ...`) — required by Go convention.
+- Carries a required notice or actionable marker — license header, security caveat, or `TODO`/`FIXME` with concrete context.
+
+Recommend removing comments that:
+
+- Restate adjacent code (e.g., `// increment counter` above `counter++`, `// return error`).
+- Echo a function, variable, or type name already obvious from the signature.
+- Are decorative banners, section dividers, or filler.
+- Are commented-out code — version control already preserves history.
+
+A comment that demonstrably only restates adjacent code is a verifiable finding — score it ≥ 80 and suggest deleting it. When genuinely uncertain whether a comment helps, leave it.
+
 ## Review Principles
 
 <review_principles>
