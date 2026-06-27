@@ -1,0 +1,13 @@
+{
+  "name": "krci-qa",
+  "version": "0.1.0",
+  "description": "KubeRocketCI QA plugin - manual and automation quality assurance: test planning, test cases, execution, defect reporting, and Gherkin test automation",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": ["kuberocketci", "qa", "testing", "test-automation", "gherkin", "test-cases", "test-plan", "defects", "quality-assurance"]
+}

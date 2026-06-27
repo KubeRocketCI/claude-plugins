@@ -1,0 +1,13 @@
+{
+  "name": "krci-product",
+  "version": "0.1.0",
+  "description": "KubeRocketCI Product team plugin - Product Manager, Product Owner, Product Marketing Manager, and Project Manager for the full product lifecycle",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": ["kuberocketci", "product-manager", "product-owner", "product-marketing", "project-manager", "prd", "epic", "story", "roadmap", "go-to-market", "pmbok"]
+}
