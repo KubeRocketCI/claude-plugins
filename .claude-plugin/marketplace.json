@@ -67,6 +67,54 @@
       "author": {
         "name": "KubeRocketCI Team"
       }
+    },
+    {
+      "name": "krci-docs",
+      "source": "./plugins/krci-docs",
+      "description": "KubeRocketCI Technical Writer agent - documentation and presentation review applying the Microsoft Writing Style Guide and project documentation standards",
+      "category": "documentation",
+      "keywords": ["kuberocketci", "technical-writer", "documentation", "docs", "presentation", "powerpoint", "writing-style", "review"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    },
+    {
+      "name": "krci-ba",
+      "source": "./plugins/krci-ba",
+      "description": "KubeRocketCI Business Analyst agent - requirements gathering, process analysis, business rules, and user journey mapping with BR/NFR traceability",
+      "category": "business-analysis",
+      "keywords": ["kuberocketci", "business-analyst", "requirements", "process-analysis", "business-rules", "user-journey", "br-nfr", "prd"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    },
+    {
+      "name": "krci-product",
+      "source": "./plugins/krci-product",
+      "description": "KubeRocketCI Product team agents - Product Manager, Product Owner, Product Marketing Manager, and Project Manager for the full product lifecycle",
+      "category": "product-management",
+      "keywords": ["kuberocketci", "product-manager", "product-owner", "product-marketing", "project-manager", "prd", "epic", "story", "roadmap", "go-to-market", "pmbok"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    },
+    {
+      "name": "krci-qa",
+      "source": "./plugins/krci-qa",
+      "description": "KubeRocketCI QA agents - manual and automation quality assurance: test planning, test cases, execution, defect reporting, and Gherkin test automation",
+      "category": "quality-assurance",
+      "keywords": ["kuberocketci", "qa", "testing", "test-automation", "gherkin", "test-cases", "test-plan", "defects", "quality-assurance"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
     }
   ]
 }

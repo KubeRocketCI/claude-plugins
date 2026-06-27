@@ -1,0 +1,13 @@
+{
+  "name": "krci-ba",
+  "version": "0.1.0",
+  "description": "KubeRocketCI Business Analyst plugin - requirements gathering, process analysis, business rules, and user journey mapping with BR/NFR traceability",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": ["kuberocketci", "business-analyst", "requirements", "process-analysis", "business-rules", "user-journey", "br-nfr", "prd"]
+}

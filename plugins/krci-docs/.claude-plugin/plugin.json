@@ -1,0 +1,13 @@
+{
+  "name": "krci-docs",
+  "version": "0.1.0",
+  "description": "KubeRocketCI Technical Writer plugin - documentation and presentation review applying project documentation standards",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": ["kuberocketci", "technical-writer", "documentation", "docs", "presentation", "powerpoint", "writing-style", "review"]
+}
