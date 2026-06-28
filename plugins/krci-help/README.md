@@ -17,6 +17,15 @@ A terse, caveman-style, `/init`-flavored printout of the whole marketplace: ever
 /krci-help:help krci-godev
 ```
 
+### `/krci-help:bootstrap-workspace` — provision the source workspace
+
+Clones the standalone [`KubeRocketCI/krci-workspace`](https://github.com/KubeRocketCI/krci-workspace) meta-repo (the single source of truth for the KRCI component set) and runs its bootstrap script, assembling every platform repository under `sources/`. The repository list is not hardcoded here — it lives in `krci-workspace/repos.yaml`.
+
+```
+/krci-help:bootstrap-workspace
+/krci-help:bootstrap-workspace ~/dev
+```
+
 ### `advisor` agent — the ecosystem & SDLC guide
 
 Ask it "which plugin should I use for X?" or "how do I take this from idea to shipped?" and it routes you to the right agent/command/skill and sequences end-to-end pipelines. It guides and routes — it does not write product code. Trigger it by asking ecosystem-orientation or workflow questions.

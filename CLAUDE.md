@@ -21,8 +21,8 @@ The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing ind
 
 | Plugin | Components | Kind | Domain |
 |--------|-----------|------|--------|
-| **krci-help** | agent + command + skill | meta | Ecosystem guide + SDLC framework knowledge |
-| **krci-architect** | agent + commands + skills + script | dev | Cross-repo architecture planning, workspace provisioning |
+| **krci-help** | agent + commands + skill | meta | Ecosystem guide + SDLC framework knowledge + workspace provisioning |
+| **krci-architect** | agent + commands + skills | dev | Cross-repo architecture planning |
 | **krci-fullstack** | agent + commands + skills | dev | React/TypeScript/Radix UI portal development |
 | **krci-devops** | agent + commands + skills | dev | Tekton pipeline/task/trigger automation, GitLab CI components |
 | **krci-godev** | agent + command + skill + references | dev | Go operator and CRD development |

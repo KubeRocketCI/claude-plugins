@@ -46,9 +46,9 @@ TWO KIND PLUGIN:
 
 **krci-architect — MAP MAKER**
 - AGENT: architect. plan feature cross-repo. validate design. send work to hunters.
-- CMD: /krci-architect:plan-feature, technical-review, bootstrap-workspace.
+- CMD: /krci-architect:plan-feature, technical-review.
 - SKILL: krci-architecture, agent-delegation.
-- USE WHEN: feature touch many repo. you need design first. you need workspace.
+- USE WHEN: feature touch many repo. you need design first.
 
 **krci-general — TOOL BELT**
 - AGENT: code-reviewer. find bug. find risk. find broke rule. confidence filter.
@@ -84,9 +84,9 @@ TWO KIND PLUGIN:
 ## META PLUGIN
 
 **krci-help — TRIBE MAP (you here)**
-- CMD: /krci-help:help → this map.
+- CMD: /krci-help:help → this map. /krci-help:bootstrap-workspace → clone all KRCI source (via krci-workspace repo).
 - AGENT: advisor. guide SDLC. tell which chief for which work. tell which plugin for which job.
-- USE WHEN: you lost. you ask "which plugin?". you want pipeline.
+- USE WHEN: you lost. you ask "which plugin?". you want pipeline. you want all repo in one place.
 
 ## SDLC PIPELINE (idea → ship)
 
@@ -108,6 +108,7 @@ WHO DO WHAT:
 | docs, slides | krci-docs (technical-writer) |
 | go-to-market | krci-product (product-marketing-manager) |
 | commit, code review | krci-general (any time, any stage) |
+| get all source, set up workspace | krci-help (bootstrap-workspace) |
 | lost? which plugin? | krci-help (advisor) |
 
 ME DONE. YOU PICK PLUGIN. GO HUNT.

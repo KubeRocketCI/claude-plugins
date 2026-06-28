@@ -1,6 +1,6 @@
 ---
 name: krci-sdlc-framework
-description: This skill should be used when the user asks which KRCI plugin/agent/skill to use for a goal, how the SDLC artifact pipeline flows (project brief → PRD → epic → story → architecture → code → test → MVP → marketing), who produces or owns which artifact or handoff, or how to chain plugins into an end-to-end pipeline (idea-to-shipped-feature, onboard-a-tekton-pipeline, ship-a-go-operator, build-a-portal-feature, plan-a-project, go-to-market). It is the authoritative map of the KubeRocketCI (KRCI) SDLC AI framework onto the plugin marketplace. Use it for any KRCI ecosystem-routing or workflow-sequencing question even when the framework is not named explicitly; to actually execute a single stage, defer to that stage's own plugin/skill.
+description: This skill should be used when the user asks which KRCI plugin/agent/skill to use for a goal, how the SDLC artifact pipeline flows (project brief → PRD → epic → story → architecture → code → test → MVP → marketing), who produces or owns which artifact or handoff, or how to chain plugins into an end-to-end pipeline (idea-to-shipped-feature, onboard-a-tekton-pipeline, ship-a-go-operator, build-a-portal-feature, plan-a-project, go-to-market), or how to provision the full multi-repo source workspace to develop across KRCI repos. It is the authoritative map of the KubeRocketCI (KRCI) SDLC AI framework onto the plugin marketplace. Use it for any KRCI ecosystem-routing or workflow-sequencing question even when the framework is not named explicitly; to actually execute a single stage, defer to that stage's own plugin/skill.
 ---
 
 # KRCI SDLC Framework
@@ -36,6 +36,7 @@ Each artifact depends on the one(s) before it. Skipping a dependency is the most
 | Documentation, presentations | krci-docs (technical-writer) | agnostic |
 | Go-to-market, pitch, launch, sales | krci-product (product-marketing-manager) | agnostic |
 | Commit messages, code review (cross-cutting) | krci-general (code-reviewer) | dev (utility) |
+| Provision multi-repo source workspace (clone all KRCI repos) | krci-help (`/krci-help:bootstrap-workspace`) | meta |
 | Ecosystem orientation, "which plugin?" | krci-help (advisor) | meta |
 
 **Dev vs agnostic** matters when advising: dev plugins write or review code/config and assume a real codebase; agnostic plugins produce planning, analysis, testing, and writing artifacts and apply to any project. Lead with the agnostic plugins early in the pipeline (brief→story) and the dev plugins once implementation starts.
