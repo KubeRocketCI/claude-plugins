@@ -34,9 +34,9 @@ CI/CD pipeline and component development.
 ### krci-architect — DEV
 Cross-repo architecture and planning.
 - **Agent** `architect`: plans features/epics, makes architectural decisions, coordinates across repos (portal, operators, tekton) by delegating to specialized agents.
-- **Commands**: `/krci-architect:plan-feature`, `technical-review`, `bootstrap-workspace`.
+- **Commands**: `/krci-architect:plan-feature`, `technical-review`.
 - **Skills**: `krci-architecture` (reference architecture, DevSecOps, deployment patterns), `agent-delegation` (multi-repo coordination via the Task tool).
-- **Use when**: a feature spans multiple repos, you need a design before coding, or you need a multi-repo workspace.
+- **Use when**: a feature spans multiple repos, or you need a design before coding.
 
 ### krci-general — DEV (utility, cross-cutting)
 General code utilities, any language, any stage.
@@ -81,7 +81,8 @@ Documentation and presentations.
 ## META plugin
 
 ### krci-help — META (this plugin)
-Describes the ecosystem and the SDLC framework.
+Describes the ecosystem and the SDLC framework, and provisions the source workspace.
 - **Command** `/krci-help:help`: dry, caveman-style map of all plugins, agents, skills, and the SDLC pipeline.
+- **Command** `/krci-help:bootstrap-workspace`: provisions a full multi-repo KRCI source workspace via the standalone `KubeRocketCI/krci-workspace` repo (clones every component into `sources/`); also supports named repos / `--group`.
 - **Agent** `advisor`: routes the user to the right plugin/agent/skill and sequences end-to-end pipelines; consumes the `krci-sdlc-framework` skill (this one).
-- **Use when**: the user is unsure which plugin fits, wants the big-picture workflow, or wants a runnable end-to-end pipeline.
+- **Use when**: the user is unsure which plugin fits, wants the big-picture workflow, wants a runnable end-to-end pipeline, or needs all KRCI source cloned into one workspace.

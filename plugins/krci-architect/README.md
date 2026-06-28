@@ -56,17 +56,9 @@ Guided 6-phase workflow for planning feature implementations.
 5. **Agent Delegation** - Delegate work to specialized agents (with user approval)
 6. **Summary** - Document decisions and next steps
 
-#### `/krci-architect:bootstrap-workspace`
+#### Workspace provisioning (moved out of this plugin)
 
-Create a workspace with KubeRocketCI repositories for feature development.
-
-**Usage:**
-
-```bash
-/krci-architect:bootstrap-workspace feature-github
-```
-
-Interactively selects from 13 available repositories (core operators, CI/CD, portal, supporting services), creates a workspace directory, and clones the selected repos.
+Provisioning a multi-repo source workspace is no longer an architect command. Use **`/krci-help:bootstrap-workspace`**, which clones all KubeRocketCI components via the standalone [`KubeRocketCI/krci-workspace`](https://github.com/KubeRocketCI/krci-workspace) repo — the single source of truth for the repo set.
 
 #### `/krci-architect:technical-review`
 

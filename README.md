@@ -47,8 +47,8 @@ claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-de
 
 | Plugin             | Scope    | Domain                                                        |
 |--------------------|----------|---------------------------------------------------------------|
-| **krci-help**      | KRCI     | Ecosystem guide — which plugin/agent/skill fits, SDLC map     |
-| **krci-architect** | KRCI     | Cross-repo feature planning, design validation, workspaces    |
+| **krci-help**      | KRCI     | Ecosystem guide, SDLC map, multi-repo workspace provisioning  |
+| **krci-architect** | KRCI     | Cross-repo feature planning, design validation                |
 | **krci-godev**     | KRCI     | Go, Kubernetes operators, CRDs, controller reconciliation     |
 | **krci-fullstack** | KRCI     | React/TypeScript/Radix/tRPC portal development                |
 | **krci-devops**    | KRCI     | Tekton pipeline/task/trigger + GitLab CI components           |
