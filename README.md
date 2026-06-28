@@ -1,55 +1,70 @@
 # KubeRocketCI Claude Code Plugins
 
-AI assistants for the complete software development lifecycle on [KubeRocketCI](https://kuberocketci.io) - from platform development to application delivery.
+[![Claude Code](https://img.shields.io/badge/Claude%20Code-marketplace-d97757)](https://docs.claude.com/en/docs/claude-code)
+[![Plugins](https://img.shields.io/badge/plugins-10-blue)](#plugins)
+[![Version check](https://img.shields.io/github/actions/workflow/status/KubeRocketCI/claude-plugins/check-plugin-version.yml?label=version%20check)](.github/workflows/check-plugin-version.yml)
+[![License](https://img.shields.io/github/license/KubeRocketCI/claude-plugins)](LICENSE)
+
+AI agents for the software development lifecycle on [KubeRocketCI](https://kuberocketci.io) — plan, build, ship, test, document.
+
+## What this gets you
+
+One team of agents, idea to shipped — a plugin owns every stage:
+
+```mermaid
+flowchart LR
+  brief["Brief · PRD<br/>product"] --> req["Requirements<br/>ba"]
+  req --> story["Epic · Story<br/>product"]
+  story --> arch["Architecture<br/>architect"]
+  arch --> code["Code<br/>godev · fullstack"]
+  code --> cicd["CI/CD<br/>devops"]
+  cicd --> test["Test<br/>qa"]
+  test --> gtm["Docs · GTM<br/>docs · product"]
+```
+
+`krci-general` (commit, code review) and `krci-help` (advisor) assist at every stage.
+
+## What you can do
+
+- Plan a feature across repos → **krci-architect**
+- Ship a Go operator or CRD → **krci-godev**
+- Build a portal screen (React/tRPC) → **krci-fullstack**
+- Onboard a Tekton pipeline or GitLab CI → **krci-devops**
+- Write PRDs, epics, stories, go-to-market → **krci-product**
+- Gather requirements & business rules → **krci-ba**
+- Plan & run tests, report defects → **krci-qa**
+- Review docs & slides → **krci-docs**
+- Generate commits & review code → **krci-general**
 
 ## Installation
 
 ```bash
-# Add marketplace from GitHub
 claude plugin marketplace add KubeRocketCI/claude-plugins
-
-# Install all plugins
-claude plugin install krci-architect krci-fullstack krci-godev krci-devops krci-general
+claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-devops krci-general krci-ba krci-product krci-qa krci-docs
 ```
 
 ## Plugins
 
-| Plugin             | Domain           | Description                                                            |
-|--------------------|------------------|------------------------------------------------------------------------|
-| **krci-general**   | Utilities        | Commit message generation, code review                                 |
-| **krci-architect** | Architecture     | Cross-repo feature planning, design validation, workspace provisioning |
-| **krci-fullstack** | Frontend/Backend | React, TypeScript, Radix UI, Tailwind CSS, tRPC portal development     |
-| **krci-godev**     | Go / Operators   | Kubernetes operators, Custom Resources, CRDs, controller-runtime       |
-| **krci-devops**    | CI/CD            | Tekton pipeline, task, and trigger automation for EDP-Tekton           |
+| Plugin             | Scope    | Domain                                                        |
+|--------------------|----------|---------------------------------------------------------------|
+| **krci-help**      | KRCI     | Ecosystem guide — which plugin/agent/skill fits, SDLC map     |
+| **krci-architect** | KRCI     | Cross-repo feature planning, design validation, workspaces    |
+| **krci-godev**     | KRCI     | Go, Kubernetes operators, CRDs, controller reconciliation     |
+| **krci-fullstack** | KRCI     | React/TypeScript/Radix/tRPC portal development                |
+| **krci-devops**    | KRCI     | Tekton pipeline/task/trigger + GitLab CI components           |
+| **krci-general**   | agnostic | Commit messages, code review (any language)                   |
+| **krci-ba**        | agnostic | Requirements, processes, business rules, user journeys        |
+| **krci-product**   | agnostic | PRDs, epics, stories, charters, go-to-market                  |
+| **krci-qa**        | agnostic | Test plans, test cases, execution, defects, Gherkin           |
+| **krci-docs**      | agnostic | Doc and presentation review (Microsoft Writing Style Guide)   |
 
-## Commands
+## Where do I start?
 
-| Command                               | Description                                                      |
-|---------------------------------------|------------------------------------------------------------------|
-| `/krci-architect:plan-feature`        | Guided workflow for planning multi-repository features           |
-| `/krci-architect:bootstrap-workspace` | Clone selected KubeRocketCI repositories into a workspace        |
-| `/krci-architect:technical-review`    | Validate designs against KRCI reference architecture             |
-| `/krci-fullstack:implement-feature`   | Phased workflow for implementing portal features                 |
-| `/krci-fullstack:fix-issue`           | Phased workflow for diagnosing and fixing portal issues          |
-| `/krci-godev:review-code`             | Review Go code for best practices and standards                  |
-| `/krci-devops:add-pipeline`           | Onboard new Tekton Build and Review pipelines                    |
-| `/krci-devops:add-task`               | Onboard a new Tekton Task                                        |
-| `/krci-devops:add-trigger`            | Create Tekton Triggers for VCS webhook integration               |
-| `/krci-general:commit`                | Generate conventional commit message from staged changes         |
-| `/krci-general:review`                | Review code for bugs, security issues, and convention violations |
+Run `/krci-help:help` for the full map of every agent, command, and skill — or ask the **advisor** agent which plugin fits your task. That map lives inside the plugin, so it never goes stale here.
 
 ## Contributing
 
-### Version Bump Requirement
-
-Every PR that modifies plugin files **must** include a version bump in the affected plugin's manifest. CI will block the merge otherwise.
-
-1. Identify which plugin(s) your changes touch (anything under `plugins/<name>/`)
-2. Bump the `version` field in `plugins/<name>/.claude-plugin/plugin.json`
-3. Follow [semantic versioning](https://semver.org): `MAJOR.MINOR.PATCH`
-   - **PATCH** — bug fixes, typo corrections, minor skill/command tweaks
-   - **MINOR** — new commands, skills, agents, or meaningful behavior changes
-   - **MAJOR** — breaking changes to command interfaces or plugin structure
+Every PR that touches `plugins/<name>/` **must** bump the `version` in that plugin's `.claude-plugin/plugin.json` ([semver](https://semver.org): PATCH = fixes, MINOR = new/changed behavior, MAJOR = breaking). CI blocks the merge otherwise. See [CLAUDE.md](CLAUDE.md) for conventions.
 
 ## License
 
