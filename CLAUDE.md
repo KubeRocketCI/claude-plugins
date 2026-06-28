@@ -17,15 +17,20 @@ Several rules are intentionally disabled (MD013, MD024, MD033, MD036, MD040, MD0
 
 ## Architecture
 
-The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing 5 independent plugins under `plugins/`:
+The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing 10 independent plugins under `plugins/`. They split into **dev** plugins (write/review code or config, assume a real codebase), **agnostic** plugins (planning, analysis, testing, writing artifacts — any project), and one **meta** plugin (ecosystem guide).
 
-| Plugin | Components | Domain |
-|--------|-----------|--------|
-| **krci-architect** | agent + 3 commands + 2 skills + scripts | Cross-repo architecture planning, workspace provisioning |
-| **krci-fullstack** | agent + 2 commands + 8 skills | React/TypeScript/Radix UI portal development |
-| **krci-devops** | agent + 4 commands + 3 skills | Tekton pipeline/task/trigger automation, GitLab CI components |
-| **krci-godev** | agent + 2 skills | Go operator and CRD development |
-| **krci-general** | 1 agent + 2 commands | General-purpose utilities (code review, commit message generation) |
+| Plugin | Components | Kind | Domain |
+|--------|-----------|------|--------|
+| **krci-help** | agent + command + skill | meta | Ecosystem guide + SDLC framework knowledge |
+| **krci-architect** | agent + commands + skills + script | dev | Cross-repo architecture planning, workspace provisioning |
+| **krci-fullstack** | agent + commands + skills | dev | React/TypeScript/Radix UI portal development |
+| **krci-devops** | agent + commands + skills | dev | Tekton pipeline/task/trigger automation, GitLab CI components |
+| **krci-godev** | agent + command + skill + references | dev | Go operator and CRD development |
+| **krci-general** | agent + commands | dev (utility) | General utilities (code review, commit message generation) |
+| **krci-ba** | agent + skills | agnostic | Business analysis: requirements, processes, journeys, business rules |
+| **krci-docs** | agent + skills | agnostic | Documentation and presentation review |
+| **krci-product** | agents + skills | agnostic | Product/project lifecycle + go-to-market |
+| **krci-qa** | agents + skills | agnostic | Manual and automated quality assurance |
 
 ## Plugin Component Conventions
 
@@ -39,12 +44,29 @@ Each plugin lives at `plugins/<name>/` and must have `.claude-plugin/plugin.json
 
 **Scripts** (`scripts/*.sh`): Standalone bash utilities. Reference from commands via `${CLAUDE_PLUGIN_ROOT}/scripts/`.
 
+**References** (`references/*.md`): Shared knowledge files that are not auto-discovered components. Used either inside a skill (`skills/<name>/references/`) or at the plugin root when both a command and an agent consume them (e.g. `krci-godev/references/` is read by the `/krci-godev:review-code` command and the `go-dev` agent). Reference from commands/agents via `${CLAUDE_PLUGIN_ROOT}/references/`.
+
+Small, purely procedural skills may be self-contained (no `references/` subdirectory); larger skills should keep a lean SKILL.md and push depth into `references/`.
+
+## Hand-maintained inventories (keep in sync)
+
+Four surfaces describe the marketplace contents by hand and **must be updated together** whenever a plugin's agents/commands/skills change, or a plugin is added/removed:
+
+1. `.claude-plugin/marketplace.json` — registered plugins (name, source, description, keywords)
+2. `plugins/krci-help/commands/help.md` — the terse `/krci-help:help` map (human-facing)
+3. `plugins/krci-help/skills/krci-sdlc-framework/references/plugin-mapping.md` — the detailed inventory (agent/command/skill handles)
+4. this file (`CLAUDE.md`) — the architecture table above (coarse-grained: update only when a plugin is added/removed or gains/loses a whole component type — not on every individual skill or command)
+
 ## Key Patterns
 
 - Commands use multi-phase workflows with explicit user checkpoints via `AskUserQuestion`
 - krci-architect follows a **consultative pattern**: present options, never auto-decide, stop at checkpoints
 - Agent descriptions must include `<example>` blocks with `<commentary>` for accurate routing
 - Skills use progressive disclosure: lean SKILL.md pointing to detailed `references/` files
+- Agents use `model: inherit` — except `krci-general`'s `code-reviewer`, which deliberately pins `model: sonnet` so reviews run on a consistent, cost-appropriate model. Don't switch it to `inherit` without reason.
+- Skill descriptions follow the house pattern: third person, opening with "This skill should be used when…", quoted trigger phrases, and a closing "for X, defer to Y" negative scope
+- Keep `CLAUDE.md` free of dynamic data (plugin versions, exact component counts) — that lives in `plugin.json` and the filesystem; mirroring it here only invites drift
+- Changing any of a plugin's files requires a MINOR bump of that plugin's `version` in its `.claude-plugin/plugin.json` — CI enforces one version bump per changed plugin
 - All plugins use Apache-2.0 license, author "KubeRocketCI Team"
 
 ## Plugin Cache

@@ -1,27 +1,23 @@
 ---
-name: KRCI Go Code Review
-description: This skill should be used when the user asks to "review Go code", "check Go best practices", "review operator code", "check CRD implementation", "review controller", or "check error handling". Applies Effective Go, Google Style Guide, and Kubernetes operator patterns.
+description: Review Go and Kubernetes operator code against Effective Go, the Google Go Style Guide, and KRCI operator best practices, producing a structured review.
 argument-hint: <file, folder, or scope>
-allowed-tools: [Bash]
-disable-model-invocation: true
-authors:
-    - Sergiy Kulanov <sergiy_kulanov@epam.com>
+allowed-tools: [Read, Grep, Glob, Bash]
 ---
 
 # Go Code Review
 
-Review Go code against idiomatic standards (Effective Go, Google Style Guide) and Kubernetes operator best practices. When the code involves operators, CRDs, or controllers, apply both Go standards and operator patterns.
+Review the Go code at `$ARGUMENTS` against idiomatic standards (Effective Go, Google Style Guide) and Kubernetes operator best practices. When the code involves operators, CRDs, or controllers, apply both Go standards and operator patterns.
 
 ## Review Workflow
 
 1. **Read and analyze** the code at `$ARGUMENTS`
-2. **Read `references/go-coding-standards.md`** and apply Go coding standards to the code
+2. **Read `${CLAUDE_PLUGIN_ROOT}/references/go-coding-standards.md`** and apply Go coding standards to the code
 3. **Determine if the code involves Kubernetes operators/CRDs/controllers** by checking for:
    - Imports from `sigs.k8s.io/controller-runtime`
    - CRD struct definitions with kubebuilder markers
    - Reconcile methods or controller implementations
    - Kubernetes client-go usage
-4. **If operator/controller code detected**, read `references/operator-best-practices.md` and apply operator patterns
+4. **If operator/controller code detected**, read `${CLAUDE_PLUGIN_ROOT}/references/operator-best-practices.md` and apply operator patterns
 5. **Produce output** in the structured format below
 
 ## Review Output Format
@@ -87,5 +83,5 @@ A comment that demonstrably only restates adjacent code is a verifiable finding 
 
 ## Reference Files
 
-- **`references/go-coding-standards.md`** — Complete Go coding standards covering naming, formatting, error handling, architecture, concurrency, testing, security, performance, API design. Read when you need detailed guidance on a specific Go idiom or pattern.
-- **`references/operator-best-practices.md`** — Complete Kubernetes operator patterns covering CRD design, controller architecture, RBAC, on-cluster behavior, versioning, cleanup. Read when reviewing operator or controller code.
+- **`${CLAUDE_PLUGIN_ROOT}/references/go-coding-standards.md`** — Complete Go coding standards covering naming, formatting, error handling, architecture, concurrency, testing, security, performance, API design. Read when you need detailed guidance on a specific Go idiom or pattern.
+- **`${CLAUDE_PLUGIN_ROOT}/references/operator-best-practices.md`** — Complete Kubernetes operator patterns covering CRD design, controller architecture, RBAC, on-cluster behavior, versioning, cleanup. Read when reviewing operator or controller code.

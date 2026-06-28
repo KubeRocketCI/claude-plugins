@@ -42,7 +42,7 @@ Reference skills: `edp-tekton-standards`, `edp-tekton-triggers`.
 
 1. **krci-architect / architect** — design the operator and reconciliation model if it is non-trivial or cross-repo.
 2. **krci-godev / go-dev** — implement the operator, CRDs, and controller loop.
-3. **krci-godev** — `run-golangci-lint` to clean up, `review-code` for operator-pattern review.
+3. **krci-godev** — `run-golangci-lint` to clean up, `/krci-godev:review-code` for operator-pattern review.
 4. **krci-general** — `/krci-general:review` and `/krci-general:commit`.
 5. **krci-qa** — validate behavior; **krci-docs** — document the API/CRD.
 

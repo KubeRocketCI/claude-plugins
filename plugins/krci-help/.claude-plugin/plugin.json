@@ -1,6 +1,6 @@
 {
   "name": "krci-help",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "KubeRocketCI ecosystem guide - dry, caveman-style map of all KRCI plugins, agents, and skills plus the SDLC AI framework (which agent runs which pipeline stage)",
   "author": {
     "name": "KubeRocketCI Team",

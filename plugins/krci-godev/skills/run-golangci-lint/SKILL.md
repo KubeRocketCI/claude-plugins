@@ -1,6 +1,6 @@
 ---
 name: run-golangci-lint
-description: This skill should be used when the user asks to "run golangci-lint", "fix lint errors", "run linter", "fix linting warnings", "make lint", "run make lint-fix", or mentions golangci-lint, linting, or golangci-lint tool execution. This skill runs tools — for conceptual Go coding guidance, defer to go-coding-standards.
+description: This skill should be used when the user asks to "run golangci-lint", "fix lint errors", "run linter", "fix linting warnings", "make lint", "run make lint-fix", or mentions golangci-lint, linting, or golangci-lint tool execution. This skill runs tools — for conceptual Go coding guidance or a structured review, defer to the `/krci-godev:review-code` command.
 allowed-tools: Bash(make:*)
 authors:
     - Sergiy Kulanov <sergiy_kulanov@epam.com>

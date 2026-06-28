@@ -2,7 +2,7 @@
 
 Complete map of the KubeRocketCI Claude Code marketplace. Use this to give the user the exact handle to invoke. Counts and contents reflect the marketplace at the time of writing; if a plugin has changed, prefer what is actually installed.
 
-> **Maintenance:** this inventory is hardcoded. When a plugin is added, removed, or its agents/commands/skills change, update this file and the `/krci-help:help` command to match — they are the two sources kept by hand.
+> **Maintenance:** this inventory is hardcoded. When a plugin is added, removed, or its agents/commands/skills change, update the **three** hand-maintained surfaces together: this file, the `/krci-help:help` command (`commands/help.md`), and the marketplace manifest (`.claude-plugin/marketplace.json`).
 
 Legend: **DEV** = writes/reviews code or config (assumes a codebase). **AGNOSTIC** = planning/analysis/testing/writing artifacts (any project). **META** = describes the ecosystem.
 
@@ -13,7 +13,8 @@ Legend: **DEV** = writes/reviews code or config (assumes a codebase). **AGNOSTIC
 ### krci-godev — DEV
 Go and Kubernetes operator development.
 - **Agent** `go-dev`: implements Go, Kubernetes operators, CRDs, controller reconciliation loops; reviews Go.
-- **Skills**: `review-code` (Effective Go + Google style + operator patterns), `run-golangci-lint` (`golangci-lint` / `make lint` / `lint-fix`).
+- **Command** `/krci-godev:review-code`: structured Go/operator review (Effective Go + Google style + operator patterns).
+- **Skills**: `run-golangci-lint` (`golangci-lint` / `make lint` / `lint-fix`).
 - **Use when**: writing Go, building an operator/CRD, fixing lint.
 
 ### krci-fullstack — DEV

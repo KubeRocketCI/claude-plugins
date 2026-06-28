@@ -1,7 +1,7 @@
 ---
 name: devops
 description: |
-  Use this agent for Tekton pipeline/task onboarding, trigger configuration, or GitLab CI component development within KubeRocketCI. Examples:
+  Use this agent for Tekton pipeline/task onboarding, trigger configuration, or GitLab CI component development within KubeRocketCI. Not for Go/operator code (use the go-dev agent), portal UI (use the fullstack-dev agent), or cross-repo architecture design (use the architect agent). Examples:
 
   <example>
   Context: User wants to onboard a new Tekton pipeline for a language

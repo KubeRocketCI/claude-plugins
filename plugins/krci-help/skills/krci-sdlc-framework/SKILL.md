@@ -1,6 +1,6 @@
 ---
 name: krci-sdlc-framework
-description: Authoritative knowledge of the KubeRocketCI (KRCI) SDLC AI framework and how it maps onto the KRCI Claude Code plugin marketplace. Use this whenever the user asks which KRCI plugin/agent/skill to use for a goal, how the SDLC artifact pipeline flows (project brief → PRD → epic → story → architecture → code → test → MVP → marketing), who owns which artifact or handoff, how to chain plugins into an end-to-end pipeline (idea-to-shipped-feature, onboard-a-tekton-pipeline, ship-a-go-operator, build-a-portal-feature, plan-a-project, go-to-market). Consult it for any KRCI ecosystem-routing or workflow-sequencing question even when the user does not name the framework explicitly.
+description: This skill should be used when the user asks which KRCI plugin/agent/skill to use for a goal, how the SDLC artifact pipeline flows (project brief → PRD → epic → story → architecture → code → test → MVP → marketing), who produces or owns which artifact or handoff, or how to chain plugins into an end-to-end pipeline (idea-to-shipped-feature, onboard-a-tekton-pipeline, ship-a-go-operator, build-a-portal-feature, plan-a-project, go-to-market). It is the authoritative map of the KubeRocketCI (KRCI) SDLC AI framework onto the plugin marketplace. Use it for any KRCI ecosystem-routing or workflow-sequencing question even when the framework is not named explicitly; to actually execute a single stage, defer to that stage's own plugin/skill.
 ---
 
 # KRCI SDLC Framework

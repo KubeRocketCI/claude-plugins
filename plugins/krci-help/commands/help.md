@@ -8,6 +8,9 @@ allowed-tools: []
 
 Print the ecosystem map below. Keep it DRY and terse — caveman tone, short lines, no marketing fluff. This is hardcoded reference; do NOT scan the filesystem unless the user asks to refresh it.
 
+<!-- MAINTAINER (do not print): this map is hand-maintained. When a plugin's agents/commands/skills change, update it together with skills/krci-sdlc-framework/references/plugin-mapping.md and ../../.claude-plugin/marketplace.json. -->
+
+
 If `$ARGUMENTS` names one plugin (e.g. `krci-godev`), print only that plugin's block plus the SDLC line that mentions it. Otherwise print the whole map.
 
 After printing, end with one line: tell the user the **advisor** agent (this plugin) can guide them deeper — "ask advisor which plugin for your work."
@@ -25,7 +28,8 @@ TWO KIND PLUGIN:
 
 **krci-godev — GO HUNTER**
 - AGENT: go-dev. write Go. make k8s operator. make CRD. controller loop. review Go.
-- SKILL: review-code, run-golangci-lint.
+- CMD: /krci-godev:review-code.
+- SKILL: run-golangci-lint.
 - USE WHEN: you build Go. you build operator. you fix lint.
 
 **krci-fullstack — PORTAL HUNTER**
