@@ -9,6 +9,18 @@
   },
   "plugins": [
     {
+      "name": "krci-help",
+      "source": "./plugins/krci-help",
+      "description": "KubeRocketCI ecosystem guide - dry, caveman-style map of all KRCI plugins, agents, and skills plus the SDLC AI framework (which agent runs which pipeline stage)",
+      "category": "guide",
+      "keywords": ["kuberocketci", "help", "ecosystem", "sdlc", "guide", "advisor", "meta", "pipelines", "use-cases"],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    },
+    {
       "name": "krci-godev",
       "source": "./plugins/krci-godev",
       "description": "KubeRocketCI Go Developer agent - Expert Go and Kubernetes operator development assistance",
