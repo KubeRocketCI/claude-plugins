@@ -13,11 +13,11 @@ This is a Claude Code plugin marketplace (`kuberocketci-plugins`) containing AI 
 markdownlint '**/*.md'
 ```
 
-Several rules are intentionally disabled (MD013, MD024, MD033, MD036, MD040, MD041, MD060) - do not re-enable them.
+Several rules are intentionally disabled in `.markdownlint.yaml` - do not re-enable them.
 
 ## Architecture
 
-The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing 10 independent plugins under `plugins/`. They split into **dev** plugins (write/review code or config, assume a real codebase), **agnostic** plugins (planning, analysis, testing, writing artifacts — any project), and one **meta** plugin (ecosystem guide).
+The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing independent plugins under `plugins/`. They split into **dev** plugins (write/review code or config, assume a real codebase), **agnostic** plugins (planning, analysis, testing, writing artifacts — any project), and a **meta** plugin (ecosystem guide).
 
 | Plugin | Components | Kind | Domain |
 |--------|-----------|------|--------|
@@ -50,7 +50,7 @@ Small, purely procedural skills may be self-contained (no `references/` subdirec
 
 ## Hand-maintained inventories (keep in sync)
 
-Four surfaces describe the marketplace contents by hand and **must be updated together** whenever a plugin's agents/commands/skills change, or a plugin is added/removed:
+Several surfaces describe the marketplace contents by hand and **must be updated together** whenever a plugin's agents/commands/skills change, or a plugin is added/removed:
 
 1. `.claude-plugin/marketplace.json` — registered plugins (name, source, description, keywords)
 2. `plugins/krci-help/commands/help.md` — the terse `/krci-help:help` map (human-facing)
@@ -66,7 +66,7 @@ Four surfaces describe the marketplace contents by hand and **must be updated to
 - Agents use `model: inherit` — except `krci-general`'s `code-reviewer`, which deliberately pins `model: sonnet` so reviews run on a consistent, cost-appropriate model. Don't switch it to `inherit` without reason.
 - Skill descriptions follow the house pattern: third person, opening with "This skill should be used when…", quoted trigger phrases, and a closing "for X, defer to Y" negative scope
 - Keep `CLAUDE.md` free of dynamic data (plugin versions, exact component counts) — that lives in `plugin.json` and the filesystem; mirroring it here only invites drift
-- Changing any of a plugin's files requires a MINOR bump of that plugin's `version` in its `.claude-plugin/plugin.json` — CI enforces one version bump per changed plugin
+- Changing any of a plugin's files requires a `version` bump in that plugin's `.claude-plugin/plugin.json` — CI (`check-plugin-version.yml`) enforces that the version *increases* per changed plugin (it does not mandate a specific level). Pick the level per semver: PATCH = fixes/typos, MINOR = new commands/skills/agents or behavior changes, MAJOR = breaking interface/structure changes
 - All plugins use Apache-2.0 license, author "KubeRocketCI Team"
 
 ## Plugin Cache
