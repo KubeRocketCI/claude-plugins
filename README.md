@@ -47,7 +47,8 @@ claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-de
 
 | Plugin             | Scope    | Domain                                                        |
 |--------------------|----------|---------------------------------------------------------------|
-| **krci-help**      | KRCI     | Ecosystem guide, SDLC map, multi-repo workspace provisioning  |
+| **krci-help**      | KRCI     | Ecosystem guide, SDLC map                                     |
+| **krci-triage**    | KRCI     | Testbed setup, workspace bootstrap, Jira-driven fix on a real cluster |
 | **krci-architect** | KRCI     | Cross-repo feature planning, design validation                |
 | **krci-godev**     | KRCI     | Go, Kubernetes operators, CRDs, controller reconciliation     |
 | **krci-fullstack** | KRCI     | React/TypeScript/Radix/tRPC portal development                |

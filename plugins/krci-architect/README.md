@@ -56,10 +56,6 @@ Guided 6-phase workflow for planning feature implementations.
 5. **Agent Delegation** - Delegate work to specialized agents (with user approval)
 6. **Summary** - Document decisions and next steps
 
-#### Workspace provisioning (moved out of this plugin)
-
-Provisioning a multi-repo source workspace is no longer an architect command. Use **`/krci-help:bootstrap-workspace`**, which clones all KubeRocketCI components via the standalone [`KubeRocketCI/krci-workspace`](https://github.com/KubeRocketCI/krci-workspace) repo — the single source of truth for the repo set.
-
 #### `/krci-architect:technical-review`
 
 Validates architectural designs against KRCI reference architecture.

@@ -21,7 +21,8 @@ The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing ind
 
 | Plugin | Components | Kind | Domain |
 |--------|-----------|------|--------|
-| **krci-help** | agent + commands + skill | meta | Ecosystem guide + SDLC framework knowledge + workspace provisioning |
+| **krci-help** | agent + commands + skill | meta | Ecosystem guide + SDLC framework knowledge |
+| **krci-triage** | commands + skill | dev | Jira-driven bug triage: testbed setup, workspace bootstrap, reproduce-fix-verify on a real cluster |
 | **krci-architect** | agent + commands + skills | dev | Cross-repo architecture planning |
 | **krci-fullstack** | agent + commands + skills | dev | React/TypeScript/Radix UI portal development |
 | **krci-devops** | agent + commands + skills | dev | Tekton pipeline/task/trigger automation, GitLab CI components |

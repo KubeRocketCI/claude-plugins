@@ -1,0 +1,25 @@
+{
+  "name": "krci-triage",
+  "version": "0.1.0",
+  "description": "KubeRocketCI issue triage - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix and verify a Jira-tracked issue end to end",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kuberocketci",
+    "triage",
+    "bugfix",
+    "jira",
+    "testbed",
+    "try-kuberocketci",
+    "kind",
+    "workspace",
+    "reproduce",
+    "verify",
+    "e2e"
+  ]
+}

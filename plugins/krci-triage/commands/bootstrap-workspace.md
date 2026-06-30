@@ -4,7 +4,7 @@ argument-hint: "[target-parent-directory]"
 allowed-tools: [Bash, AskUserQuestion]
 ---
 
-Provision a KubeRocketCI development workspace by cloning the **krci-workspace** meta-repo — the single source of truth for the KRCI component set — and running its bootstrap script, which clones component repositories into `sources/`.
+Provision a KubeRocketCI development workspace by cloning the **krci-workspace** meta-repo — the single source of truth for the KRCI component set — and running its bootstrap script, which clones component repositories into `sources/`. This command is **independently callable** — it does not require a testbed or any other command.
 
 Do NOT hardcode the repository list, the group names, or the number of components anywhere in this flow: the manifest lives in `krci-workspace/repos.yaml` and groups can be added or renamed there at any time. Always **discover** the current options at runtime (Step 3) and build the selection prompt from what you find. Your job is to orchestrate clone + bootstrap, then orient the user.
 
@@ -64,4 +64,4 @@ To fast-forward every cloned repo to its latest remote:
 
 ## Step 7: Orient the user
 
-Report the workspace path and how many components were cloned (and into which groups, if a subset). Point the user at `krci-workspace/CLAUDE.md` (workspace usage and commands) and `krci-workspace/sources/CLAUDE.md` (per-component architecture reference, including which specialized KRCI agent owns each repo). Both auto-load when working inside the workspace.
+Report the workspace path and how many components were cloned (and into which groups, if a subset). Point the user at `krci-workspace/CLAUDE.md` (workspace usage and commands) and `krci-workspace/sources/CLAUDE.md` (per-component architecture reference, including which specialized KRCI agent owns each repo). Both auto-load when working inside the workspace. This path is the `PATH_TO_KRCI_WORKSPACE` input for `/krci-triage:krci-fix-the-issue`.

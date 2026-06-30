@@ -16,7 +16,7 @@ The canonical end-to-end pipeline.
    - Go / operator / CRD → **krci-godev / go-dev**
    - Portal UI → **krci-fullstack / fullstack-dev** (`/krci-fullstack:implement-feature`)
    - CI/CD → **krci-devops / devops**
-   - *No source checked out yet? Provision the workspace first with `/krci-help:bootstrap-workspace` (clones the KRCI components you need into one place).*
+   - *No source checked out yet? Provision the workspace first with `/krci-triage:bootstrap-workspace` (clones the KRCI components you need into one place).*
 6. **krci-general** — review and commit along the way (`/krci-general:review`, `/krci-general:commit`).
 7. **krci-qa** — test plan + cases + execution + defects (`create-test-plan`, `generate-test-cases`, `execute-testing`, `report-defects`); BDD automation via `automation-qa-engineer`.
 8. **krci-docs / technical-writer** — document the feature (`doc-review`).
@@ -41,7 +41,7 @@ Reference skills: `edp-tekton-standards`, `edp-tekton-triggers`.
 
 ## 3. Ship a Go operator / CRD
 
-*Setup: if the source isn't checked out, provision it with `/krci-help:bootstrap-workspace` (clones KRCI components into one workspace).*
+*Setup: if the source isn't checked out, provision it with `/krci-triage:bootstrap-workspace` (clones KRCI components into one workspace).*
 
 1. **krci-architect / architect** — design the operator and reconciliation model if it is non-trivial or cross-repo.
 2. **krci-godev / go-dev** — implement the operator, CRDs, and controller loop.
@@ -53,7 +53,7 @@ Reference skills: `edp-tekton-standards`, `edp-tekton-triggers`.
 
 ## 4. Build a portal feature
 
-*Setup: clone the source with `/krci-help:bootstrap-workspace` (krci-portal alone, or all components) if you don't have it yet.*
+*Setup: clone the source with `/krci-triage:bootstrap-workspace` (krci-portal alone, or all components) if you don't have it yet.*
 
 1. **krci-architect / architect** — `/krci-architect:plan-feature` if the feature crosses repos or needs design.
 2. **krci-fullstack / fullstack-dev** — `/krci-fullstack:implement-feature` (components, forms, tables, routes, permissions, API).
@@ -106,5 +106,5 @@ Most users join mid-pipeline. Match their words to a stage:
 - "docs", "slides" → technical-writer
 - "launch", "pitch", "sales" → product-marketing-manager
 - "review my code", "commit" → krci-general
-- "get the repos", "set up workspace", "clone all the source" → krci-help (`/krci-help:bootstrap-workspace`)
+- "get the repos", "set up workspace", "clone all the source" → krci-triage (`/krci-triage:bootstrap-workspace`)
 - "which plugin?", "how does this all fit" → advisor (you)
