@@ -11,9 +11,19 @@
     {
       "name": "krci-help",
       "source": "./plugins/krci-help",
-      "description": "KubeRocketCI ecosystem guide - dry, caveman-style map of all KRCI plugins, agents, and skills plus the SDLC AI framework (which agent runs which pipeline stage); also provisions the multi-repo source workspace",
+      "description": "KubeRocketCI ecosystem guide - dry, caveman-style map of all KRCI plugins, agents, and skills plus the SDLC AI framework (which agent runs which pipeline stage)",
       "category": "guide",
-      "keywords": ["kuberocketci", "help", "ecosystem", "sdlc", "guide", "advisor", "meta", "pipelines", "use-cases", "workspace", "bootstrap"],
+      "keywords": [
+        "kuberocketci",
+        "help",
+        "ecosystem",
+        "sdlc",
+        "guide",
+        "advisor",
+        "meta",
+        "pipelines",
+        "use-cases"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -25,7 +35,14 @@
       "source": "./plugins/krci-godev",
       "description": "KubeRocketCI Go Developer agent - Expert Go and Kubernetes operator development assistance",
       "category": "development",
-      "keywords": ["kuberocketci", "golang", "go", "kubernetes", "operator", "crd"],
+      "keywords": [
+        "kuberocketci",
+        "golang",
+        "go",
+        "kubernetes",
+        "operator",
+        "crd"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -37,7 +54,14 @@
       "source": "./plugins/krci-general",
       "description": "General-purpose KubeRocketCI development utilities including commit message generation and code review",
       "category": "development",
-      "keywords": ["kuberocketci", "git", "commit", "conventional-commits", "code-review", "utilities"],
+      "keywords": [
+        "kuberocketci",
+        "git",
+        "commit",
+        "conventional-commits",
+        "code-review",
+        "utilities"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -49,7 +73,17 @@
       "source": "./plugins/krci-fullstack",
       "description": "KubeRocketCI Fullstack Developer agent - Expert React, TypeScript, Radix UI, Tailwind CSS, and tRPC development assistance for portal applications",
       "category": "development",
-      "keywords": ["kuberocketci", "react", "typescript", "radix-ui", "tailwind", "frontend", "trpc", "fullstack-dev", "portal"],
+      "keywords": [
+        "kuberocketci",
+        "react",
+        "typescript",
+        "radix-ui",
+        "tailwind",
+        "frontend",
+        "trpc",
+        "fullstack-dev",
+        "portal"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -61,7 +95,16 @@
       "source": "./plugins/krci-devops",
       "description": "KubeRocketCI DevOps agent - Expert automation for EDP-Tekton repository (github.com/epam/edp-tekton) pipeline and task onboarding",
       "category": "devops",
-      "keywords": ["kuberocketci", "devops", "tekton", "pipelines", "helm", "kubernetes", "automation", "edp-tekton"],
+      "keywords": [
+        "kuberocketci",
+        "devops",
+        "tekton",
+        "pipelines",
+        "helm",
+        "kubernetes",
+        "automation",
+        "edp-tekton"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -73,7 +116,16 @@
       "source": "./plugins/krci-architect",
       "description": "KubeRocketCI Architect agent - Technical architecture planning, design validation, and cross-component coordination for the KRCI ecosystem",
       "category": "architecture",
-      "keywords": ["kuberocketci", "architect", "planning", "design", "architecture", "coordination", "multi-repo", "technical-design"],
+      "keywords": [
+        "kuberocketci",
+        "architect",
+        "planning",
+        "design",
+        "architecture",
+        "coordination",
+        "multi-repo",
+        "technical-design"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -85,7 +137,16 @@
       "source": "./plugins/krci-docs",
       "description": "KubeRocketCI Technical Writer agent - documentation and presentation review applying the Microsoft Writing Style Guide and project documentation standards",
       "category": "documentation",
-      "keywords": ["kuberocketci", "technical-writer", "documentation", "docs", "presentation", "powerpoint", "writing-style", "review"],
+      "keywords": [
+        "kuberocketci",
+        "technical-writer",
+        "documentation",
+        "docs",
+        "presentation",
+        "powerpoint",
+        "writing-style",
+        "review"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -97,7 +158,16 @@
       "source": "./plugins/krci-ba",
       "description": "KubeRocketCI Business Analyst agent - requirements gathering, process analysis, business rules, and user journey mapping with BR/NFR traceability",
       "category": "business-analysis",
-      "keywords": ["kuberocketci", "business-analyst", "requirements", "process-analysis", "business-rules", "user-journey", "br-nfr", "prd"],
+      "keywords": [
+        "kuberocketci",
+        "business-analyst",
+        "requirements",
+        "process-analysis",
+        "business-rules",
+        "user-journey",
+        "br-nfr",
+        "prd"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -109,7 +179,19 @@
       "source": "./plugins/krci-product",
       "description": "KubeRocketCI Product team agents - Product Manager, Product Owner, Product Marketing Manager, and Project Manager for the full product lifecycle",
       "category": "product-management",
-      "keywords": ["kuberocketci", "product-manager", "product-owner", "product-marketing", "project-manager", "prd", "epic", "story", "roadmap", "go-to-market", "pmbok"],
+      "keywords": [
+        "kuberocketci",
+        "product-manager",
+        "product-owner",
+        "product-marketing",
+        "project-manager",
+        "prd",
+        "epic",
+        "story",
+        "roadmap",
+        "go-to-market",
+        "pmbok"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {
@@ -121,7 +203,41 @@
       "source": "./plugins/krci-qa",
       "description": "KubeRocketCI QA agents - manual and automation quality assurance: test planning, test cases, execution, defect reporting, and Gherkin test automation",
       "category": "quality-assurance",
-      "keywords": ["kuberocketci", "qa", "testing", "test-automation", "gherkin", "test-cases", "test-plan", "defects", "quality-assurance"],
+      "keywords": [
+        "kuberocketci",
+        "qa",
+        "testing",
+        "test-automation",
+        "gherkin",
+        "test-cases",
+        "test-plan",
+        "defects",
+        "quality-assurance"
+      ],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    },
+    {
+      "name": "krci-triage",
+      "source": "./plugins/krci-triage",
+      "description": "KubeRocketCI issue triage - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix and verify a Jira-tracked issue end to end",
+      "category": "development",
+      "keywords": [
+        "kuberocketci",
+        "triage",
+        "bugfix",
+        "jira",
+        "testbed",
+        "try-kuberocketci",
+        "kind",
+        "workspace",
+        "reproduce",
+        "verify",
+        "e2e"
+      ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",
       "author": {

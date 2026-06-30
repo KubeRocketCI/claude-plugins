@@ -1,6 +1,7 @@
 ---
 name: krci-sdlc-framework
-description: This skill should be used when the user asks which KRCI plugin/agent/skill to use for a goal, how the SDLC artifact pipeline flows (project brief → PRD → epic → story → architecture → code → test → MVP → marketing), who produces or owns which artifact or handoff, or how to chain plugins into an end-to-end pipeline (idea-to-shipped-feature, onboard-a-tekton-pipeline, ship-a-go-operator, build-a-portal-feature, plan-a-project, go-to-market), or how to provision the full multi-repo source workspace to develop across KRCI repos. It is the authoritative map of the KubeRocketCI (KRCI) SDLC AI framework onto the plugin marketplace. Use it for any KRCI ecosystem-routing or workflow-sequencing question even when the framework is not named explicitly; to actually execute a single stage, defer to that stage's own plugin/skill.
+description: |
+  This skill should be used when the user asks which KRCI plugin, agent, or skill to use for a goal — trigger phrases include "which plugin should I use", "who does the PRD", "how do I go from idea to shipped", "what comes after the epic", "how does the SDLC pipeline work", "which agent for Tekton", or "how do I chain plugins end to end". It is the authoritative map of the KubeRocketCI (KRCI) SDLC AI framework: what artifacts exist (project brief → PRD → epic → story → architecture → code → test → MVP → marketing), who produces or owns each one, in what order, and which plugin handles it. Use it for any KRCI ecosystem-routing or workflow-sequencing question, even when the framework is not named explicitly. For actually executing a single pipeline stage (writing the PRD, generating test cases, implementing code), defer to that stage's own plugin and skill.
 ---
 
 # KRCI SDLC Framework
@@ -36,7 +37,7 @@ Each artifact depends on the one(s) before it. Skipping a dependency is the most
 | Documentation, presentations | krci-docs (technical-writer) | agnostic |
 | Go-to-market, pitch, launch, sales | krci-product (product-marketing-manager) | agnostic |
 | Commit messages, code review (cross-cutting) | krci-general (code-reviewer) | dev (utility) |
-| Provision multi-repo source workspace (clone all KRCI repos) | krci-help (`/krci-help:bootstrap-workspace`) | meta |
+| Set up testbed/workspace, reproduce & fix a Jira bug on a cluster | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) | dev |
 | Ecosystem orientation, "which plugin?" | krci-help (advisor) | meta |
 
 **Dev vs agnostic** matters when advising: dev plugins write or review code/config and assume a real codebase; agnostic plugins produce planning, analysis, testing, and writing artifacts and apply to any project. Lead with the agnostic plugins early in the pipeline (brief→story) and the dev plugins once implementation starts.

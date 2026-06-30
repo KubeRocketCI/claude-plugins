@@ -1,7 +1,7 @@
 {
   "name": "krci-help",
-  "version": "0.3.0",
-  "description": "KubeRocketCI ecosystem guide - dry, caveman-style map of all KRCI plugins, agents, and skills plus the SDLC AI framework (which agent runs which pipeline stage); also provisions the multi-repo source workspace",
+  "version": "0.4.0",
+  "description": "KubeRocketCI ecosystem guide - dry, caveman-style map of all KRCI plugins, agents, and skills plus the SDLC AI framework (which agent runs which pipeline stage)",
   "author": {
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"
@@ -9,5 +9,15 @@
   "homepage": "https://github.com/KubeRocketCI/claude-plugins",
   "repository": "https://github.com/KubeRocketCI/claude-plugins",
   "license": "Apache-2.0",
-  "keywords": ["kuberocketci", "help", "ecosystem", "sdlc", "guide", "advisor", "meta", "pipelines", "use-cases", "workspace", "bootstrap"]
+  "keywords": [
+    "kuberocketci",
+    "help",
+    "ecosystem",
+    "sdlc",
+    "guide",
+    "advisor",
+    "meta",
+    "pipelines",
+    "use-cases"
+  ]
 }
