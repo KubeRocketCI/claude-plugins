@@ -1,7 +1,7 @@
 {
   "name": "krci-triage",
-  "version": "0.1.0",
-  "description": "KubeRocketCI issue triage - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix and verify a Jira-tracked issue end to end",
+  "version": "0.2.0",
+  "description": "KubeRocketCI testbed and workspace toolkit - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix, and verify code changes on the cluster, including end-to-end Jira-tracked issue triage",
   "author": {
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"

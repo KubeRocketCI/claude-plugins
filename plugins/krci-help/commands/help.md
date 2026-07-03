@@ -59,11 +59,11 @@ TWO KIND PLUGIN:
 - CMD: /krci-general:commit, /krci-general:review.
 - USE WHEN: you commit. you want code review. any language.
 
-**krci-triage — BUG HUNTER (jira → fix)**
+**krci-triage — TESTBED + WORKSPACE TOOLKIT (jira → fix, or verify any change)**
 
 - CMD: /krci-triage:setup-testbed (stand up try-kuberocketci kind cluster), /krci-triage:bootstrap-workspace (clone all KRCI source), /krci-triage:krci-fix-the-issue (jira key → root cause → reproduce → fix → verify on cluster).
-- SKILL: krci-testbed (build+load operator to kind, kubectl reproduce, headless portal check, post QA to jira).
-- USE WHEN: you have jira bug. you want reproduce on real cluster. you set up testbed or workspace.
+- SKILL: krci-testbed (locate workspace+testbed, build+load operator to kind, kubectl reproduce, headless portal check, post QA to jira).
+- USE WHEN: you have jira bug. you want reproduce on real cluster. you set up testbed or workspace. you want verify a code change on the cluster.
 
 ## AGNOSTIC PLUGINS (think + plan + write + test)
 
@@ -123,7 +123,7 @@ WHO DO WHAT:
 | docs, slides | krci-docs (technical-writer) |
 | go-to-market | krci-product (product-marketing-manager) |
 | commit, code review | krci-general (any time, any stage) |
-| set up testbed + workspace, fix jira bug | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) |
+| set up testbed + workspace, fix jira bug, verify change on cluster | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) |
 | lost? which plugin? | krci-help (advisor) |
 
 ME DONE. YOU PICK PLUGIN. GO HUNT.

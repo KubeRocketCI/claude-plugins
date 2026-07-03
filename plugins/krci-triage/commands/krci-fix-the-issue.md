@@ -14,25 +14,20 @@ phases. Stay on ONE issue.
 source workspace (optional), `$3` = path to the try-kuberocketci testbed (optional). When a
 path is omitted, discover it (Phase 0); never hardcode cluster specifics.
 
-**Load the `krci-testbed` skill now** — it defines how to discover testbed capabilities and
-the techniques/gotchas for operator rebuilds, kubectl reproduction, headless Portal checks,
-and posting to Jira. Load component skills (e.g. from krci-godev / krci-fullstack) later,
-once Phase 2 reveals which repos/layers are involved.
+**Load the `krci-testbed` skill now** — its "Locate the workspace and testbed" section
+covers resolving `$2`/`$3` and reading their `CLAUDE.md` files (step 2 below), and the rest
+of the skill defines the techniques/gotchas for operator rebuilds, kubectl reproduction,
+headless Portal checks, and posting to Jira. Load component skills (e.g. from krci-godev /
+krci-fullstack) later, once Phase 2 reveals which repos/layers are involved.
 
 ---
 
 ## Phase 0: Intake & prerequisites
 
 1. If `$1` (Jira key) is missing, ask for it via AskUserQuestion. Stop until you have it.
-2. Resolve the **workspace** (`$2`): use the arg if given; else look for a `krci-workspace`
-   (a dir containing `sources/CLAUDE.md` or `repos.yaml`) at/near the cwd. If absent, tell
-   the user to run `/krci-triage:bootstrap-workspace` first (or offer to run it), then continue.
-3. Resolve the **testbed** (`$3`): use the arg if given; else look for a `try-kuberocketci`
-   dir (kind config + Makefile + a KRCI-testbed CLAUDE.md). If absent or the cluster isn't
-   reachable, tell the user to run `/krci-triage:setup-testbed` first (or offer to run it).
-4. Read `<workspace>/sources/CLAUDE.md` (component map) and `<testbed>/CLAUDE.md` (cluster
-   capabilities). Discover and record: kube context, platform namespace, portal token
-   command, portal URL. Create the TodoWrite phase list.
+2. Resolve the workspace (`$2`) and testbed (`$3`) per the skill's "Locate the workspace and
+   testbed" section, using `$2`/`$3` as the given paths when present.
+3. Create the TodoWrite phase list.
 
 ## Phase 1: Understand the ticket
 

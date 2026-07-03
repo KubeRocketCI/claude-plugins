@@ -54,13 +54,14 @@ General code utilities, any language, any stage.
 - **Commands**: `/krci-general:commit` (conventional commit from staged changes), `/krci-general:review` (3 parallel review agents: simplicity, bugs, conventions).
 - **Use when**: writing a commit message or reviewing code at any point in the pipeline.
 
-### krci-triage — DEV (Jira-driven bug fixing on a testbed)
+### krci-triage — DEV (Jira-driven bug fixing and feature validation on a testbed)
 
-Set up the prerequisites and fix a Jira-tracked issue end to end on a real cluster.
+Set up the prerequisites, fix a Jira-tracked issue end to end on a real cluster, and/or
+validate any feature work against it.
 
 - **Commands**: `/krci-triage:setup-testbed` (clone/stand up a `try-kuberocketci` kind cluster), `/krci-triage:bootstrap-workspace` (clone the multi-repo KRCI source workspace via `KubeRocketCI/krci-workspace`), `/krci-triage:krci-fix-the-issue` (Jira key → root cause across the workspace → reproduce on the testbed → fix at the right layer → verify on the cluster → optional QA comment back to Jira).
-- **Skills**: `krci-testbed` (discovering a testbed's specifics; operator rebuild loop build→`kind load`→roll out; reproducing via the Kubernetes API; headless Portal verification with Playwright, not the MCP; posting to Jira without mangling code).
-- **Use when**: you have a Jira bug to reproduce/fix on a real cluster, or you need to provision the source workspace or a local testbed.
+- **Skills**: `krci-testbed` (locates the workspace/testbed and their `CLAUDE.md` capabilities; operator rebuild loop build→`kind load`→roll out; reproducing via the Kubernetes API; headless Portal verification with Playwright, not the MCP; posting to Jira without mangling code).
+- **Use when**: you have a Jira bug to reproduce/fix on a real cluster, you need to provision the source workspace or a local testbed, or you want to validate a code change on the testbed.
 
 ---
 
