@@ -45,7 +45,7 @@ Project Brief → PRD → Epic → Story → Architecture → Code → Test → 
 | Docs | krci-docs |
 | Go-to-market | krci-product (product-marketing-manager) |
 | Commit, review (any time) | krci-general |
-| Set up testbed, fix Jira bug | krci-triage |
+| Set up testbed, verify a change, fix Jira bug | krci-triage |
 | Lost? | krci-help (advisor) |
 
 ## Installation

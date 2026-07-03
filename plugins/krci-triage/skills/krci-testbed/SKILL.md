@@ -1,9 +1,24 @@
 ---
 name: krci-testbed
-description: This skill should be used when the user asks to reproduce, deploy, or verify a code change against a running KubeRocketCI (KRCI) test cluster — phrasings like "reproduce on the testbed", "verify the fix on the cluster", "test my operator change on kind", "deploy the operator to the testbed", "drive the portal headlessly", "run end-to-end tests against the cluster", "write test results to Jira", or "add a QA comment to the ticket". It encodes only the non-obvious, hard-won facts that the testbed and workspace repos do not document. For standing the cluster up, acquiring tokens, or switching contexts, defer to the testbed repo's own CLAUDE.md and Makefile targets directly.
+description: This skill should be used when the user asks to reproduce, deploy, or verify a code change against a running KubeRocketCI (KRCI) test cluster — phrasings like "reproduce on the testbed", "verify the fix on the cluster", "validate this feature on the testbed", "test my operator change on kind", "deploy the operator to the testbed", "drive the portal headlessly", "run end-to-end tests against the cluster", "load my krci workspace and testbed context", "write test results to Jira", or "add a QA comment to the ticket". It encodes only the non-obvious, hard-won facts that the testbed and workspace repos do not document. For standing the cluster up, acquiring tokens, or switching contexts, defer to the testbed repo's own CLAUDE.md and Makefile targets directly.
 ---
 
 The testbed repo's `CLAUDE.md`, `README`, and `Makefile` are the authoritative source for the cluster architecture, QEMU rule, make targets (`preflight`, `stand-up`, `token`, `status`, `teardown`), the kube context name, the namespaces, the "use a self-contained Playwright script, not the MCP" rule, and the zsh `$VAR` word-splitting caveat. The workspace's `sources/CLAUDE.md` documents the component map. This skill records only what those files do not.
+
+## 0. Locate the workspace and testbed
+
+Do this once per session, for any KRCI task (bug fix or feature work) that touches source
+and/or the cluster:
+
+- **Workspace**: use a given path if one was provided; else look for a `krci-workspace` dir
+  (contains `sources/CLAUDE.md` or `repos.yaml`) at/near the cwd. If absent, run
+  `/krci-triage:bootstrap-workspace` (or tell the user to).
+- **Testbed**: use a given path if one was provided; else look for a `try-kuberocketci` dir
+  (kind config + Makefile + CLAUDE.md) at/near the cwd. If absent or the cluster isn't
+  reachable, run `/krci-triage:setup-testbed` (or tell the user to).
+- Read `<workspace>/sources/CLAUDE.md` (component map) and `<testbed>/CLAUDE.md` (cluster
+  capabilities). From the latter, record the kube context, platform namespace, portal token
+  command, and portal URL — never hardcode these.
 
 ## 1. Testing a *local operator change* on the cluster
 

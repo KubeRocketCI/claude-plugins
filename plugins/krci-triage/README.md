@@ -1,9 +1,9 @@
 # krci-triage
 
-Jira-driven issue triage for KubeRocketCI. One plugin to set up the two prerequisites — a
-multi-repo **source workspace** and a local **try-kuberocketci testbed** — and then quickly
-**diagnose, reproduce, fix, and verify** a Jira-tracked issue across operators, the portal,
-and charts. Each command is independently callable.
+KubeRocketCI testbed and workspace toolkit. Provision the two prerequisites — a multi-repo
+**source workspace** and a local **try-kuberocketci testbed** — then **diagnose, reproduce,
+fix, and verify** code changes across operators, the portal, and charts, including
+end-to-end Jira-tracked issue triage. Each command is independently callable.
 
 ## Commands
 
@@ -43,7 +43,8 @@ branch + conventional commit → optional QA comment back to Jira.
 
 ## Skill
 
-- **krci-testbed** — how to discover a testbed's specifics from its own docs, plus the
+- **krci-testbed** — locates the workspace and testbed (or points to the setup commands if
+  missing) and reads their `CLAUDE.md` files for cluster capabilities, then covers the
   transferable techniques and gotchas: operator rebuild loop (build → `kind load` → roll
   out), reproducing through the Kubernetes API, headless Portal verification with Playwright
   (not the MCP), shell/safety notes, and posting results to Jira without mangling code blocks.
@@ -53,8 +54,12 @@ branch + conventional commit → optional QA comment back to Jira.
 ```
 /krci-triage:setup-testbed            # once: stand up the cluster (long-running)
 /krci-triage:bootstrap-workspace      # once: clone the component repos
-/krci-triage:krci-fix-the-issue EPMDEDP-1234   # repeat: per ticket
+/krci-triage:krci-fix-the-issue EPMDEDP-1234   # repeat: per Jira ticket
 ```
+
+To validate any code change on the testbed directly, ask Claude to verify it on the cluster
+(e.g. "verify my change on the cluster") — the `krci-testbed` skill triggers on its own,
+locates the workspace/testbed, and applies the same rebuild/reproduce/verify techniques.
 
 ## Installation
 

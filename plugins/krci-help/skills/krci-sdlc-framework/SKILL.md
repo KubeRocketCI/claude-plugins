@@ -37,7 +37,7 @@ Each artifact depends on the one(s) before it. Skipping a dependency is the most
 | Documentation, presentations | krci-docs (technical-writer) | agnostic |
 | Go-to-market, pitch, launch, sales | krci-product (product-marketing-manager) | agnostic |
 | Commit messages, code review (cross-cutting) | krci-general (code-reviewer) | dev (utility) |
-| Set up testbed/workspace, reproduce & fix a Jira bug on a cluster | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) | dev |
+| Set up testbed/workspace, verify a change on a cluster, reproduce & fix a Jira bug | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) | dev |
 | Ecosystem orientation, "which plugin?" | krci-help (advisor) | meta |
 
 **Dev vs agnostic** matters when advising: dev plugins write or review code/config and assume a real codebase; agnostic plugins produce planning, analysis, testing, and writing artifacts and apply to any project. Lead with the agnostic plugins early in the pipeline (brief→story) and the dev plugins once implementation starts.
