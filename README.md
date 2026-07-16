@@ -33,7 +33,7 @@ flowchart LR
 - Write PRDs, epics, stories, go-to-market → **krci-product**
 - Gather requirements & business rules → **krci-ba**
 - Plan & run tests, report defects → **krci-qa**
-- Review docs & slides → **krci-docs**
+- Review docs & slides, script & build overview videos → **krci-docs**
 - Generate commits & review code → **krci-general**
 
 ## Installation
@@ -53,11 +53,11 @@ claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-de
 | **krci-godev**     | KRCI     | Go, Kubernetes operators, CRDs, controller reconciliation     |
 | **krci-fullstack** | KRCI     | React/TypeScript/Radix/tRPC portal development                |
 | **krci-devops**    | KRCI     | Tekton pipeline/task/trigger + GitLab CI components           |
+| **krci-docs**      | KRCI     | Doc/presentation review, overview video production, platform RELEASES.md (Microsoft Writing Style Guide) |
 | **krci-general**   | agnostic | Commit messages, code review (any language)                   |
 | **krci-ba**        | agnostic | Requirements, processes, business rules, user journeys        |
 | **krci-product**   | agnostic | PRDs, epics, stories, charters, go-to-market                  |
 | **krci-qa**        | agnostic | Test plans, test cases, execution, defects, Gherkin           |
-| **krci-docs**      | agnostic | Doc and presentation review (Microsoft Writing Style Guide)   |
 
 ## Where do I start?
 

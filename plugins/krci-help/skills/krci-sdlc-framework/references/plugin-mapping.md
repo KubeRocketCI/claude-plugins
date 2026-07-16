@@ -63,6 +63,14 @@ validate any feature work against it.
 - **Skills**: `krci-testbed` (locates the workspace/testbed and their `CLAUDE.md` capabilities; operator rebuild loop build→`kind load`→roll out; reproducing via the Kubernetes API; headless Portal verification with Playwright, not the MCP; posting to Jira without mangling code).
 - **Use when**: you have a Jira bug to reproduce/fix on a real cluster, you need to provision the source workspace or a local testbed, or you want to validate a code change on the testbed.
 
+### krci-docs — DEV
+
+Documentation, presentations, narrated overview videos, and platform release notes — all KubeRocketCI-specific.
+
+- **Agent** `technical-writer`: reviews/improves Markdown docs and PowerPoint presentations using the Microsoft Writing Style Guide and KRCI documentation standards; writes video scenarios and builds their React presentation apps; drafts platform `RELEASES.md` entries.
+- **Skills**: `doc-review`, `ppt-review`, `create-video-scenario`, `create-video-presentation-app`, `write-release-notes`.
+- **Use when**: a document or slide deck needs review/cleanup, a KubeRocketCI overview video needs a narration script and/or its presentation app built, or a platform release needs its `RELEASES.md` entry drafted.
+
 ---
 
 ## AGNOSTIC plugins
@@ -94,14 +102,6 @@ Quality assurance, manual and automated.
 - **Agent** `automation-qa-engineer`: executable Gherkin `.feature` BDD scenarios from acceptance criteria; manages the automation workspace/README.
 - **Skills**: `create-test-plan`, `generate-test-cases`, `generate-auto-test-cases`, `execute-testing`, `report-defects`, `setup-testing`, `onboard-testing`, `edit-testing-settings`, `testing-methodologies`.
 - **Use when**: planning tests, writing manual or automated test cases, running tests, or reporting defects.
-
-### krci-docs — AGNOSTIC
-
-Documentation and presentations.
-
-- **Agent** `technical-writer`: reviews/improves Markdown docs and PowerPoint presentations using the Microsoft Writing Style Guide and KRCI documentation standards.
-- **Skills**: `doc-review`, `ppt-review`.
-- **Use when**: a document or slide deck needs review/cleanup.
 
 ---
 
