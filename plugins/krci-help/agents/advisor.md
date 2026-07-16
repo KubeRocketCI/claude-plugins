@@ -68,7 +68,7 @@ You are the KubeRocketCI (KRCI) Ecosystem & SDLC Advisor. You help users navigat
 | Set up a testbed/workspace, verify a change on a real cluster, or reproduce & fix a Jira bug | krci-triage (`/krci-triage:setup-testbed`, `/krci-triage:bootstrap-workspace`, `/krci-triage:krci-fix-the-issue`) |
 | Ecosystem orientation, "which plugin?" | krci-help (advisor — you) |
 
-**Dev vs agnostic**: krci-godev, krci-fullstack, krci-devops, krci-architect, krci-general, and krci-triage are development-focused (they write or review code/config, or operate a real cluster). krci-product, krci-ba, krci-qa, and krci-docs are agnostic/process-focused (planning, analysis, testing artifacts, writing — no application code). krci-help is meta.
+**Dev vs agnostic**: krci-godev, krci-fullstack, krci-devops, krci-architect, krci-general, krci-triage, and krci-docs are development-focused (they write or review code/config, operate a real cluster, or assume the actual KubeRocketCI product/repos — e.g. krci-docs's video and release-notes skills). krci-product, krci-ba, and krci-qa are agnostic/process-focused (planning, analysis, testing artifacts, writing — apply to any project). krci-help is meta.
 
 ## Working Principles
 

@@ -135,7 +135,7 @@
     {
       "name": "krci-docs",
       "source": "./plugins/krci-docs",
-      "description": "KubeRocketCI Technical Writer agent - documentation and presentation review applying the Microsoft Writing Style Guide and project documentation standards",
+      "description": "KubeRocketCI Technical Writer agent - documentation/presentation review, narrated overview video production (scenario + React presentation app), and platform RELEASES.md authoring, applying the Microsoft Writing Style Guide and project documentation standards",
       "category": "documentation",
       "keywords": [
         "kuberocketci",
@@ -145,7 +145,12 @@
         "presentation",
         "powerpoint",
         "writing-style",
-        "review"
+        "review",
+        "video",
+        "react",
+        "scenario",
+        "release-notes",
+        "releases"
       ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",

@@ -65,6 +65,12 @@ TWO KIND PLUGIN:
 - SKILL: krci-testbed (locate workspace+testbed, build+load operator to kind, kubectl reproduce, headless portal check, post QA to jira).
 - USE WHEN: you have jira bug. you want reproduce on real cluster. you set up testbed or workspace. you want verify a code change on the cluster.
 
+**krci-docs — WORD SMITH**
+
+- AGENT: technical-writer. fix doc. fix slide. Microsoft Writing Style Guide. script video. build video app. write platform RELEASES.md.
+- SKILL: doc-review, ppt-review, create-video-scenario, create-video-presentation-app, write-release-notes.
+- USE WHEN: doc bad. slide bad. need clean word. need video script. need React slide-deck app for video. need platform RELEASES.md entry.
+
 ## AGNOSTIC PLUGINS (think + plan + write + test)
 
 **krci-product — IDEA TRIBE (4 chief)**
@@ -88,12 +94,6 @@ TWO KIND PLUGIN:
 - AGENT: automation-qa-engineer → Gherkin .feature, BDD auto test, testing workspace.
 - SKILL: create-test-plan, generate-test-cases, generate-auto-test-cases, execute-testing, report-defects, setup-testing, onboard-testing, edit-testing-settings, testing-methodologies.
 - USE WHEN: you test thing. you write test case. you find bug. you automate test.
-
-**krci-docs — WORD SMITH**
-
-- AGENT: technical-writer. fix doc. fix slide. Microsoft Writing Style Guide.
-- SKILL: doc-review, ppt-review.
-- USE WHEN: doc bad. slide bad. need clean word.
 
 ## META PLUGIN
 
@@ -120,7 +120,7 @@ WHO DO WHAT:
 | code — portal UI | krci-fullstack (fullstack-dev) |
 | CI/CD pipeline | krci-devops (devops) |
 | test, defect | krci-qa (qa-engineer, automation-qa-engineer) |
-| docs, slides | krci-docs (technical-writer) |
+| docs, slides, overview videos, release notes | krci-docs (technical-writer) |
 | go-to-market | krci-product (product-marketing-manager) |
 | commit, code review | krci-general (any time, any stage) |
 | set up testbed + workspace, fix jira bug, verify change on cluster | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) |
