@@ -28,7 +28,7 @@ The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing ind
 | **krci-devops** | agent + commands + skills | dev | Tekton pipeline/task/trigger automation, GitLab CI components |
 | **krci-godev** | agent + command + skill + references | dev | Go operator and CRD development |
 | **krci-general** | agent + commands | dev (utility) | General utilities (code review, commit message generation) |
-| **krci-docs** | agent + skills | dev | KRCI-specific: doc/presentation review, overview video production, platform RELEASES.md |
+| **krci-docs** | agent + skills | dev | KRCI-specific: doc/presentation review, overview video production, platform release documentation cycle (component audit, RELEASES.md, upgrade guide, docs versioning) |
 | **krci-ba** | agent + skills | agnostic | Business analysis: requirements, processes, journeys, business rules |
 | **krci-product** | agents + skills | agnostic | Product/project lifecycle + go-to-market |
 | **krci-qa** | agents + skills | agnostic | Manual and automated quality assurance |

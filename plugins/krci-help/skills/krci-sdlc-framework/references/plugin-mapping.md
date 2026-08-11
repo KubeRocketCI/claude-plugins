@@ -65,11 +65,12 @@ validate any feature work against it.
 
 ### krci-docs — DEV
 
-Documentation, presentations, narrated overview videos, and platform release notes — all KubeRocketCI-specific.
+Documentation, presentations, narrated overview videos, and the platform release documentation cycle — all KubeRocketCI-specific.
 
 - **Agent** `technical-writer`: reviews/improves Markdown docs and PowerPoint presentations using the Microsoft Writing Style Guide and KRCI documentation standards; writes video scenarios and builds their React presentation apps; drafts platform `RELEASES.md` entries.
-- **Skills**: `doc-review`, `ppt-review`, `create-video-scenario`, `create-video-presentation-app`, `write-release-notes`.
-- **Use when**: a document or slide deck needs review/cleanup, a KubeRocketCI overview video needs a narration script and/or its presentation app built, or a platform release needs its `RELEASES.md` entry drafted.
+- **Skills**: `doc-review`, `ppt-review`, `create-video-scenario`, `create-video-presentation-app`, `release-audit`, `write-release-notes`, `release-docs`.
+- **Use when**: a document or slide deck needs review/cleanup, a KubeRocketCI overview video needs a narration script and/or its presentation app built, or a platform release needs documenting end to end.
+- **Release cycle** — the three release skills run in order: `release-audit` (which components need a release branch, at which version — before any branch is cut) → `write-release-notes` (the `edp-install/RELEASES.md` entry) → `release-docs` (the docs site: upgrade guide, affected pages, install-guide version pins, versioned snapshot).
 
 ---
 

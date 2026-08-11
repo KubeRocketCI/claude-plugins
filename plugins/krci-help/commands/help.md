@@ -68,8 +68,9 @@ TWO KIND PLUGIN:
 **krci-docs — WORD SMITH**
 
 - AGENT: technical-writer. fix doc. fix slide. Microsoft Writing Style Guide. script video. build video app. write platform RELEASES.md.
-- SKILL: doc-review, ppt-review, create-video-scenario, create-video-presentation-app, write-release-notes.
-- USE WHEN: doc bad. slide bad. need clean word. need video script. need React slide-deck app for video. need platform RELEASES.md entry.
+- SKILL: doc-review, ppt-review, create-video-scenario, create-video-presentation-app, release-audit, write-release-notes, release-docs.
+- USE WHEN: doc bad. slide bad. need clean word. need video script. need React slide-deck app for video. need platform RELEASES.md entry. new platform release. who need new branch. what version. need upgrade guide. need docs version cut.
+- RELEASE HUNT ORDER: release-audit (who need branch) → write-release-notes (RELEASES.md) → release-docs (upgrade guide + docs version).
 
 ## AGNOSTIC PLUGINS (think + plan + write + test)
 
