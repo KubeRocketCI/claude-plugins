@@ -26,6 +26,13 @@ In `edp-install/deploy-templates/Chart.yaml`, dependencies are typically named:
 | `krci-portal` | `krci-portal` |
 | `gitfusion` | `gitfusion` |
 
+`Chart.yaml` may pin supporting infrastructure that is not a platform component and is never
+re-released. Document only the dependencies listed above; do not collect commits for the others.
+
+A dependency present at the previous platform tag but **absent** from the newer `Chart.yaml` was
+removed from the platform (for example `edp-headlamp` in 3.15). Report it as a removal — usually a
+Breaking Changes bullet — rather than silently omitting it.
+
 Compare with:
 
 ```bash

@@ -1,6 +1,6 @@
 ---
 name: KRCI Release Notes Writer
-description: This skill should be used when the user asks to "write release notes", "update RELEASES.md", "prepare notes for the X.Y.Z release", "generate KubeRocketCI release notes", or "document what changed in this platform release". Builds the full platform release entry in edp-install/RELEASES.md from component changelogs, git history, docs changes, and YouTube videos. For reviewing existing docs pages, defer to doc-review.
+description: This skill should be used when the user asks to "write release notes", "update RELEASES.md", "prepare notes for the X.Y.Z release", "generate KubeRocketCI release notes", or "document what changed in this platform release". Builds the full platform release entry in edp-install/RELEASES.md from component changelogs, git history, docs changes, and YouTube videos. This covers the changelog only. For deciding which components need a release branch and at which version, defer to release-audit; for the docs site, upgrade guide and install-guide pins, defer to release-docs; for reviewing an existing docs page, defer to doc-review.
 argument-hint: <new-version> [previous-version]
 allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, WebFetch, AskUserQuestion, TodoWrite]
 authors:
@@ -71,6 +71,11 @@ For each bumped component:
    git log v<PREV_COMPONENT>..v<NEW_COMPONENT> --oneline
    ```
 
+   **Range discipline:** always compare release tags or release branches — never the default branch.
+   Once a release is cut, `master`/`main` already carries the *next* version's work, which must not
+   leak into these notes. Where a component shipped a patch on an existing branch (for example
+   `0.6.0` → `0.6.1`), use `v<PREV>..origin/release/<X.Y>`.
+
 3. Keep `feat:` / `fix:` (and clearly user-facing `refactor:` only when behavior changes). Drop pure `chore:`, Dependabot-only bumps, CLAUDE.md, CI/changelog-format tooling, and "Update current development version" unless they ship a user-visible dependency (for example tekton-cache chart bump).
 4. For each kept change, capture: short user-facing summary, Jira id (`EPMDEDP-#####`) from the commit subject/body, and GitHub PR number when available.
 
@@ -82,6 +87,15 @@ curl -sG "https://api.github.com/search/issues" --data-urlencode "q=repo:epam/ed
 ```
 
 Respect GitHub API rate limits (pause between searches). If rate-limited, leave Jira-only and note gaps for the user. Prefer the PR in the **same repository as the commit**, not a coincidental match in another repo.
+
+**Verify every PR link before publishing.** Search results mis-map across repositories, and a wrong number in RELEASES.md is permanent. Listing merged PRs for the release window and matching on the Jira ID in the title is more reliable than per-commit search:
+
+```bash
+gh pr list --repo <org>/<repo> --state merged --limit 60 \
+  --json number,title,mergedAt -q '.[] | select(.mergedAt > "<PREV_RELEASE_DATE>") | "\(.number)|\(.title)"'
+```
+
+Before finishing, re-verify the whole set: extract every `pull/NNN` from the new entry and confirm each with `gh pr view <N> --repo <org>/<repo> --json state` — every one must report `MERGED`.
 
 ### Phase 3 — Draft platform sections (product content)
 
@@ -126,6 +140,17 @@ From the `docs` repo (git log between the previous docs release commit/tag and H
 
    - **Getting Started** includes Supported Versions and Compatibility (it is part of that sidebar group — do **not** put Supported Versions under General).
 3. Each bullet: "The [Page Title](canonical-url) page has been added/updated." + docs PR link (`KubeRocketCI/docs`).
+
+   **Never construct a docs URL from a commit message.** A plausible-looking path that does not exist
+   is a broken public link. Confirm each page exists first, and map `docs/a/b.md` →
+   `https://docs.kuberocketci.io/docs/a/b`:
+
+   ```bash
+   git -C docs ls-tree -r --name-only origin/main -- docs/ | grep -E '<slug>'
+   ```
+
+   When a page does not exist yet — for example a Supported Versions update that has not landed —
+   write the bullet **without a link** rather than inventing one, or omit it until the docs ship.
 4. Map docs commits to PRs the same way as component PRs (`repo:KubeRocketCI/docs EPMDEDP-##### is:pr is:merged`).
 
 ### Phase 5 — YouTube videos
@@ -160,3 +185,11 @@ From the `docs` repo (git log between the previous docs release commit/tag and H
 
 - **`references/releases-format.md`** — section order, wording patterns, Documentation layout, include/exclude rules, link examples.
 - **`references/component-repos.md`** — clone URLs, orgs, tag naming, Chart.yaml dependency names, helper commands.
+
+## Related Skills
+
+The release cycle runs in this order:
+
+1. **`release-audit`** — which components need a release branch and at which version (before any branch is cut).
+2. **`write-release-notes`** — this skill; the RELEASES.md entry.
+3. **`release-docs`** — the docs site: upgrade guide, affected pages, install-guide pins, versioned snapshot.

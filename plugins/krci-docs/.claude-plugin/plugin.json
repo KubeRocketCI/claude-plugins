@@ -1,7 +1,7 @@
 {
   "name": "krci-docs",
-  "version": "0.3.0",
-  "description": "KubeRocketCI Technical Writer plugin - documentation/presentation review, narrated overview video production (scenario + React presentation app), and platform RELEASES.md authoring, applying project documentation standards",
+  "version": "0.4.0",
+  "description": "KubeRocketCI Technical Writer plugin - documentation/presentation review, narrated overview video production (scenario + React presentation app), and the full platform release documentation cycle: component release audit, RELEASES.md authoring, upgrade guide and docs versioning",
   "author": {
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"
@@ -9,5 +9,22 @@
   "homepage": "https://github.com/KubeRocketCI/claude-plugins",
   "repository": "https://github.com/KubeRocketCI/claude-plugins",
   "license": "Apache-2.0",
-  "keywords": ["kuberocketci", "technical-writer", "documentation", "docs", "presentation", "powerpoint", "writing-style", "review", "video", "react", "scenario", "release-notes", "releases"]
+  "keywords": [
+    "kuberocketci",
+    "technical-writer",
+    "documentation",
+    "docs",
+    "presentation",
+    "powerpoint",
+    "writing-style",
+    "review",
+    "video",
+    "react",
+    "scenario",
+    "release-notes",
+    "releases",
+    "release-audit",
+    "upgrade-guide",
+    "versioning"
+  ]
 }
