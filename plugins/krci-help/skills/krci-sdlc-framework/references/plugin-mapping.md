@@ -43,7 +43,7 @@ Cross-repo architecture and planning.
 
 - **Agent** `architect`: plans features/epics, makes architectural decisions, coordinates across repos (portal, operators, tekton) by delegating to specialized agents.
 - **Commands**: `/krci-architect:plan-feature`, `technical-review`.
-- **Skills**: `krci-architecture` (reference architecture, DevSecOps, deployment patterns), `agent-delegation` (multi-repo coordination via the Task tool).
+- **Skills**: `krci-architecture` (reference architecture, DevSecOps, deployment patterns, mandatory workspace/testbed prerequisites, empirical validation on the try-kuberocketci testbed).
 - **Use when**: a feature spans multiple repos, or you need a design before coding.
 
 ### krci-general — DEV (utility, cross-cutting)
