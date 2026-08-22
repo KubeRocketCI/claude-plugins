@@ -4,7 +4,7 @@ KubeRocketCI Technical Architect agent for planning, designing, and validating f
 
 ## Overview
 
-The KRCI Architect plugin provides expert technical architecture guidance for implementing features in the KubeRocketCI platform. It orchestrates planning across multiple repositories (edp-tekton, krci-portal, operators), delegates work to specialized agents, and validates designs against KRCI reference architecture.
+The KRCI Architect plugin provides expert technical architecture guidance for implementing features in the KubeRocketCI platform. It orchestrates planning across the component repositories discovered from the krci-workspace checkout, delegates work to specialized agents, and validates designs against KRCI reference architecture.
 
 ## Features
 
@@ -12,7 +12,8 @@ The KRCI Architect plugin provides expert technical architecture guidance for im
 - **Agent Coordination**: Delegates implementation to specialized agents (krci-fullstack, krci-devops, krci-godev)
 - **Design Validation**: Validates technical designs against KRCI reference architecture and DevSecOps principles
 - **Research Integration**: Leverages web search to research latest Kubernetes patterns and best practices
-- **KRCI Expertise**: Deep knowledge of all 14+ platform components, deployment patterns, and integration points
+- **Workspace-Aware**: Discovers component repos from a krci-workspace checkout (`repos.yaml`, `sources/`) instead of asking for paths
+- **Empirical Validation**: Can validate designs and hypotheses on the try-kuberocketci local testbed (via the krci-triage plugin)
 
 ## Components
 
@@ -78,25 +79,11 @@ Validates architectural designs against KRCI reference architecture.
 
 #### krci-architecture
 
-Deep knowledge of KubeRocketCI reference architecture, all platform components, deployment patterns, and design validation criteria.
-
-#### agent-delegation
-
-Expertise in coordinating with specialized KRCI agents for multi-component implementations. Covers delegation patterns, agent capabilities, and cross-repository scenarios.
+The KRCI reference architecture invariants (cloud-agnostic, OIDC via Keycloak, blocking DevSecOps gates, GitOps push/pull split) and the design validation checklist. Reference: `deployment-patterns.md` (cluster topologies, GitOps config). Also covers the mandatory prerequisites (krci-workspace checkout and try-kuberocketci testbed) and validating designs empirically on the testbed.
 
 ## Platform Coverage
 
-The architect has knowledge of the complete KRCI platform:
-
-| Component Group | Repositories | Agent |
-|----------------|-------------|-------|
-| Core Operators | edp-codebase-operator, edp-cd-pipeline-operator | krci-godev |
-| Auth/Quality Operators | edp-keycloak-operator, edp-sonar-operator, edp-nexus-operator | krci-godev |
-| CI/CD | edp-tekton (pipelines/Helm), edp-cluster-add-ons, edp-install | krci-devops |
-| CI/CD (Go) | edp-tekton (Go interceptors) | krci-godev |
-| Portal | krci-portal | krci-fullstack |
-| Supporting Services | gitfusion, krci-cache, tekton-custom-task | krci-godev |
-| Documentation | krci-docs | (manual) |
+The component map is not duplicated here. The architect reads it from the krci-workspace checkout (`repos.yaml`, `sources/CLAUDE.md`) and routes delegation by repo kind (Go operators, Tekton/Helm, portal UI).
 
 ## Installation
 
@@ -115,7 +102,7 @@ This plugin works best alongside:
 - **krci-fullstack**: Portal and React/TypeScript implementation
 - **krci-devops**: Tekton pipelines and DevOps automation
 - **krci-godev**: Kubernetes operator development
-- **krci-commit**: Conventional commit message generation
+- **krci-triage**: Workspace bootstrap and try-kuberocketci testbed provisioning
 
 ## Example Workflow
 

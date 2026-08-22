@@ -39,9 +39,9 @@ This is a hard architectural requirement.
 
 ## GitOps Repositories
 
-**edp-install**: Core platform Helm chart. Installs all KRCI operators, CRDs, RBAC. Values file controls which components are enabled. Explore `charts/` directory for installation structure.
+**Platform install chart repo**: The umbrella Helm chart that installs all KRCI operators, CRDs, RBAC. Values file controls which components are enabled. Explore its `charts/` directory for installation structure.
 
-**edp-cluster-add-ons**: ArgoCD app-of-apps for cluster tooling (SonarQube, Nexus, Keycloak). Each add-on has its own directory with Helm values. Toggled via feature flags in root Application. All tools integrate with Keycloak SSO.
+**Cluster add-ons repo**: Argo CD app-of-apps for cluster tooling (SonarQube, Nexus, Keycloak). Each add-on has its own directory with Helm values. Toggled via feature flags in the root Application. All tools integrate with Keycloak SSO. Both repos are identified in the workspace map (`repos.yaml`, `sources/CLAUDE.md`).
 
 ## Environment Progression
 

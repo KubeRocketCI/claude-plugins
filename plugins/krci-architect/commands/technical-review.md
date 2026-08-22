@@ -1,7 +1,7 @@
 ---
 description: Validate architectural design against KRCI reference architecture and DevSecOps principles
 argument-hint: [design-document-path]
-allowed-tools: [WebSearch, Skill]
+allowed-tools: [WebSearch, Skill, AskUserQuestion]
 ---
 
 Validate a technical design document against KubeRocketCI reference architecture, DevSecOps principles, and best practices.
@@ -38,10 +38,10 @@ Execute this structured validation process:
 
 ### Phase 2: KRCI Architecture Alignment
 
-1. Reference KRCI architecture from loaded krci-architecture skill:
-   - Review `references/reference-architecture.md` for architecture principles
-   - Check `references/components.md` for component responsibilities
-   - See `references/deployment-patterns.md` for deployment patterns
+1. Reference KRCI architecture from the loaded krci-architecture skill:
+   - Core principles and the design validation checklist are in the skill body
+   - See the skill's `references/deployment-patterns.md` for cluster topology and GitOps patterns
+   - For component responsibilities, read `sources/CLAUDE.md` in the krci-workspace checkout (see the skill's "Mandatory Prerequisites")
 2. Validate design against KRCI principles:
    - **Managed Infrastructure**: Uses Kubernetes/OpenShift appropriately
    - **Security**: Proper authentication, authorization, SSO integration
@@ -128,7 +128,8 @@ Execute this structured validation process:
    - Actions needed before implementation
    - Areas requiring further investigation
    - Stakeholders to consult
-5. Mark all tasks as completed
+5. If a finding rests on an unproven runtime assumption, offer to validate it empirically on the try-kuberocketci testbed (see the krci-architecture skill's "Empirical Validation on the Testbed") instead of leaving it as a paper concern
+6. Mark all tasks as completed
 
 ## Validation Report Format
 

@@ -1,7 +1,7 @@
 ---
 description: Guided workflow for planning KubeRocketCI feature implementation across multiple repositories
 argument-hint: [feature-description]
-allowed-tools: [Bash, WebSearch, WebFetch, Skill]
+allowed-tools: [Bash, WebSearch, WebFetch, Skill, Task, AskUserQuestion]
 ---
 
 Plan a comprehensive feature implementation for the KubeRocketCI platform using a structured 6-phase workflow.
@@ -23,7 +23,7 @@ Feature: $ARGUMENTS
 
 **Goal**: Understand what needs to be built
 
-1. Load the krci-architecture and agent-delegation skills using the Skill tool
+1. Load the krci-architecture skill using the Skill tool
 2. Create task list with all 6 phases
 3. If feature unclear, ask user for: what problem they're solving, who will use it, key requirements, any constraints
 4. Summarize understanding of the feature
@@ -36,18 +36,18 @@ Feature: $ARGUMENTS
 
 **Goal**: Understand relevant existing code, patterns, and best practices across KRCI repositories
 
-1. **CHECKPOINT**: Use AskUserQuestion to confirm which repositories are relevant and get paths from user
-2. **WAIT for user to provide repository paths**
-3. Launch 2-3 agents **in parallel** using the Task tool. Each agent should explore a different aspect of the codebase relevant to the feature. Ask each agent to include a list of 5-10 key files to read.
+1. Resolve the mandatory prerequisites per the krci-architecture skill's "Mandatory Prerequisites": both the krci-workspace checkout (`repos.yaml` + `sources/`) and the try-kuberocketci testbed. Search only the cwd and its subdirectories (max two levels) — never parents or siblings. If either is missing, **HALT** and use AskUserQuestion for the exact path or provisioning approval; restate both absolute paths and **WAIT for user confirmation**. Then read `sources/CLAUDE.md` for the component map, determine which repos are relevant, and clone missing ones with `./bootstrap.sh <name>`.
+2. **CHECKPOINT**: Use AskUserQuestion to confirm the selected repositories are the right scope
+3. Launch 2-3 agents **in parallel** using the Task tool. Each agent should explore a different aspect of the codebase relevant to the feature. Ask each agent to include a list of 5-10 key files to read. Remind each agent that `sources/` is git-ignored: ripgrep must be scoped to a path (`rg "<pattern>" sources/<repo>/`) or it silently returns nothing.
 
    **Example agent prompts** (adapt based on which repos are affected):
    - "Explore the portal codebase at [path]. Find features similar to [feature], trace their implementation comprehensively. Map component architecture, tRPC API patterns, and UI patterns. Return a list of 5-10 key files."
-   - "Explore the edp-tekton repository at [path]. Analyze existing pipeline/task patterns relevant to [feature], trace the Helm chart structure and naming conventions. Return a list of 5-10 key files."
+   - "Explore the CI pipelines repository at [path]. Analyze existing pipeline/task patterns relevant to [feature], trace the Helm chart structure and naming conventions. Return a list of 5-10 key files."
    - "Explore the operator codebase at [path]. Map CRD definitions, controller reconciliation patterns, and API types relevant to [feature]. Return a list of 5-10 key files."
    - "Research Kubernetes/Tekton/React patterns for [feature area] using WebSearch. Document recommended approaches, best practices, and potential pitfalls."
 
 4. Once agents return, read all key files identified by agents to build deep understanding
-5. Reference KRCI architecture from loaded skills (reference-architecture, components, deployment-patterns)
+5. Reference KRCI architecture from the loaded krci-architecture skill (principles, `references/deployment-patterns.md`) and the workspace's `sources/CLAUDE.md` component map
 6. Present comprehensive summary of findings: similar features (with file:line references), existing patterns, integration points, research findings
 7. **CHECKPOINT**: Present analysis findings and ask if anything needs further investigation
 8. **WAIT for user confirmation**
@@ -76,8 +76,9 @@ Feature: $ARGUMENTS
 4. **WAIT for user to select an approach**
 5. Based on selected approach, create detailed phased implementation plan
 6. Identify critical considerations: security (DevSecOps), performance, backward compatibility, testing
-7. **CHECKPOINT**: Present the complete plan for user approval
-8. **WAIT for user approval before proceeding to Phase 5**
+7. If a risky assumption can be proven by running it, offer empirical validation on the try-kuberocketci testbed (see the krci-architecture skill's "Empirical Validation on the Testbed") before locking the plan
+8. **CHECKPOINT**: Present the complete plan for user approval
+9. **WAIT for user approval before proceeding to Phase 5**
 
 ---
 
@@ -117,7 +118,7 @@ Feature: $ARGUMENTS
 ## Key Decision Points (MUST Use AskUserQuestion)
 
 1. After Phase 1: Confirm understanding of the feature
-2. Start of Phase 2: Get repository paths from user
+2. Start of Phase 2: Confirm repository scope (paths come from the workspace; ask for paths only if no workspace found)
 3. End of Phase 2: Confirm exploration findings are complete
 4. Phase 4: Present 2-3 options, get user decision
 5. End of Phase 4: Get approval of the complete plan

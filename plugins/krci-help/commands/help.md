@@ -50,7 +50,7 @@ TWO KIND PLUGIN:
 
 - AGENT: architect. plan feature cross-repo. validate design. send work to hunters.
 - CMD: /krci-architect:plan-feature, technical-review.
-- SKILL: krci-architecture, agent-delegation.
+- SKILL: krci-architecture.
 - USE WHEN: feature touch many repo. you need design first.
 
 **krci-general — TOOL BELT**
