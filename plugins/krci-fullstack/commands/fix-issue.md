@@ -323,11 +323,12 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 **Actions**:
 
 1. Mark Phase 6 as in_progress in TodoWrite
-2. Launch **3 code-reviewer agents in parallel** using the Task tool, each with a different review focus:
-   - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, code elegance, readability, and comment hygiene — flag comments that merely restate the code or describe the obvious, and keep only those explaining non-obvious 'why' or genuinely complex logic."
+2. Launch **4 code-reviewer agents in parallel** using the Task tool, each with a different review focus:
+   - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, code elegance, and readability."
    - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
    - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
-3. After all 3 agents complete, consolidate findings:
+   - Agent 4 (subagent_type: `krci-general:code-reviewer`): "Apply your Comment Hygiene and Fragile State responsibilities to the recent changes. Quote the replacement text for each comment rewrite, and name the source of truth (or argue deletion) for each fragile value."
+3. After all 4 agents complete, consolidate findings:
    - Merge and deduplicate issues reported by multiple agents
    - Sort by severity (Critical first, then Important)
    - Filter to only issues with confidence >= 80

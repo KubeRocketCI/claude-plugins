@@ -324,13 +324,14 @@ yamllint .
 ## Quality Review
 
 <quality_review>
-After pipelines are created and validated, launch **3 code-reviewer agents in parallel** using the Task tool to review the generated pipeline YAML:
+After pipelines are created and validated, launch **4 code-reviewer agents in parallel** using the Task tool to review the generated pipeline YAML:
 
 - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, and code elegance. Focus on readability and maintainability."
 - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
 - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
+- Agent 4 (subagent_type: `krci-general:code-reviewer`): "Apply your Comment Hygiene and Fragile State responsibilities to the recent changes. Quote the replacement text for each comment rewrite, and name the source of truth (or argue deletion) for each fragile value."
 
-After all 3 agents complete:
+After all 4 agents complete:
 
 1. Consolidate findings — merge and deduplicate issues, sort by severity
 2. Filter to only issues with confidence >= 80

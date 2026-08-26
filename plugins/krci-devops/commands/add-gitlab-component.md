@@ -83,13 +83,14 @@ allowed-tools: [Bash, Skill]
 
 4. **Quality review via parallel code-reviewer agents:**
 
-   After files are scaffolded, launch **3 code-reviewer agents in parallel** using the Task tool:
+   After files are scaffolded, launch **4 code-reviewer agents in parallel** using the Task tool:
 
    - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, and code elegance. Focus on readability and maintainability."
    - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
    - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
+   - Agent 4 (subagent_type: `krci-general:code-reviewer`): "Apply your Comment Hygiene and Fragile State responsibilities to the recent changes. Quote the replacement text for each comment rewrite, and name the source of truth (or argue deletion) for each fragile value."
 
-   After all 3 agents complete:
+   After all 4 agents complete:
 
    1. Consolidate findings — merge and deduplicate issues, sort by severity
    2. Filter to only issues with confidence >= 80
@@ -221,7 +222,7 @@ All generated files must follow the `ci-template` golden reference patterns:
 13. Generate `deploy-templates/` Helm chart (if requested).
 14. Validate all files against golden reference patterns.
 15. Report created files and validation status.
-16. Launch 3 parallel code-reviewer agents for quality review.
+16. Launch 4 parallel code-reviewer agents for quality review.
 
 </execution_checklist>
 
@@ -360,5 +361,5 @@ git push -u origin main
 ## Quality Review
 
 <quality_review>
-See Step 4 above for the quality review workflow using 3 parallel code-reviewer agents.
+See Step 4 above for the quality review workflow using 4 parallel code-reviewer agents.
 </quality_review>
