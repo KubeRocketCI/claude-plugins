@@ -51,7 +51,7 @@ Cross-repo architecture and planning.
 General code utilities, any language, any stage.
 
 - **Agent** `code-reviewer`: finds bugs, security risks, and convention violations with confidence-based filtering (reports only confidence ≥ 80).
-- **Commands**: `/krci-general:commit` (conventional commit from staged changes), `/krci-general:review` (3 parallel review agents: simplicity, bugs, conventions).
+- **Commands**: `/krci-general:commit` (conventional commit from staged changes), `/krci-general:review` (4 parallel review agents: simplicity, bugs, conventions, comment hygiene & fragile state; applies comment and fragile-state fixes, reports the rest).
 - **Use when**: writing a commit message or reviewing code at any point in the pipeline.
 
 ### krci-triage — DEV (Jira-driven bug fixing and feature validation on a testbed)

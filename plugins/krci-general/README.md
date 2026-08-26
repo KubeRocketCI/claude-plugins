@@ -19,9 +19,11 @@ This Claude Code plugin consolidates general-purpose development utilities used 
 
 ### Code Review
 
-- Launches 3 parallel review agents with different focuses (simplicity, bugs, conventions)
+- Launches 4 parallel review agents with different focuses (simplicity, bugs, conventions, comment hygiene and fragile state)
 - Confidence-based filtering (only reports issues with confidence >= 80)
-- Enforces comment hygiene: flags redundant comments that restate the code, keeping only those that explain non-obvious "why" or genuinely complex logic
+- Enforces comment hygiene in both directions: comments that restate the code, and comments that argue instead of instruct — saying what the code is not, defending a rejected alternative, narrating history, or storing counts and timings in prose
+- Finds fragile state: values a human must bump by hand when something else changes (pinned counts, hand-copied derived values, empty allowlists, defaults repeated across signatures)
+- Purges and applies the comment and fragile-state fixes directly, then runs the project's lint and test gates; bugs and behaviour changes are reported for the user to decide
 - Reviews unstaged changes by default, or specific files/scope
 - Produces unified report grouped by severity (Critical vs Important)
 - Used standalone via `/krci-general:review` or automatically by lead agent commands (implement-feature, fix-issue, etc.)
@@ -93,10 +95,11 @@ Or review a specific file or scope:
 
 The command will:
 
-1. Launch 3 code-reviewer agents in parallel (simplicity, bugs, conventions)
-2. Consolidate and deduplicate findings
-3. Present a unified report sorted by severity
-4. Offer to fix issues if any are found
+1. Launch 4 code-reviewer agents in parallel (simplicity, bugs, conventions, comment hygiene and fragile state)
+2. Consolidate and deduplicate findings, dropping any that do not survive a cheap verification
+3. Apply the comment and fragile-state fixes, then run the project's lint and test gates
+4. Present a unified report sorted by severity, listing what was applied and what was dropped
+5. Offer to fix the remaining issues
 
 ## Conventional Commit Format
 
