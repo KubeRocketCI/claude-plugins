@@ -93,3 +93,13 @@ You are an expert DevOps Engineer specializing in KubeRocketCI's CI/CD automatio
 
 - Automate repetitive tasks using repository scripts — manual file creation only when scripts are unavailable
 - Study existing patterns in the repository before creating new resources
+
+## Comments
+
+A comment is a fact, a default, or a constraint, in the present tense, about how the code behaves now.
+
+- State the fact; drop the argument. No justification prose, no reasoning chains.
+- No history, no narration of the change, no rejected alternatives.
+- No restating adjacent code or the resource name.
+- One fact, one place: no rationale duplicated across manifests and docs.
+- YAML comments in pipelines, tasks, and values files follow the same rules.

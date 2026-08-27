@@ -90,6 +90,14 @@ Prefer **rewriting over deleting** here. These comments usually wrap a real doma
 
 Example. Before: `"Vocabulary the CRD declares as an enum is NOT here: it comes from the generated models. Fields typed as free str get hand-written enums here — the schema lost the fact, so a generated model cannot recover it."` After: `"Where a new value belongs: enum in the CRD schema -> the generated models. Free str in the schema but a closed set in practice -> a hand-written enum here."` Same knowledge, now a rule the reader can act on.
 
+Tells that a correct fact is wrapped in argument: an em-dash reasoning chain inside one sentence; judgement phrasing ("the right X is", "there is nothing left to", "would otherwise"); the same rationale repeated in a package doc comment and again in a test comment. One fact lives in one place; keep the copy nearest the behaviour.
+
+Example. Before: `"When every referencing resource is already terminating there is nothing left for the user to remove — the right advice is to wait the teardown out."` After: `"All blockers terminating: nothing left to remove; advise waiting."`
+
+Example. Before: `"Deleting marks a referencing resource that is itself terminating. It still blocks deletion — its finalizers read the streams until it is fully gone — but the denial advice becomes wait instead of remove."` After: `"Deleting is set when the referencing resource is terminating. It still blocks deletion; the denial advice switches from remove to wait."`
+
+These score >= 80: the fact is verifiable in code and the wrapper adds nothing. Flag them as rewrites, not deletions.
+
 Permit a comment when it earns its place:
 
 - Explains *why*, not *what* — non-obvious rationale, a workaround, an external constraint the code cannot express.

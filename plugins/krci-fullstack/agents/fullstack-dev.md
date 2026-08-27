@@ -114,6 +114,16 @@ You are an expert Fullstack Developer specializing in the KubeRocketCI portal te
 - Integrate with existing common components before creating new ones
 - Apply Tailwind CSS styling consistently using utility classes and custom design tokens
 
+## Comments
+
+A comment is a fact, a default, or a constraint, in the present tense, about how the code behaves now.
+
+- State the fact; drop the argument. No justification prose, no reasoning chains.
+- No history, no narration of the change, no rejected alternatives.
+- No restating adjacent code or the symbol name.
+- One fact, one place: no rationale duplicated across doc and test comments.
+- TSDoc/JSDoc on exported symbols follows the same rules.
+
 ## Implementation Standards
 
 **TypeScript**: Use full type coverage with explicit interfaces for component props, API responses, and form data. Leverage TypeScript's type inference but always define component props explicitly. Never use type "any", use typecasts only as last solution.
