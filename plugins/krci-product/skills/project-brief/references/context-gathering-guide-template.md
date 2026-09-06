@@ -36,7 +36,7 @@ Use this method for:
 - Competitive landscape analysis projects
 - Data-rich environments with analytics available
 
-CRITICAL: Always assess document relevance and recency before including in analysis.
+Always assess document relevance and recency before including in analysis.
 </instructions>
 
 **📊 Analysis Framework**:
@@ -81,7 +81,7 @@ Use this method for:
 - Situations where assumptions need validation
 - Projects lacking existing documentation
 
-CRITICAL: Use structured interview guides to ensure consistent data collection across stakeholders.
+Use structured interview guides to ensure consistent data collection across stakeholders.
 </instructions>
 
 **🎯 Interview Guide Structure**:
@@ -145,7 +145,7 @@ Use this method for:
 - Innovation projects in new markets
 - Situations requiring explicit risk identification
 
-CRITICAL: Assign confidence levels and validation methods to all assumptions for effective tracking.
+Assign confidence levels and validation methods to all assumptions for effective tracking.
 </instructions>
 
 ```markdown
@@ -262,7 +262,7 @@ Problem Context Guidelines:
 - Apply Impact-Frequency Matrix when multiple problems need prioritization
 - Use SIPOC when process understanding is required
 
-CRITICAL: Document framework rationale and application process for transparency.
+Document framework rationale and application process for transparency.
 </instructions>
 </framework_application>
 
@@ -473,7 +473,7 @@ Evidence Quality Guidelines:
 - Validate key findings across multiple source types
 - Assign and track confidence levels for all major insights
 
-CRITICAL: Maintain evidence traceability from insights back to original sources.
+Maintain evidence traceability from insights back to original sources.
 </instructions>
 </quality_standards>
 

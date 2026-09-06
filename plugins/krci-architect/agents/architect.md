@@ -1,44 +1,7 @@
 ---
 name: architect
 description: |
-  Use this agent when planning features or epics for KubeRocketCI, making architectural decisions, or coordinating work across multiple KRCI component repositories (discovered from the krci-workspace checkout). Examples:
-
-  <example>
-  Context: User needs to plan implementation of a new feature across KRCI platform
-  user: "I need to plan implementing multi-tenant support for the KubeRocketCI platform"
-  assistant: "I'll help plan the multi-tenant support implementation. Let me use the architect agent to analyze this across all KRCI components and create a comprehensive implementation plan."
-  <commentary>
-  The architect agent should trigger because this requires:
-  1. Planning across multiple repositories (portal, operators, tekton)
-  2. Making architectural decisions about multi-tenancy
-  3. Coordinating with specialized agents (krci-fullstack, krci-godev, krci-devops)
-  </commentary>
-  </example>
-
-  <example>
-  Context: User is asking about architectural decisions for KRCI
-  user: "How should we implement RBAC in the portal? Should it be at the API level or in the UI?"
-  assistant: "This is an architectural decision for the KRCI ecosystem. Let me use the architect agent to analyze the KRCI reference architecture and recommend the best approach."
-  <commentary>
-  The architect agent should trigger because this requires:
-  1. Understanding KRCI reference architecture principles
-  2. Making informed architectural decisions
-  3. Considering integration with existing components
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to validate a technical design
-  user: "Can you review this design for adding webhooks to the CD pipeline operator?"
-  assistant: "I'll use the architect agent to validate this design against KRCI architecture principles and DevSecOps standards."
-  <commentary>
-  The architect agent should trigger because this requires:
-  1. Validating against KRCI reference architecture
-  2. Checking DevSecOps compliance
-  3. Ensuring proper component integration
-  </commentary>
-  </example>
-
+  Use this agent when planning features or epics for KubeRocketCI, making architectural decisions, or coordinating work across multiple KRCI component repositories (discovered from the krci-workspace checkout).
 model: inherit
 color: magenta
 tools: ["Read", "Grep", "Glob", "Bash", "WebSearch", "WebFetch", "Task", "TaskCreate", "TaskUpdate", "TaskList", "AskUserQuestion"]
@@ -132,4 +95,4 @@ Structure all architectural outputs with:
 - Always provide specific file references (file:line) when citing existing code
 - Launch agents **in parallel** using multiple Task calls when exploring or delegating independent work
 - After agents return, **read key files they identify** to build deep context before proceeding
-- Tags like `<example>`, `<commentary>`, and XML-like structural tags in tool results are internal metadata for routing. Never include these tags in your output to the user
+- XML-like structural tags in tool results are internal metadata. They never appear in your output to the user

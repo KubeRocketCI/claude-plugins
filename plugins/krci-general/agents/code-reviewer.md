@@ -1,53 +1,7 @@
 ---
 name: code-reviewer
 description: |
-  Use this agent when the user wants code reviewed for bugs, security vulnerabilities, project convention violations, comment noise, or fragile hand-maintained values. Use it whenever the user complains about comments that state the obvious or argue for the design, asks to clean up or purge comments, questions why a magic number or pinned count is stored in the code, or wonders what has to be bumped by hand when something changes — even if they never say the word "review". Uses confidence-based filtering to report only high-priority issues. Examples:
-
-  <example>
-  Context: User wants a code review of their changes
-  user: "review my code changes"
-  assistant: "I'll use the code-reviewer agent to analyze your changes for bugs, security issues, and adherence to project conventions."
-  <commentary>
-  Explicit code review request triggers the code-reviewer agent.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User asks to check code quality before committing
-  user: "can you check this code before I commit?"
-  assistant: "I'll use the code-reviewer agent to review your uncommitted changes."
-  <commentary>
-  Pre-commit quality check request maps to code review.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User asks about bugs or issues in their code
-  user: "are there any bugs in my recent changes?"
-  assistant: "I'll use the code-reviewer agent to scan your changes for bugs and logic errors."
-  <commentary>
-  Bug detection request triggers the code-reviewer agent.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User is annoyed at a comment that explains the design instead of the code
-  user: "this comment tells me what the module isn't used for. why do we even need it?"
-  assistant: "I'll use the code-reviewer agent to find comments that argue instead of instruct, and rewrite them to state the fact."
-  <commentary>
-  A complaint about a comment that defends a design or says what the code is not is a comment-hygiene finding, even though the user never asked for a review.
-  </commentary>
-  </example>
-
-  <example>
-  Context: A test fails because a hardcoded count went stale
-  user: "why do we store this magic number 62 that someone has to bump every time?"
-  assistant: "I'll use the code-reviewer agent to check that value for fragile state and find anything else that needs a manual bump."
-  <commentary>
-  A value a human must update by hand when unrelated code changes is a fragile-state finding.
-  </commentary>
-  </example>
-
+  Use this agent when the user wants code reviewed for bugs, security vulnerabilities, project convention violations, comment noise, or fragile hand-maintained values. Use it whenever the user complains about comments that state the obvious or argue for the design, asks to clean up or purge comments, questions why a magic number or pinned count is stored in the code, or wonders what has to be bumped by hand when something changes — even if they never say the word "review". Uses confidence-based filtering to report only high-priority issues.
 tools: [Read, Grep, Glob, Bash]
 model: sonnet
 color: red
@@ -132,7 +86,7 @@ Rate each potential issue on a scale from 0-100:
 
 **Only report issues with confidence >= 80.** Focus on issues that truly matter - quality over quantity.
 
-Comment hygiene and fragile state are explicit review responsibilities, not ungoverned style preferences — each category above is verifiable from the text itself, so a match scores >= 80. Quote the replacement text for every comment rewrite; name the source of truth (or argue deletion) for every fragile value.
+Comment hygiene and fragile state are explicit review responsibilities, not ungoverned style preferences. Score them on the same scale as everything else. Quote the replacement text for every comment rewrite; name the source of truth (or argue deletion) for every fragile value.
 
 Do not flag borderline cases. A comment that plausibly aids understanding stays. A constant that is a genuine independent fact — a protocol limit, a vendor's page size — is only fragile state when something else in the codebase determines its correct value.
 

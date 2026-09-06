@@ -16,8 +16,6 @@ You are helping a developer implement a new feature. Follow a systematic approac
 
 # Implement Feature - Phased Workflow
 
-CRITICAL: Follow this workflow to implement the portal feature:
-
 Follow structured phases to implement the feature: `$ARGUMENTS`
 
 - Phases: Discovery → Planning → Design → Implementation → Testing → Quality Review → Summary
@@ -43,7 +41,7 @@ Follow structured phases to implement the feature: `$ARGUMENTS`
 - **filter-patterns** — if the feature involves filtering or search
 - **k8s-resources** — if the feature involves Kubernetes resource display
 
-**CRITICAL**: Load skills BEFORE using Grep/Glob/Read to explore. Only load skills relevant to the feature — not all of them.
+Load skills before using Grep/Glob/Read to explore. Load only the skills the feature needs.
 
 **Actions**:
 
@@ -58,7 +56,7 @@ Follow structured phases to implement the feature: `$ARGUMENTS`
    - Who will use it and when?
    - What should it do?
    - Are there similar features in the portal to reference?
-6. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
+6. Summarize your understanding and confirm it with the user before proceeding.
 
 **Output**: Clear statement of feature purpose and target users
 
@@ -97,7 +95,7 @@ Follow structured phases to implement the feature: `$ARGUMENTS`
    ```
 
 5. Add sub-tasks to TodoWrite for each major component to implement
-6. CRITICAL!!!: Summarize understanding and CONFIRM with user BEFORE proceeding
+6. Summarize the plan and confirm it with the user before proceeding.
 
 **Output**: Confirmed list of components to create/modify + list of skills to load
 
@@ -109,22 +107,9 @@ Follow structured phases to implement the feature: `$ARGUMENTS`
 
 **Goal**: Specify implementation details and resolve all ambiguities
 
-**Load any additional skills** not yet loaded that are needed for implementation, based on Phase 2 component analysis.
+Load any skill from the Phase 1 list that Phase 2 newly made relevant. Skills already loaded in Phase 1 stay loaded.
 
-Some skills may already be loaded from Phase 1. Only load skills that are newly relevant:
-
-- Load krci-fullstack:portal-tech-stack (if not loaded in Phase 1 and now needed)
-- Load krci-fullstack:api-integration (if not loaded in Phase 1 and now needed)
-- Load krci-fullstack:component-development (if UI components - provides project structure)
-- Load krci-fullstack:form-patterns (if forms)
-- Load krci-fullstack:table-patterns (if tables)
-- Load krci-fullstack:filter-patterns (if tables with filtering)
-- Load krci-fullstack:routing-permissions (if routes/RBAC)
-- Load krci-fullstack:k8s-resources (if K8s UIs)
-
-**For authentication features only:** Read portal-tech-stack/references/auth-integration.md for OAuth flow
-
-**CRITICAL**: Do NOT re-load skills already loaded in Phase 1. Only load what's newly needed. DO NOT SKIP this phase.
+For authentication features, also read `portal-tech-stack/references/auth-integration.md` for the OAuth flow.
 
 **Actions**:
 
@@ -162,71 +147,17 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 
 **Goal**: Create code following portal patterns and best practices
 
-**Actions**:
+Build each component from the plan, then wire them together. Follow the patterns in the skills loaded in Phases 1 and 3. Move each sub-task through in_progress and complete in TodoWrite as you go.
 
-1. Mark Phase 4 as in_progress in TodoWrite
-2. For each component from the plan (marking each sub-task as in_progress):
+**Portal constraints that override the general pattern** — these are where an idiomatic React implementation is wrong for this codebase:
 
-   **For UI Components**:
-   - Check `@/core/components` and `@/modules/*/components` for similar components
-   - Review common-components patterns (reference from component-development skill)
-   - Create component file with TypeScript interface for props
-   - Implement using Radix UI components with Tailwind CSS utility classes
-   - Add accessibility features (ARIA labels, keyboard navigation)
-   - Integrate permissions if needed (ButtonWithPermission, permission hooks)
-   - Add loading and error states
-   - Mark sub-task complete in TodoWrite
+- **Reuse before creating**: search `@/core/components` and `@/modules/*/components` for an existing component before writing a new one.
+- **tRPC on the client**: obtain the vanilla client via `useTRPCClient()` from `@/core/providers/trpc` and wrap calls in standard React Query `useQuery`/`useMutation`. The portal does NOT use `@trpc/react-query`; `createUseQueryHook`/`createUseMutationHook` do not exist.
+- **Forms**: `useAppForm` (TanStack Form) with the portal's registered field components (`FormTextField`, `FormSelect`, …). Pass Zod schemas or functions directly to `validators` — TanStack Form has no `zodResolver`, and React Hook Form is not a dependency.
+- **Table filters**: go through `FilterProvider` (filter-patterns skill), not ad-hoc local state.
+- **Permissions**: `ButtonWithPermission` and the permission hooks, enforced on both the client and the server.
 
-   **For API Endpoints**:
-   - Define tRPC router with `t.router()` and a Zod schema for input validation
-   - Implement business logic following backend patterns
-   - Consume on the frontend via `useTRPCClient()` from `@/core/providers/trpc`, wrapped in standard React Query `useQuery`/`useMutation` (the project does NOT use `@trpc/react-query`; `createUseQueryHook`/`createUseMutationHook` do not exist) — see api-integration skill
-   - Handle errors with user-friendly messages
-   - Mark sub-task complete in TodoWrite
-
-   **For Forms**:
-   - Use form-implementation patterns from form-patterns skill
-   - Build the form with `useAppForm` (TanStack Form) and the portal's registered field components (FormTextField, FormSelect, etc.)
-   - Add validation by passing Zod schemas/functions directly to `validators` (TanStack Form does NOT use `zodResolver`; React Hook Form is not used in this project)
-   - Implement error handling and user feedback
-   - Integrate with API mutation hooks
-   - Mark sub-task complete in TodoWrite
-
-   **For Tables**:
-   - Use table patterns from table-patterns skill
-   - Define column configurations
-   - Implement filters using filter-patterns skill (FilterProvider with TanStack Form)
-   - Add sorting and pagination
-   - Add loading skeletons and empty states
-   - Integrate with API query hooks
-   - Mark sub-task complete in TodoWrite
-
-   **For Routes**:
-   - Add route to routing configuration
-   - Create page component following layout patterns
-   - Integrate with navigation (breadcrumbs, menu)
-   - Handle route parameters and query strings
-   - Mark sub-task complete in TodoWrite
-
-   **For Permissions**:
-   - Use permission patterns from routing-permissions skill
-   - Add RBAC checks to components
-   - Implement client-side and server-side validation
-   - Handle permission-denied states gracefully
-   - Mark sub-task complete in TodoWrite
-
-3. After implementing each component:
-   - Verify TypeScript types are complete
-   - Ensure Tailwind CSS styling is consistent with design tokens
-   - Check accessibility features are present
-   - Review error handling
-   - Mark component sub-task as complete in TodoWrite
-
-4. Integrate all components together:
-   - Connect UI components to API hooks
-   - Wire up routing and navigation
-   - Test integration points
-   - Verify data flows correctly
+Every component ships with its TypeScript prop types, its loading/error/empty states, WCAG 2.1 AA accessibility, and Tailwind styling from the design tokens.
 
 **Output**: All components implemented and integrated
 
@@ -238,9 +169,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 
 **Goal**: Verify implementation works correctly and meets quality standards
 
-**MUST load testing-standards skill** using Skill tool:
-
-- Load krci-fullstack:testing-standards skill
+Load the `krci-fullstack:testing-standards` skill.
 
 **Actions**:
 
@@ -296,12 +225,10 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 **Actions**:
 
 1. Mark Phase 6 as in_progress in TodoWrite
-2. Launch **4 code-reviewer agents in parallel** using the Task tool, each with a different review focus:
-   - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for simplicity, DRY violations, code elegance, and readability."
-   - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness."
-   - Agent 3 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for project convention violations (check CLAUDE.md), architectural consistency, naming patterns, and import organization."
-   - Agent 4 (subagent_type: `krci-general:code-reviewer`): "Apply your Comment Hygiene and Fragile State responsibilities to the recent changes. Quote the replacement text for each comment rewrite, and name the source of truth (or argue deletion) for each fragile value."
-3. After all 4 agents complete, consolidate findings:
+2. Launch **2 code-reviewer agents in parallel** using the Task tool:
+   - Agent 1 (subagent_type: `krci-general:code-reviewer`): "Review the recent changes for correctness, security, and project convention violations (check CLAUDE.md)."
+   - Agent 2 (subagent_type: `krci-general:code-reviewer`): "Apply your Comment Hygiene and Fragile State responsibilities to the recent changes. Quote the replacement text for each comment rewrite, and name the source of truth (or argue deletion) for each fragile value."
+3. After both agents complete, consolidate findings:
    - Merge and deduplicate issues reported by multiple agents
    - Sort by severity (Critical first, then Important)
    - Filter to only issues with confidence >= 80
@@ -363,13 +290,6 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 - **Use AskUserQuestion** at key decision points for user input
 - **Read existing code** before creating new implementations
 - **Follow portal patterns** from the codebase and loaded skills
-- **Apply best practices**:
-  - TypeScript with full type coverage
-  - Tailwind CSS styling with design tokens and CVA for variants
-  - Accessibility compliance (WCAG 2.1 Level AA)
-  - Comprehensive testing
-  - Error handling and loading states
-  - Permission integration where needed
 
 ### Key Decision Points (Use AskUserQuestion)
 
@@ -378,38 +298,5 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 3. During Phase 3: Resolve all design ambiguities
 4. After Phase 5: Confirm completion and quality
 5. After Phase 6: Decide on review findings
-
-### Skills to Load by Phase
-
-Skills are loaded **as early as possible** to provide context before exploration. Analyze the feature first, then load what's relevant:
-
-- **Phase 1** (before exploration): Analyze feature description and load relevant skills:
-  - portal-tech-stack — if feature involves architecture, project structure, auth flow
-  - api-integration — if feature involves APIs, tRPC, data fetching
-  - component-development — if feature involves UI components
-  - routing-permissions — if feature involves routes, navigation, RBAC
-  - form-patterns — if feature involves forms
-  - table-patterns — if feature involves tables
-  - filter-patterns — if feature involves filtering
-  - k8s-resources — if feature involves K8s resources
-- **Phase 2**: Identify needed components (no loading unless new areas discovered)
-- **Phase 3**: Load any additional skills newly identified from Phase 2 (do NOT re-load skills from Phase 1). Also load auth-integration.md reference if auth features.
-- **Phase 5**: testing-standards (for writing tests)
-- **Phase 6**: code-reviewer agents launched via Task tool (krci-general:code-reviewer)
-
-### Quality Standards
-
-Every component must meet:
-
-- TypeScript types complete
-- Follows portal patterns
-- Tailwind CSS styling consistent
-- Accessibility features present
-- Loading and error states handled
-- Permission checks integrated (where applicable)
-- Tests written and passing
-- Code documented
-- No console errors
-- Performance optimized
 
 ---

@@ -10,7 +10,7 @@
 <instructions>
 Provide a high-level summary of the business process being analyzed. Include the process purpose, key stakeholders, and primary business objectives.
 
-CRITICAL: Process overview should be concise (2-3 sentences) and focus on business value.
+Process overview should be concise (2-3 sentences) and focus on business value.
 </instructions>
 </process_overview>
 
@@ -137,7 +137,7 @@ Process Metrics: Operational metrics for efficiency and effectiveness
 Quality Measures: Error rates, defect measures, customer satisfaction
 Cycle Time Analysis: Time analysis from start to completion with bottlenecks
 
-CRITICAL: All metrics must be quantifiable with current baselines.
+All metrics must be quantifiable with current baselines.
 </instructions>
 </process_metrics>
 
@@ -264,7 +264,7 @@ Automation Opportunities: Activities suitable for automation with ROI
 Technology Solutions: Systems and tools to enable improvements
 Workflow Optimization: Streamlined flows eliminating waste
 
-CRITICAL: Future state must be implementable and measurably better than current state.
+Future state must be implementable and measurably better than current state.
 </instructions>
 </future_state_design>
 
@@ -386,7 +386,7 @@ Cost-Benefit Analysis: Implementation costs vs expected benefits
 ROI Projections: Financial return calculations with timeframes
 Success Metrics: Measurable indicators of improvement success
 
-CRITICAL: All benefits must be quantified and measurable.
+All benefits must be quantified and measurable.
 </instructions>
 </benefits_realization>
 
@@ -418,7 +418,7 @@ Technology Recommendations: System solutions with selection criteria
 Organizational Recommendations: Structure and capability changes needed
 Next Steps: Immediate actions with timeline and responsibilities
 
-CRITICAL: All recommendations must be actionable with clear success criteria.
+All recommendations must be actionable with clear success criteria.
 </instructions>
 </recommendations>
 

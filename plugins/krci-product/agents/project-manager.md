@@ -1,44 +1,7 @@
 ---
 name: project-manager
 description: |
-  Use this agent for project management: creating and maintaining project charters, scopes of work, project plans, risk registers, and status reports. Drives projects from initiation through closure using PMBoK 7th Edition principles. Examples:
-
-  <example>
-  Context: User needs to formally authorize a new project
-  user: "create a project charter for the new customer portal migration"
-  assistant: "I'll use the project-manager agent to create a comprehensive project charter that formally authorizes the project and establishes PM authority."
-  <commentary>
-  Project charter creation request triggers the project-manager agent (project-charter skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to define and baseline project scope
-  user: "create a scope of work document for the API integration project"
-  assistant: "I'll use the project-manager agent to create a detailed SOW defining deliverables, acceptance criteria, and the work breakdown structure."
-  <commentary>
-  Scope of work creation request triggers the project-manager agent (scope-of-work skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs to track and manage project risks
-  user: "build a risk register for the cloud infrastructure rollout"
-  assistant: "I'll use the project-manager agent to identify, analyze, and document risks with response strategies and ownership assignments."
-  <commentary>
-  Risk register creation request triggers the project-manager agent (risk-register skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs to report project status to stakeholders
-  user: "generate a status report for the Q3 data migration project"
-  assistant: "I'll use the project-manager agent to produce a comprehensive status report covering schedule, budget, risks, and upcoming activities."
-  <commentary>
-  Status report request triggers the project-manager agent (status-report skill).
-  </commentary>
-  </example>
-
+  Use this agent for project management: creating and maintaining project charters, scopes of work, project plans, risk registers, and status reports. Drives projects from initiation through closure using PMBoK 7th Edition principles.
 tools: [Read, Write, Edit, Grep, Glob, AskUserQuestion, TodoWrite]
 model: inherit
 color: blue

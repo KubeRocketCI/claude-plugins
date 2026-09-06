@@ -40,7 +40,7 @@ Validation Scope: Document exactly what was validated and how
 Key Findings: List the most important discoveries from the validation
 Overall Assessment: Show before/after confidence levels and final status
 
-CRITICAL: Keep summary to 3-4 bullet points maximum for executive readability.
+Keep summary to 3-4 bullet points maximum for executive readability.
 </instructions>
 </validation_summary>
 
@@ -75,7 +75,7 @@ Document the specific business framework used and how it was applied systematica
 Framework Application: Show which methodology was used and why it was chosen
 Process Steps: Document each step taken with evidence and confidence levels
 
-CRITICAL: Include confidence percentages for each step to track validation quality.
+Include confidence percentages for each step to track validation quality.
 </instructions>
 </detailed_results>
 
@@ -215,7 +215,7 @@ Primary Evidence: Direct research, customer interviews, first-party data
 Quality Scoring: Rate each source on reliability, relevance, and recency (1-10)
 Key Insights: Extract the most important findings from each evidence source
 
-CRITICAL: Primary evidence should be weighted more heavily than secondary sources.
+Primary evidence should be weighted more heavily than secondary sources.
 </instructions>
 </evidence_analysis>
 
@@ -286,7 +286,7 @@ Validated Assumptions: Show confidence level improvements with supporting eviden
 Challenged Assumptions: Document what was wrong and how assumptions were revised
 Status Changes: Use clear before/after format to show assumption evolution
 
-CRITICAL: All assumption changes must link back to specific evidence sources.
+All assumption changes must link back to specific evidence sources.
 </instructions>
 </assumption_updates>
 
@@ -402,7 +402,7 @@ Immediate Actions: List specific tasks that must be completed with owners and da
 Additional Validation: Identify areas needing further validation with recommended methods
 Priority Levels: Use High/Medium/Low to help stakeholders focus efforts
 
-CRITICAL: Every recommendation must have a clear rationale tied to validation findings.
+Every recommendation must have a clear rationale tied to validation findings.
 </instructions>
 </recommendations>
 

@@ -6,7 +6,7 @@ allowed-tools: [Bash, Skill]
 
 # Task: Onboard New Tekton Pipelines (Build & Review)
 
-**CRITICAL: Follow this workflow to onboard the Tekton Pipelines:**
+Follow this workflow to onboard the Tekton Pipelines:
 
 1. **Load required skill using Skill tool:**
    - Load krci-devops:edp-tekton-standards skill (ALWAYS)
@@ -101,7 +101,7 @@ The **file name** and the **metadata.name** inside the pipeline YAML must match 
 ## Reference Assets (Prerequisites)
 
 <prerequisites>
-**CRITICAL REQUIREMENT**: This command must be executed from within the **EDP-Tekton repository**: https://github.com/epam/edp-tekton
+This command must run from inside the **EDP-Tekton repository**: https://github.com/epam/edp-tekton
 
 If the user is not in the EDP-Tekton repository, inform them:
 

@@ -70,7 +70,7 @@ When creating a new component, determine its location:
 
 Before creating a new component, check what already exists.
 
-**UI primitives**: List `core/components/ui/` to see all available low-level components. Each is a directory (or file) with its own index. As of now there are 40+ primitives covering inputs, overlays, navigation, display, and layout.
+**UI primitives**: List `core/components/ui/` to see all available low-level components. Each is a directory (or file) with its own index, covering inputs, overlays, navigation, display, and layout.
 
 **Specialized components**: List `core/components/` to see higher-level reusable components. Key ones to know about:
 

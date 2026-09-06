@@ -10,7 +10,7 @@ Plan a comprehensive feature implementation for the KubeRocketCI platform using 
 
 - **Consultative approach**: Present options and trade-offs, let the user make key decisions
 - **Checkpoint before proceeding**: At key phases, STOP and get user confirmation before moving forward
-- **No auto-delegation**: NEVER spawn agents to implement until user explicitly approves the plan
+- **No auto-delegation**: do not spawn implementation agents until the user approves the plan. This workflow produces a plan; the user decides whether it gets built.
 - **Read files identified by agents**: When launching agents, ask them to return lists of key files. After agents complete, read those files to build deep context before proceeding.
 
 ## Feature to Plan
@@ -68,7 +68,7 @@ Feature: $ARGUMENTS
 
 **Goal**: Design implementation approaches and get user decision
 
-**CRITICAL**: This phase requires user decision-making. Present options, don't just pick one.
+This phase requires a user decision. Present options; do not pick one.
 
 1. Identify 2-3 viable implementation approaches, each with: description, pros/cons, complexity (low/medium/high), risks, KRCI architecture alignment
 2. Review all approaches and form your opinion on which fits best for this specific task (consider: scope, urgency, complexity, KRCI alignment)
@@ -85,8 +85,6 @@ Feature: $ARGUMENTS
 ## Phase 5: Agent Delegation (Optional)
 
 **Goal**: Delegate detailed implementation work to specialized agents IF user approves
-
-**CRITICAL**: Do NOT auto-delegate. User must explicitly request implementation.
 
 1. **CHECKPOINT**: Ask user whether to delegate to agents and start implementation, save the plan for later, or revise the plan
 2. **WAIT for user decision**
@@ -115,7 +113,7 @@ Feature: $ARGUMENTS
 
 ---
 
-## Key Decision Points (MUST Use AskUserQuestion)
+## Key Decision Points (use AskUserQuestion)
 
 1. After Phase 1: Confirm understanding of the feature
 2. Start of Phase 2: Confirm repository scope (paths come from the workspace; ask for paths only if no workspace found)
@@ -130,7 +128,6 @@ Feature: $ARGUMENTS
 - **Launch agents in parallel**: When exploring or delegating, use multiple Task calls in a single message for parallel execution
 - **Read files after agents return**: Build deep context from agent-identified key files before proceeding
 - **Present options**: In Phase 4, always present multiple approaches with trade-offs
-- **No auto-delegation**: Never spawn agents without explicit user approval
 - Validate against KRCI reference architecture principles
 - Consider DevSecOps: security as mandatory quality gate
 - Provide specific file references (file:line) not generic suggestions

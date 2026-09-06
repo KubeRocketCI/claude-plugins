@@ -6,7 +6,7 @@ allowed-tools: [Read, Write, Edit, Bash, Grep, Glob, Skill, TodoWrite, AskUserQu
 
 # Fix Issue - Phased Workflow
 
-**CRITICAL: Follow this workflow to diagnose and fix the portal issue:**
+Follow this workflow to diagnose and fix the portal issue:
 
 1. **Follow structured phases to fix the issue:** `$ARGUMENTS`
    - Phases: Issue Discovery → Impact Analysis → Fix Planning → Implementation → Verification → Quality Review
@@ -33,7 +33,7 @@ allowed-tools: [Read, Write, Edit, Bash, Grep, Glob, Skill, TodoWrite, AskUserQu
 - **filter-patterns** — if the issue involves filtering, search, or filter state
 - **k8s-resources** — if the issue involves Kubernetes resource display or K8s API integration
 
-**CRITICAL**: Load skills BEFORE using Grep/Glob/Read to explore. Only load skills relevant to the issue — not all of them.
+Load skills before using Grep/Glob/Read to explore. Load only the skills the issue needs.
 
 **Actions**:
 
@@ -145,7 +145,7 @@ Some skills may already be loaded from Phase 1. Only load skills that are newly 
 - Load krci-fullstack:routing-permissions (if routes/RBAC affected)
 - Load krci-fullstack:k8s-resources (if K8s UIs affected)
 
-**CRITICAL**: Do NOT re-load skills already loaded in Phase 1. Only load what's newly needed. DO NOT SKIP this phase.
+Skills already loaded in Phase 1 stay loaded; load only what Phase 2 newly made relevant.
 
 **Actions**:
 

@@ -1,6 +1,6 @@
 ---
 name: KRCI GitLab CI Component Standards
-description: This skill should be used when the user asks to "create GitLab CI component", "scaffold CI component library", "add GitLab CI pipeline template", "create component for CI/CD Catalog", "build GitLab component", "add language to CI component", "configure SonarQube for GitLab CI", "create Dockerfile for CI component", "7-stage pipeline architecture", "configure CI pipeline dependency chain", "GitLab CI review pipeline", "GitLab CI build pipeline", "pipeline stages", "needs vs dependencies", "publish to CI/CD Catalog", "ci-template", "ci-golang", "common.yml", "review.yml", "build.yml", or mentions GitLab CI components, CI/CD Catalog publishing, component spec inputs, KubeRocketCI GitLab CI, gitlab-ci.yml structure, review/build pipeline templates, component library scaffolding, or CI component language profiles. Make sure to use this skill whenever working on GitLab CI/CD component libraries under the kuberocketci GitLab group, even if the user doesn't explicitly mention "component". For Tekton pipeline/task work, defer to edp-tekton-standards. For Tekton trigger/webhook configuration, defer to edp-tekton-triggers.
+description: This skill should be used whenever the user is building, extending, or publishing a GitLab CI/CD component library for KubeRocketCI — scaffolding a component library, adding a language profile, writing or changing `common.yml` / `review.yml` / `build.yml`, configuring the 7-stage pipeline and its `needs`/`dependencies` chain, or publishing to the GitLab CI/CD Catalog. Use it for any work on component libraries under the kuberocketci GitLab group, even when the user does not say "component". For Tekton pipeline/task work, defer to edp-tekton-standards. For Tekton trigger/webhook configuration, defer to edp-tekton-triggers.
 authors:
     - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
@@ -26,7 +26,7 @@ Guide implementation of GitLab CI/CD component libraries that follow KubeRocketC
 - `ci-nodejs-npm` — Node.js with npm
 - `ci-python-uv` — Python with uv
 
-**CRITICAL**: All new component libraries must follow the `ci-template` golden reference structure. The template is "80% complete, 20% to implement for your stack."
+All new component libraries must follow the `ci-template` golden reference structure. The template is "80% complete, 20% to implement for your stack."
 
 ## Component Library Structure
 

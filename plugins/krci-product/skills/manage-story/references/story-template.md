@@ -26,7 +26,7 @@ Priority Example: Critical, High, Medium, Low
 Story Points Example: 1, 2, 3, 5, 8, 13 (Fibonacci scale)
 Jira Example: [EPMDEDP-15497](https://jira.example.com/browse/EPMDEDP-15497) or "None" if not assigned
 
-CRITICAL: Status section contains ONLY these 5 fields. Do NOT add Dependencies or other fields here.
+Status section contains ONLY these 5 fields. Do NOT add Dependencies or other fields here.
 </instructions>
 
 ## Dependencies
@@ -44,7 +44,7 @@ CRITICAL: Status section contains ONLY these 5 fields. Do NOT add Dependencies o
 <instructions>
 Define precise dependencies for execution order and validation readiness.
 
-CRITICAL: Dependencies section comes immediately after Status section.
+Dependencies section comes immediately after Status section.
 
 Format:
 
@@ -110,7 +110,7 @@ DON'T:
 {{acceptance_criteria}}
 
 <instructions>
-CRITICAL: Acceptance Criteria section comes immediately after Story section. Create specific, testable conditions that define completion at story level. Story ACs SHOULD include verification commands and expected outputs. Scope every criterion to the capability named in the Story statement above; concerns owned by other stories (audit/logging, observability, the approval or lifecycle workflow) are NOT acceptance criteria here — defer them under Out of Scope.
+Acceptance Criteria section comes immediately after Story section. Create specific, testable conditions that define completion at story level. Story ACs SHOULD include verification commands and expected outputs. Scope every criterion to the capability named in the Story statement above; concerns owned by other stories (audit/logging, observability, the approval or lifecycle workflow) are NOT acceptance criteria here — defer them under Out of Scope.
 
 Required Structure for each criterion:
 

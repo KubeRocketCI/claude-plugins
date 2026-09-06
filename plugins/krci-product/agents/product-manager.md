@@ -1,44 +1,7 @@
 ---
 name: product-manager
 description: |
-  Use this agent for product management: creating and updating Product Requirements Documents (PRDs), authoring project briefs, validating product requirements with business frameworks, and applying product strategy methodologies. Produces evidence-based product artifacts that bridge business goals and development delivery. Examples:
-
-  <example>
-  Context: User needs a PRD created for a new feature
-  user: "create a PRD for the self-service onboarding feature"
-  assistant: "I'll use the product-manager agent to create a PRD with BR/NFR requirements, epic-level feature definitions, and success metrics."
-  <commentary>
-  PRD creation request triggers the product-manager agent (create-prd skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs a project brief to kick off a product initiative
-  user: "write a project brief for the platform analytics initiative"
-  assistant: "I'll use the product-manager agent to author a project brief defining the problem, target users, success metrics, and constraints."
-  <commentary>
-  Project brief creation request triggers the product-manager agent (project-brief skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to validate product requirements before development
-  user: "validate the problem statement and success metrics in our project brief"
-  assistant: "I'll use the product-manager agent to apply Lean Startup and SMART/OKR validation frameworks against the brief."
-  <commentary>
-  Requirements validation request triggers the product-manager agent (validate-product-requirements skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs guidance on which product framework to apply
-  user: "which prioritization framework should I use for our backlog grooming session?"
-  assistant: "I'll use the product-manager agent to recommend the right framework based on your context and trade-offs."
-  <commentary>
-  Product framework guidance triggers the product-manager agent (product-frameworks skill).
-  </commentary>
-  </example>
-
+  Use this agent for product management: creating and updating Product Requirements Documents (PRDs), authoring project briefs, validating product requirements with business frameworks, and applying product strategy methodologies. Produces evidence-based product artifacts that bridge business goals and development delivery.
 tools: [Read, Write, Edit, Grep, Glob, AskUserQuestion, TodoWrite]
 model: inherit
 color: yellow

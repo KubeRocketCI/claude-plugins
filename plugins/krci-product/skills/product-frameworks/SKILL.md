@@ -1,6 +1,6 @@
 ---
 name: Product Frameworks
-description: This skill should be used when the user asks about "product frameworks", "which framework to use", "prioritization framework", "business framework", "MoSCoW vs RICE", "backlog prioritization", "value vs effort matrix", "roadmap frameworks", "business analysis models", "OKR frameworks", "Kano model", "Jobs-to-be-Done framework overview", or "which PM methodology applies here". Provides the shared business and prioritization frameworks reference invoked by the other product skills and directly when the user needs framework guidance.
+description: This skill should be used when the user needs to choose or apply a product or prioritization framework — MoSCoW, RICE, value-vs-effort, Kano, OKRs, Jobs-to-be-Done, or roadmap and backlog prioritization models. Provides the shared business and prioritization frameworks reference invoked by the other product skills and directly when the user needs framework guidance.
 allowed-tools: [Read]
 authors:
     - Sergiy Kulanov <sergiy_kulanov@epam.com>

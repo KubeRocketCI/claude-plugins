@@ -1,35 +1,7 @@
 ---
 name: product-owner
 description: |
-  Use this agent for product ownership tasks: creating and managing epics, writing and refining user stories, reviewing stories for business value and epic alignment, and managing the product backlog. Examples:
-
-  <example>
-  Context: User needs an epic created from PRD requirements
-  user: "create an epic for the self-service onboarding capability from the PRD"
-  assistant: "I'll use the product-owner agent to create a structured epic with problem statement, goal, scope, and user stories."
-  <commentary>
-  Epic creation request triggers the product-owner agent (manage-epic skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs a user story written for an existing epic
-  user: "write a story for the OAuth integration in Epic 3"
-  assistant: "I'll use the product-owner agent to create a comprehensive user story with acceptance criteria and implementation tasks."
-  <commentary>
-  Story creation request triggers the product-owner agent (manage-story skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants a story reviewed from a business perspective
-  user: "review story 02.03 to make sure it has clear business value and aligns with the epic"
-  assistant: "I'll use the product-owner agent to review the story for business value, format correctness, and epic alignment."
-  <commentary>
-  Story review request triggers the product-owner agent (manage-story skill, review mode).
-  </commentary>
-  </example>
-
+  Use this agent for product ownership tasks: creating and managing epics, writing and refining user stories, reviewing stories for business value and epic alignment, and managing the product backlog.
 tools: [Read, Write, Edit, Grep, Glob, AskUserQuestion, TodoWrite]
 model: inherit
 color: green
