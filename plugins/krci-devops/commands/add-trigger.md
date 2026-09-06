@@ -6,7 +6,7 @@ allowed-tools: [Bash, Skill]
 
 # Task: Create Tekton Trigger for VCS Webhook Integration
 
-**CRITICAL: Follow this workflow to create Tekton Triggers:**
+Follow this workflow to create Tekton Triggers:
 
 1. **Load required skills using Skill tool:**
    - Load krci-devops:edp-tekton-standards (for pipeline and repository context)
@@ -51,8 +51,7 @@ allowed-tools: [Bash, Skill]
       - Extract from `extensions.*`: EDP-enriched metadata (codebase, codebasebranch, pipelines)
    5. Create TriggerTemplate for PipelineRun scaffolding:
       - File: `tt-{type}.yaml`
-      - **CRITICAL**: Use DYNAMIC pipeline naming: `pipelineRef.name: $(tt.params.PIPELINE_NAME)`
-      - Pipeline name comes from: `$(extensions.pipelines.{type})` (NOT hardcoded!)
+      - Use dynamic pipeline naming: `pipelineRef.name: $(tt.params.PIPELINE_NAME)`. The name comes from `$(extensions.pipelines.{type})` — a hardcoded name breaks every pipeline type but the one it names
       - Configure workspaces: shared-workspace (ephemeral PVC) and ssh-creds (VCS secret)
       - Add labels: codebase, codebasebranch, pipelinetype
    6. Validate all components:
@@ -77,7 +76,7 @@ VCS Webhook → EventListener → Trigger (3 interceptors) → TriggerBinding �
 
 ## Reference Assets (Prerequisites)
 
-**CRITICAL**: Must be in EDP-Tekton repository.
+This command must run from inside the EDP-Tekton repository.
 
 **Required Resources**:
 
@@ -325,7 +324,7 @@ validation:
   helm_template: success
   yaml_valid: true
   parameters_match: true
-  pipeline_dynamic: true (CRITICAL)
+  pipeline_dynamic: true
 webhook_setup:
   url: "https://el-{vcs}-{namespace}.{cluster}"
   secret: "ci-{vcs}"

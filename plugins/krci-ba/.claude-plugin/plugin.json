@@ -1,6 +1,6 @@
 {
   "name": "krci-ba",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "KubeRocketCI Business Analyst plugin - requirements gathering, process analysis, business rules, and user journey mapping with BR/NFR traceability",
   "author": {
     "name": "KubeRocketCI Team",

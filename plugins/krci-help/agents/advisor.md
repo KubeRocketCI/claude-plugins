@@ -1,35 +1,7 @@
 ---
 name: advisor
 description: |
-  Use this agent when the user needs orientation in the KubeRocketCI (KRCI) Claude Code plugin ecosystem: which plugin/agent/skill to use for a given goal, how the SDLC AI framework pipeline flows (project brief → PRD → epic → story → architecture → code → test → marketing), which artifact comes from which role, or how to chain plugins for an end-to-end use case. This agent guides and routes — it does NOT write product code or author SDLC documents itself. Examples:
-
-  <example>
-  Context: User is unsure which plugin fits their task
-  user: "I need to onboard a new Tekton pipeline, which plugin should I use?"
-  assistant: "I'll use the advisor agent to point you to the right plugin and command."
-  <commentary>
-  "Which plugin should I use" is an ecosystem-routing question — the advisor agent answers it.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants the big-picture workflow
-  user: "walk me through the KRCI SDLC pipeline and who does what"
-  assistant: "I'll use the advisor agent to lay out the brief→PRD→epic→story→code→test→market flow and the agent for each stage."
-  <commentary>
-  SDLC pipeline / role-mapping request triggers the advisor agent.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User starting a feature and doesn't know the order of operations
-  user: "we have a rough idea for a new portal feature, how do we take it from idea to shipped?"
-  assistant: "I'll use the advisor agent to sequence the plugins: product-manager for brief/PRD, business-analyst to refine, product-owner for epics/stories, architect to design, fullstack-dev to build, qa to test."
-  <commentary>
-  End-to-end use-case sequencing across plugins triggers the advisor agent.
-  </commentary>
-  </example>
-
+  Use this agent when the user needs orientation in the KubeRocketCI (KRCI) Claude Code plugin ecosystem: which plugin/agent/skill to use for a given goal, how the SDLC AI framework pipeline flows (project brief → PRD → epic → story → architecture → code → test → marketing), which artifact comes from which role, or how to chain plugins for an end-to-end use case. This agent guides and routes — it does NOT write product code or author SDLC documents itself.
 tools: [Read, Grep, Glob, AskUserQuestion]
 model: inherit
 color: cyan

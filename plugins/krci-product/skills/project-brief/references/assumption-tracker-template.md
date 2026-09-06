@@ -58,7 +58,7 @@ High impact assumptions require immediate attention and detailed validation plan
 
 Required fields for high impact: rationale, evidence, validation method, timeline, owner, risk assessment, validation plan, success criteria.
 
-CRITICAL: High impact assumptions must have confidence levels tracked and validation deadlines enforced.
+High impact assumptions must have confidence levels tracked and validation deadlines enforced.
 </instructions>
 </high_impact_assumptions>
 
@@ -169,7 +169,7 @@ User assumptions focus on target user behavior, needs, and characteristics. Crit
 
 Validation Methods: user interviews, surveys, behavioral analytics, usability testing, persona validation.
 
-CRITICAL: User assumptions should be validated through direct user contact whenever possible.
+User assumptions should be validated through direct user contact whenever possible.
 </instructions>
 </user_assumptions>
 
@@ -229,7 +229,7 @@ Solution assumptions cover technical feasibility, implementation approach, and s
 
 Validation Methods: prototyping, technical spikes, proof of concepts, architecture review, performance testing.
 
-CRITICAL: Solution assumptions should be validated through hands-on technical validation before full implementation.
+Solution assumptions should be validated through hands-on technical validation before full implementation.
 </instructions>
 </solution_assumptions>
 
@@ -289,7 +289,7 @@ Market assumptions cover market size, competition, timing, and market conditions
 
 Validation Methods: market research, competitive analysis, industry reports, customer development, market testing.
 
-CRITICAL: Market assumptions should be validated through external market data and competitive intelligence.
+Market assumptions should be validated through external market data and competitive intelligence.
 </instructions>
 </market_assumptions>
 
@@ -349,7 +349,7 @@ Business assumptions cover revenue model, business viability, resource requireme
 
 Validation Methods: financial modeling, stakeholder interviews, business case analysis, ROI projections, pilot programs.
 
-CRITICAL: Business assumptions should be validated through quantitative financial analysis and stakeholder validation.
+Business assumptions should be validated through quantitative financial analysis and stakeholder validation.
 </instructions>
 </business_assumptions>
 
@@ -397,7 +397,7 @@ Priority Levels:
 - Medium: Planned validation, affects timeline but not core viability
 - Low: Monitor only, minimal project impact
 
-CRITICAL: High priority items must have assigned owners and specific deadlines.
+High priority items must have assigned owners and specific deadlines.
 </instructions>
 </validation_pipeline>
 
@@ -578,7 +578,7 @@ Required fields: clear action description, assigned owner, specific due date, re
 <instructions>
 Template usage notes provide consistent standards for assumption tracking and validation.
 
-CRITICAL: Use these definitions consistently across all assumption entries to ensure accurate risk assessment and prioritization.
+Use these definitions consistently across all assumption entries to ensure accurate risk assessment and prioritization.
 
 Impact levels determine validation urgency. Confidence levels guide evidence collection needs. Status tracking enables progress monitoring.
 </instructions>

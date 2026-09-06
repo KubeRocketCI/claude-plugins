@@ -1,6 +1,6 @@
 ---
 name: KRCI Architecture
-description: This skill should be used when planning KubeRocketCI features, validating technical designs, making architectural decisions for the KRCI platform, or when the user asks about "KRCI reference architecture", "platform architecture", "DevSecOps principles", "deployment patterns", "validate design against KRCI", "check KRCI architecture alignment", "plan KRCI feature implementation", "multi-cluster architecture", "validate this design on the testbed before planning the implementation", or mentions KRCI platform design decisions. For general ecosystem questions ("which plugin should I use"), defer to krci-help's krci-sdlc-framework; for reproducing a bug or verifying a specific code change on the cluster, defer to krci-triage's krci-testbed skill.
+description: This skill should be used when the user is planning a KubeRocketCI feature, validating a technical design against the KRCI reference architecture, or making a platform-level architectural decision — including DevSecOps principles, deployment and multi-cluster patterns, and cross-component design trade-offs. For general ecosystem questions ("which plugin should I use"), defer to krci-help's krci-sdlc-framework; for reproducing a bug or verifying a specific code change on the cluster, defer to krci-triage's krci-testbed skill.
 authors:
     - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---

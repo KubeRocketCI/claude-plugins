@@ -1,6 +1,6 @@
 {
   "name": "krci-docs",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "KubeRocketCI Technical Writer plugin - documentation/presentation review, narrated overview video production (scenario + React presentation app), and the full platform release documentation cycle: component release audit, RELEASES.md authoring, upgrade guide and docs versioning",
   "author": {
     "name": "KubeRocketCI Team",

@@ -1,6 +1,6 @@
 ---
 name: KRCI EDP-Tekton Standards
-description: This skill should be used when the user asks to "onboard Tekton pipeline", "create new task", "add pipeline to EDP-Tekton", "follow pipeline naming conventions", "configure Helm chart for Tekton", "use onboarding script", "configure Tekton workspaces", "check supported languages", "add language support", "pipeline naming", "task naming", "what languages are supported", "helm chart for tekton", "pipeline structure", or mentions Tekton pipeline naming conventions, EDP-Tekton repository structure, pipeline/task organization, Helm chart templating for Tekton, KRCI onboarding standards, or onboarding script automation. Make sure to use this skill whenever working within the EDP-Tekton repository on pipelines or tasks, even if the user doesn't explicitly mention "standards". For trigger/webhook/EventListener configuration, defer to edp-tekton-triggers. For GitLab CI components, defer to gitlab-ci-component-standards.
+description: This skill should be used whenever the user is working on Tekton pipelines or tasks inside the EDP-Tekton repository — onboarding a new pipeline or task, applying the pipeline/task naming conventions, structuring or templating the Tekton Helm chart, running the onboarding script, configuring workspaces, or checking and extending the supported language list. Use it for any pipeline or task work in that repository, even when the user does not say "standards". For trigger/webhook/EventListener configuration, defer to edp-tekton-triggers. For GitLab CI components, defer to gitlab-ci-component-standards.
 authors:
     - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
@@ -13,7 +13,7 @@ Comprehensive standards for developing, organizing, and maintaining Tekton Pipel
 
 **Repository**: <https://github.com/epam/edp-tekton>
 
-**CRITICAL**: All standards, conventions, and automation scripts in this skill are specific to the EDP-Tekton repository. Ensure you are working within a clone of this repository before applying these standards.
+All standards, conventions, and automation scripts in this skill are specific to the EDP-Tekton repository. Ensure you are working within a clone of this repository before applying these standards.
 
 ## Purpose
 

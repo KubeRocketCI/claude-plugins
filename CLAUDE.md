@@ -37,7 +37,7 @@ The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing ind
 
 Each plugin lives at `plugins/<name>/` and must have `.claude-plugin/plugin.json`.
 
-**Agents** (`agents/*.md`): Frontmatter defines `name`, `description` (with `<example>` blocks for routing), `tools`, `model`, `color`. Body is the system prompt.
+**Agents** (`agents/*.md`): Frontmatter defines `name`, `description`, `tools`, `model`, `color`. Body is the system prompt.
 
 **Commands** (`commands/*.md`): Frontmatter defines `description`, `argument-hint`, `allowed-tools`. Body contains workflow instructions written FOR Claude (not for the user). Use `$ARGUMENTS` to reference user input. Keep `allowed-tools` minimal.
 
@@ -62,10 +62,10 @@ Several surfaces describe the marketplace contents by hand and **must be updated
 
 - Commands use multi-phase workflows with explicit user checkpoints via `AskUserQuestion`
 - krci-architect follows a **consultative pattern**: present options, never auto-decide, stop at checkpoints
-- Agent descriptions must include `<example>` blocks with `<commentary>` for accurate routing
+- Agent descriptions state the categories of intent the agent handles, plus the agents it should not be used instead of. No `<example>`/`<commentary>` dialogue blocks — they ride in every request and generalize worse than the intent statement
 - Skills use progressive disclosure: lean SKILL.md pointing to detailed `references/` files
 - Agents use `model: inherit` — except `krci-general`'s `code-reviewer`, which deliberately pins `model: sonnet` so reviews run on a consistent, cost-appropriate model. Don't switch it to `inherit` without reason.
-- Skill descriptions follow the house pattern: third person, opening with "This skill should be used when…", quoted trigger phrases, and a closing "for X, defer to Y" negative scope
+- Skill descriptions follow the house pattern: third person, opening with "This skill should be used when…", the categories of work the skill covers plus the API symbols and identifiers a user would actually type (`FilterProvider`, `useAppForm`, `PageWrapper`), and a closing "for X, defer to Y" negative scope. Do not list near-synonymous phrasings of the same request — descriptions ride in every request, and a phrase list generalizes worse than the intent statement
 - Keep `CLAUDE.md` free of dynamic data (plugin versions, exact component counts) — that lives in `plugin.json` and the filesystem; mirroring it here only invites drift
 - Changing any of a plugin's files requires a `version` bump in that plugin's `.claude-plugin/plugin.json` — CI (`check-plugin-version.yml`) enforces that the version *increases* per changed plugin (it does not mandate a specific level). Pick the level per semver: PATCH = fixes/typos, MINOR = new commands/skills/agents or behavior changes, MAJOR = breaking interface/structure changes
 - All plugins use Apache-2.0 license, author "KubeRocketCI Team"

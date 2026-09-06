@@ -19,7 +19,7 @@ Priority Example: Critical, High, Medium, Low (align with PRD requirement priori
 Epic Owner Example: Product Owner, Tech Lead, Development Team
 Timeline Example: Sprint 1-3 (6 weeks), Q1 2025, March-April 2025
 
-CRITICAL: Status section contains ONLY these fields. Do NOT add Dependencies or other fields here.
+Status section contains ONLY these fields. Do NOT add Dependencies or other fields here.
 </instructions>
 </status>
 
@@ -366,6 +366,6 @@ Phase 2: Parity
 - Story epic_number.03: Unified activation flow – JetBrains
 - Story epic_number.04: Session continuity (intra-day)
 
-CRITICAL: All sections must appear in exact order - Status, Overview, Scope, Solution Approach, Risks & Assumptions, Acceptance Criteria, User Stories.
+All sections must appear in exact order - Status, Overview, Scope, Solution Approach, Risks & Assumptions, Acceptance Criteria, User Stories.
 </instructions>
 </user_stories>

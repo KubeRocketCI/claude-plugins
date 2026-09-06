@@ -1,6 +1,6 @@
 ---
 name: Validate Product Requirements
-description: This skill should be used when the user asks to "validate the problem statement", "validate target users", "validate success metrics", "validate business value", "validate the project brief", "check requirements quality", "apply lean startup validation", "apply jobs-to-be-done", "run SMART validation", or "validate the value proposition". Applies Lean Startup Problem-Solution Fit, Jobs-to-be-Done, SMART/OKR, and Value Proposition Canvas frameworks to validate problem statements, user segments, success metrics, and business value in a project brief or PRD.
+description: This skill should be used when the user asks to validate or quality-check the content of a project brief or PRD — the problem statement, target users, success metrics, business value, or value proposition. Applies Lean Startup Problem-Solution Fit, Jobs-to-be-Done, SMART/OKR, and Value Proposition Canvas frameworks to validate problem statements, user segments, success metrics, and business value in a project brief or PRD.
 argument-hint: <brief-or-prd-path>
 allowed-tools: [Read, Write, Edit, Grep, Glob, AskUserQuestion, TodoWrite]
 authors:

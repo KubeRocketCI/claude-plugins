@@ -6,7 +6,7 @@ allowed-tools: [Bash, Skill]
 
 # Task: Scaffold GitLab CI/CD Component Library
 
-**CRITICAL: Follow this workflow to scaffold the component library:**
+Follow this workflow to scaffold the component library:
 
 1. **Load required skill using Skill tool:**
    - Load krci-devops:gitlab-ci-component-standards skill (ALWAYS)

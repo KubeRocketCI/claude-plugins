@@ -1,44 +1,7 @@
 ---
 name: business-analyst
 description: |
-  Use this agent for business analysis: gathering and documenting requirements, analyzing business processes, mapping user journeys, and documenting business rules. Produces BR/NFR requirements with traceability that enable Epic and Story creation. Examples:
-
-  <example>
-  Context: User needs requirements captured for a new capability
-  user: "gather the requirements for the new self-service onboarding feature"
-  assistant: "I'll use the business-analyst agent to elicit and document the requirements in BR/NFR format with acceptance criteria."
-  <commentary>
-  Requirements elicitation request triggers the business-analyst agent (gather-requirements skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants a current process analyzed for improvements
-  user: "analyze our deployment approval process and find bottlenecks"
-  assistant: "I'll use the business-analyst agent to map the current state and identify improvement opportunities."
-  <commentary>
-  Process analysis request triggers the business-analyst agent (analyze-processes skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs business rules documented
-  user: "document the business rules for discount eligibility"
-  assistant: "I'll use the business-analyst agent to capture the rules with conditions, actions, and exceptions."
-  <commentary>
-  Business rules documentation triggers the business-analyst agent (document-business-rules skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to map a user experience
-  user: "map the user journey for first-time developer onboarding"
-  assistant: "I'll use the business-analyst agent to map touchpoints, emotions, and pain points across the journey."
-  <commentary>
-  User journey mapping triggers the business-analyst agent (map-user-journeys skill).
-  </commentary>
-  </example>
-
+  Use this agent for business analysis: gathering and documenting requirements, analyzing business processes, mapping user journeys, and documenting business rules. Produces BR/NFR requirements with traceability that enable Epic and Story creation.
 tools: [Read, Write, Edit, Grep, Glob, AskUserQuestion, TodoWrite]
 model: inherit
 color: blue

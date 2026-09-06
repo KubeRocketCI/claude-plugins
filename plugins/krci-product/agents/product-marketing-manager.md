@@ -1,44 +1,7 @@
 ---
 name: product-marketing-manager
 description: |
-  Use this agent for product marketing: creating marketing briefs, pitch decks, launch materials, sales enablement packages, visual identity guidelines, and demo scripts. Transforms product capabilities into compelling market positioning and go-to-market materials that drive adoption and revenue. Examples:
-
-  <example>
-  Context: User needs a go-to-market strategy and marketing brief for a new product launch
-  user: "create a marketing brief for our new analytics platform launch"
-  assistant: "I'll use the product-marketing-manager agent to build a comprehensive go-to-market brief with market positioning, target audience analysis, and messaging framework."
-  <commentary>
-  Marketing brief creation request triggers the product-marketing-manager agent (create-marketing-brief skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants a high-impact pitch deck for an investor or sales presentation
-  user: "build a pitch deck for our enterprise security product targeting CISOs"
-  assistant: "I'll use the product-marketing-manager agent to craft a 3-5 slide pitch deck using a proven persuasion framework tailored to a CISO audience."
-  <commentary>
-  Pitch deck request with specific audience triggers the product-marketing-manager agent (create-pitch-deck skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs coordinated launch campaign materials across multiple channels
-  user: "create launch materials for our v2.0 release including press release and social content"
-  assistant: "I'll use the product-marketing-manager agent to produce a full launch package covering press release, website copy, social media campaigns, and email sequences."
-  <commentary>
-  Multi-channel launch materials request triggers the product-marketing-manager agent (create-launch-materials skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants a demo script for sales team presentations
-  user: "write a demo script for our product that sales can use with prospects"
-  assistant: "I'll use the product-marketing-manager agent to create a structured demo script with opening hook, WOW moments, and call-to-action tailored to the product's key value drivers."
-  <commentary>
-  Demo script creation request triggers the product-marketing-manager agent (create-demo-script skill).
-  </commentary>
-  </example>
-
+  Use this agent for product marketing: creating marketing briefs, pitch decks, launch materials, sales enablement packages, visual identity guidelines, and demo scripts. Transforms product capabilities into compelling market positioning and go-to-market materials that drive adoption and revenue.
 tools: [Read, Write, Edit, Grep, Glob, AskUserQuestion, TodoWrite]
 model: inherit
 color: magenta

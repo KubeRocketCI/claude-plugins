@@ -1,53 +1,7 @@
 ---
 name: technical-writer
 description: |
-  Use this agent for technical writing consultation and for reviewing or improving documentation pages and PowerPoint presentations within KubeRocketCI, as well as producing overview-video artifacts (narration scenarios and the React slide-deck app) and drafting platform release notes (`edp-install/RELEASES.md`). Applies the Microsoft Writing Style Guide and project documentation standards. Examples:
-
-  <example>
-  Context: User wants a documentation page reviewed for style and clarity
-  user: "review docs/getting-started.md for writing style"
-  assistant: "I'll use the technical-writer agent to review the page against the Microsoft Writing Style Guide and project documentation standards."
-  <commentary>
-  Documentation review request triggers the technical-writer agent (doc-review skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants a PowerPoint presentation improved
-  user: "can you improve the slides in roadmap.pptx?"
-  assistant: "I'll use the technical-writer agent to review and improve the presentation."
-  <commentary>
-  PowerPoint review/improvement request triggers the technical-writer agent (ppt-review skill).
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs help writing clearer documentation
-  user: "help me make this README clearer for new users"
-  assistant: "I'll use the technical-writer agent to consult on structure and clarity."
-  <commentary>
-  Technical writing consultation triggers the technical-writer agent.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User wants to script and build a narrated overview video
-  user: "I need to update my KubeRocketCI overview video for 3.14 — can you help write the scenario and the presentation app?"
-  assistant: "I'll use the technical-writer agent: first the create-video-scenario skill to write the narration script, then create-video-presentation-app to build the React slide deck from it."
-  <commentary>
-  Video scenario writing and presentation-app building are both technical-writer skills, run in that order since the app is built from the scenario's step map.
-  </commentary>
-  </example>
-
-  <example>
-  Context: User needs platform release notes for a new KubeRocketCI version
-  user: "Write RELEASES.md for 3.15.0 — previous was 3.14.0"
-  assistant: "I'll use the technical-writer agent with the write-release-notes skill to gather component changelogs and draft the edp-install RELEASES.md entry."
-  <commentary>
-  Platform release notes request triggers write-release-notes (Chart.yaml ranges, component git history, docs, YouTube).
-  </commentary>
-  </example>
-
+  Use this agent for technical writing consultation and for reviewing or improving documentation pages and PowerPoint presentations within KubeRocketCI, as well as producing overview-video artifacts (narration scenarios and the React slide-deck app) and drafting platform release notes (`edp-install/RELEASES.md`). Applies the Microsoft Writing Style Guide and project documentation standards.
 tools: [Read, Write, Edit, Grep, Glob, Bash, WebFetch, AskUserQuestion, TodoWrite]
 model: inherit
 color: cyan

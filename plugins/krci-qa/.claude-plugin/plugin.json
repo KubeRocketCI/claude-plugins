@@ -1,6 +1,6 @@
 {
   "name": "krci-qa",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "KubeRocketCI QA plugin - manual and automation quality assurance: test planning, test cases, execution, defect reporting, and Gherkin test automation",
   "author": {
     "name": "KubeRocketCI Team",
