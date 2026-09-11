@@ -59,6 +59,11 @@ TWO KIND PLUGIN:
 - CMD: /krci-general:commit, /krci-general:review.
 - USE WHEN: you commit. you want code review. any language.
 
+**krci-ops — WATCH TOWER**
+
+- AGENT: krci-ops. ask "what fail". ask "what deploy". ask vuln status. ask quality gate. run krci CLI. NO fix code. NO touch manifest.
+- USE WHEN: you want live health from CLI. no portal click. no kubectl.
+
 **krci-triage — TESTBED + WORKSPACE TOOLKIT (jira → fix, or verify any change)**
 
 - CMD: /krci-triage:setup-testbed (stand up try-kuberocketci kind cluster), /krci-triage:bootstrap-workspace (clone all KRCI source), /krci-triage:krci-fix-the-issue (jira key → root cause → reproduce → fix → verify on cluster).
@@ -124,6 +129,7 @@ WHO DO WHAT:
 | docs, slides, overview videos, release notes | krci-docs (technical-writer) |
 | go-to-market | krci-product (product-marketing-manager) |
 | commit, code review | krci-general (any time, any stage) |
+| live platform health, vulnerability status, quality gate | krci-ops (krci-ops) |
 | set up testbed + workspace, fix jira bug, verify change on cluster | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) |
 | lost? which plugin? | krci-help (advisor) |
 

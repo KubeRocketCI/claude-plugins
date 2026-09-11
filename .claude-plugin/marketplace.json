@@ -229,6 +229,27 @@
       }
     },
     {
+      "name": "krci-ops",
+      "source": "./plugins/krci-ops",
+      "description": "KubeRocketCI platform observability agent - answers questions about live deployment, environment, and code-quality state by querying the krci CLI",
+      "category": "operations",
+      "keywords": [
+        "kuberocketci",
+        "krci-cli",
+        "observability",
+        "troubleshooting",
+        "deployments",
+        "environments",
+        "vulnerabilities",
+        "quality-gate"
+      ],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    },
+    {
       "name": "krci-triage",
       "source": "./plugins/krci-triage",
       "description": "KubeRocketCI testbed and workspace toolkit - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix, and verify code changes on the cluster, including end-to-end Jira-tracked issue triage",

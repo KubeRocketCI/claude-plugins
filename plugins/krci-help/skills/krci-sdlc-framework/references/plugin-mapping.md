@@ -54,6 +54,13 @@ General code utilities, any language, any stage.
 - **Commands**: `/krci-general:commit` (conventional commit from staged changes), `/krci-general:review` (4 parallel review agents: simplicity, bugs, conventions, comment hygiene & fragile state; applies comment and fragile-state fixes, reports the rest).
 - **Use when**: writing a commit message or reviewing code at any point in the pipeline.
 
+### krci-ops — DEV (utility, cross-cutting)
+
+Live platform observability, read-only.
+
+- **Agent** `krci-ops`: answers "what's failing"/"what's deployed"/"vulnerability status"/"quality gate" questions by running the `krci` CLI (`deployment`, `env`, `project`, `pipelinerun`, `sca`, `sonar`); never fixes code, writes manifests, or triggers a pipeline unless explicitly asked.
+- **Use when**: you want a live health/sync/vulnerability/quality-gate answer straight from the platform without opening the portal, and don't need to touch raw Kubernetes resources (logs, ConfigMaps) — those stay out of its scope, by design.
+
 ### krci-triage — DEV (Jira-driven bug fixing and feature validation on a testbed)
 
 Set up the prerequisites, fix a Jira-tracked issue end to end on a real cluster, and/or
