@@ -231,7 +231,7 @@
     {
       "name": "krci-triage",
       "source": "./plugins/krci-triage",
-      "description": "KubeRocketCI testbed and workspace toolkit - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix, and verify code changes on the cluster, including end-to-end Jira-tracked issue triage",
+      "description": "KubeRocketCI testbed and workspace toolkit - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix, and verify code changes on the cluster, including end-to-end Jira-tracked issue triage, plus opt-in krci-kubelock, which locks kubectl, helm and every script Claude runs to the testbed context",
       "category": "development",
       "keywords": [
         "kuberocketci",
@@ -244,7 +244,9 @@
         "workspace",
         "reproduce",
         "verify",
-        "e2e"
+        "e2e",
+        "krci-kubelock",
+        "kubeconfig"
       ],
       "license": "Apache-2.0",
       "homepage": "https://github.com/KubeRocketCI/claude-plugins",

@@ -49,6 +49,49 @@ branch + conventional commit → optional QA comment back to Jira.
   out), reproducing through the Kubernetes API, headless Portal verification with Playwright
   (not the MCP), shell/safety notes, and posting results to Jira without mangling code blocks.
 
+## krci-kubelock — recommended: turn it on
+
+A mod that locks Claude to one kube context: the testbed's. It locks the context, not the
+cluster — inside that context Claude can still change anything. **Off by default — turn it
+on:** `/config` → **krci-kubelock** → on. The change applies at once and holds for every session.
+
+While on:
+
+- `KUBECONFIG` points at `~/.kube/krci-kubelock/<context>.yaml`, your kubeconfig minified to
+  the locked context (default `kind-krci`). Every `kubectl`, `helm`, `make` target, and script
+  Claude runs sees only that context. Your `~/.kube/config` and your own terminals are untouched.
+- Bash commands that escape the pin are denied before they run: `--context` / `--kube-context`
+  naming another context, `kubectl config use-context`, `kubectx`, `kind create cluster` or
+  `kind export kubeconfig` for another cluster, `--kubeconfig`, `KUBECONFIG=` overrides, cloud
+  credential fetchers (`aws eks update-kubeconfig`, `gcloud … get-credentials`,
+  `az aks get-credentials`), and reading your real kubeconfig. Claude gets the reason.
+- `~/.kube/` is off limits to Bash and the file tools — every kubeconfig there, and listing the
+  folder itself — except the lock's own `~/.kube/krci-kubelock/` and kubectl's `cache` and
+  `http-cache`. Nothing in `~/.kube/` is moved or deleted.
+- Contexts a command adds to the pinned file are stripped after it runs.
+- The status line shows `⎈ kind-krci 🔒`. Without the context, kube access is blocked
+  (`⎈ kind-krci missing · kube access blocked`) and the pin is retried every 30 seconds.
+- Edits to the krci-kubelock settings are denied; only you change them, in `/config`.
+- `/krci-kubelock` shows the state and rebuilds the pin.
+
+While off, the first kube command in a session raises a toast recommending krci-kubelock.
+
+| `/config` row | Key | Default | Purpose |
+|---------------|-----|---------|---------|
+| krci-kubelock | `kubelock` | `false` | Turns the lock on |
+| krci-kubelock context | `kubelockContext` | `kind-krci` | The only context Claude may use |
+
+Stored in `~/.claude/settings.json` under
+`pluginConfigs["krci-triage@kuberocketci-plugins"].options`.
+
+Limits:
+
+- Requires Claude Code v2.1.287 or later, macOS or Linux, and `kubectl` on `PATH`.
+- A testbed cluster created while the lock is on lands in the pinned file only. Run
+  `kind export kubeconfig --name <cluster>` in your own terminal to add it to `~/.kube/config`.
+- Stops mistakes, not a deliberate bypass. `--safe-mode`, `disableAllHooks`, and an
+  organization's `allowManagedModsOnly` turn it off; the missing status line shows it.
+
 ## Typical flow
 
 ```

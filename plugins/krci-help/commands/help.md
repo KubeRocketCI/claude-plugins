@@ -63,6 +63,7 @@ TWO KIND PLUGIN:
 
 - CMD: /krci-triage:setup-testbed (stand up try-kuberocketci kind cluster), /krci-triage:bootstrap-workspace (clone all KRCI source), /krci-triage:krci-fix-the-issue (jira key → root cause → reproduce → fix → verify on cluster).
 - SKILL: krci-testbed (locate workspace+testbed, build+load operator to kind, kubectl reproduce, headless portal check, post QA to jira).
+- MOD: krci-kubelock. off by default. TURN ON: /config → krci-kubelock. lock kubectl, helm, every script to kind-krci. other context? blocked. /krci-kubelock show state.
 - USE WHEN: you have jira bug. you want reproduce on real cluster. you set up testbed or workspace. you want verify a code change on the cluster.
 
 **krci-docs — WORD SMITH**

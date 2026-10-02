@@ -36,3 +36,8 @@ repo states (especially its host/architecture guidance).
 Report the testbed path plus the values the repo exposes (kube context, platform namespace,
 portal URL, token command). These are the `PATH_TO_TRY_KUBEROCKETCI` and capabilities that
 `/krci-triage:krci-fix-the-issue` will use.
+
+Then check krci-kubelock with `echo $KUBECONFIG`. If it does not point into
+`~/.kube/krci-kubelock/`, the lock is off: recommend the user turn it on (`/config` →
+**krci-kubelock**) so every command Claude runs stays on the testbed context. If the testbed's
+kube context is not `kind-krci`, tell them to set **krci-kubelock context** to it as well.

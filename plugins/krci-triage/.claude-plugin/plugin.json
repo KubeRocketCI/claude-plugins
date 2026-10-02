@@ -1,7 +1,7 @@
 {
   "name": "krci-triage",
-  "version": "0.3.0",
-  "description": "KubeRocketCI testbed and workspace toolkit - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix, and verify code changes on the cluster, including end-to-end Jira-tracked issue triage",
+  "version": "0.4.0",
+  "description": "KubeRocketCI testbed and workspace toolkit - provision the source workspace and a try-kuberocketci testbed, then diagnose, reproduce, fix, and verify code changes on the cluster, including end-to-end Jira-tracked issue triage, plus opt-in krci-kubelock, which locks kubectl, helm and every script Claude runs to the testbed context",
   "author": {
     "name": "KubeRocketCI Team",
     "email": "support@kuberocketci.io"
@@ -20,6 +20,23 @@
     "workspace",
     "reproduce",
     "verify",
-    "e2e"
-  ]
+    "e2e",
+    "krci-kubelock",
+    "kubeconfig"
+  ],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "kubelock": {
+      "type": "boolean",
+      "title": "krci-kubelock",
+      "description": "Lock kubectl, helm and every script Claude runs to the krci-kubelock context; block commands that target any other context. Recommended: on.",
+      "default": false
+    },
+    "kubelockContext": {
+      "type": "string",
+      "title": "krci-kubelock context",
+      "description": "The only kube context Claude may use while krci-kubelock is on",
+      "default": "kind-krci"
+    }
+  }
 }
