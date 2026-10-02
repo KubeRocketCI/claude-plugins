@@ -4,13 +4,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Repository Overview
 
-This is a Claude Code plugin marketplace (`kuberocketci-plugins`) containing AI agents for KubeRocketCI platform development. All content is markdown-based with YAML frontmatter - there is no compiled code, build system, or test suite.
+This is a Claude Code plugin marketplace (`kuberocketci-plugins`) containing AI agents for KubeRocketCI platform development. Content is markdown with YAML frontmatter, except mods: TypeScript hooks modules with their own tests. There is no build system.
 
-## Linting
+## Linting and tests
 
 ```bash
 # Markdown linting (uses .markdownlint.yaml config)
 markdownlint '**/*.md'
+
+# Mods: static check of manifest + hooks module, then the plugin's *.test.ts files
+claude plugin validate plugins/<name>
+claude plugin test plugins/<name>
 ```
 
 Several rules are intentionally disabled in `.markdownlint.yaml` - do not re-enable them.
@@ -22,7 +26,7 @@ The repo is a **marketplace** (`.claude-plugin/marketplace.json`) containing ind
 | Plugin | Components | Kind | Domain |
 |--------|-----------|------|--------|
 | **krci-help** | agent + commands + skill | meta | Ecosystem guide + SDLC framework knowledge |
-| **krci-triage** | commands + skill | dev | Jira-driven bug triage: testbed setup, workspace bootstrap, reproduce-fix-verify on a real cluster |
+| **krci-triage** | commands + skill + mod | dev | Jira-driven bug triage: testbed setup, workspace bootstrap, reproduce-fix-verify on a real cluster |
 | **krci-architect** | agent + commands + skills | dev | Cross-repo architecture planning |
 | **krci-fullstack** | agent + commands + skills | dev | React/TypeScript/Radix UI portal development |
 | **krci-devops** | agent + commands + skills | dev | Tekton pipeline/task/trigger automation, GitLab CI components |
@@ -43,6 +47,8 @@ Each plugin lives at `plugins/<name>/` and must have `.claude-plugin/plugin.json
 
 **Skills** (`skills/<name>/SKILL.md`): Frontmatter defines `name`, `description` (with trigger phrases). Body contains lean knowledge (1500-2000 words). Use `references/` subdirectory for detailed content and `examples/` for code samples.
 
+**Mods** (`hooks/hooks.json` → `modules`, `hooks/register.ts`): TypeScript event handlers that run inside Claude Code (v2.1.287+). Switches and values come from `userConfig` in `plugin.json`, read as `register(on, options)`. `$.state` values are declared in `types/index.d.ts`, named by `types` in `plugin.json`. `$` may only be passed to functions declared at the top level of the module; `claude plugin validate` rejects anything else. Tests live in `tests/*.test.ts`. Default a mod that blocks or rewrites Claude's actions to off, and say in the README and the relevant command or skill how to turn it on.
+
 **Scripts** (`scripts/*.sh`): Standalone bash utilities. Reference from commands via `${CLAUDE_PLUGIN_ROOT}/scripts/`.
 
 **References** (`references/*.md`): Shared knowledge files that are not auto-discovered components. Used either inside a skill (`skills/<name>/references/`) or at the plugin root when both a command and an agent consume them (e.g. `krci-godev/references/` is read by the `/krci-godev:review-code` command and the `go-dev` agent). Reference from commands/agents via `${CLAUDE_PLUGIN_ROOT}/references/`.
@@ -51,7 +57,7 @@ Small, purely procedural skills may be self-contained (no `references/` subdirec
 
 ## Hand-maintained inventories (keep in sync)
 
-Several surfaces describe the marketplace contents by hand and **must be updated together** whenever a plugin's agents/commands/skills change, or a plugin is added/removed:
+Several surfaces describe the marketplace contents by hand and **must be updated together** whenever a plugin's agents/commands/skills/mods change, or a plugin is added/removed:
 
 1. `.claude-plugin/marketplace.json` — registered plugins (name, source, description, keywords)
 2. `plugins/krci-help/commands/help.md` — the terse `/krci-help:help` map (human-facing)

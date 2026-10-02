@@ -19,6 +19,10 @@ and/or the cluster:
 - Read `<workspace>/sources/CLAUDE.md` (component map) and `<testbed>/CLAUDE.md` (cluster
   capabilities). From the latter, record the kube context, platform namespace, portal token
   command, and portal URL — never hardcode these.
+- **krci-kubelock**: run `echo $KUBECONFIG`. Not under `~/.kube/krci-kubelock/` → the lock is
+  off; recommend the user turn it on (`/config` → **krci-kubelock**) before touching the cluster.
+  Under it → only the locked context exists for every command you run. A command the lock
+  denies states the reason; fix the command, never route around the pin.
 
 ## 1. Testing a *local operator change* on the cluster
 

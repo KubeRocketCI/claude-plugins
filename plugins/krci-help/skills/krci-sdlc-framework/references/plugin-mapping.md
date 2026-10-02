@@ -61,6 +61,7 @@ validate any feature work against it.
 
 - **Commands**: `/krci-triage:setup-testbed` (clone/stand up a `try-kuberocketci` kind cluster), `/krci-triage:bootstrap-workspace` (clone the multi-repo KRCI source workspace via `KubeRocketCI/krci-workspace`), `/krci-triage:krci-fix-the-issue` (Jira key → root cause across the workspace → reproduce on the testbed → fix at the right layer → verify on the cluster → optional QA comment back to Jira).
 - **Skills**: `krci-testbed` (locates the workspace/testbed and their `CLAUDE.md` capabilities; operator rebuild loop build→`kind load`→roll out; reproducing via the Kubernetes API; headless Portal verification with Playwright, not the MCP; posting to Jira without mangling code).
+- **Mod** `krci-kubelock` (off by default, recommended on via `/config` → **krci-kubelock**): pins `KUBECONFIG` to a kubeconfig holding only the testbed context (default `kind-krci`), denies Bash commands that target another context or override the pin, and shows the state in the status line and `/krci-kubelock`.
 - **Use when**: you have a Jira bug to reproduce/fix on a real cluster, you need to provision the source workspace or a local testbed, or you want to validate a code change on the testbed.
 
 ### krci-docs — DEV
