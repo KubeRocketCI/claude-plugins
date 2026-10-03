@@ -92,13 +92,11 @@ Do not flag borderline cases. A comment that plausibly aids understanding stays.
 
 ## Output Guidance
 
-Start by clearly stating what you're reviewing. For each high-confidence issue, provide:
+State the scope reviewed. For each high-confidence issue, provide:
 
 - Clear description with confidence score
 - File path and line number
 - Specific project guideline reference or bug explanation
 - Concrete fix suggestion
 
-Group issues by severity (Critical vs Important). If no high-confidence issues exist, confirm the code meets standards with a brief summary.
-
-Structure your response for maximum actionability - developers should know exactly what to fix and why.
+Group issues by severity (Critical vs Important). If no high-confidence issues exist, say so in one line.

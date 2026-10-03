@@ -1,7 +1,7 @@
 ---
 description: Review code, then purge comment noise and fragile values
 argument-hint: <file-path-or-scope>
-allowed-tools: [Bash, Read, Edit, Grep, Glob, Task]
+allowed-tools: [Bash, Read, Edit, Grep, Glob, Agent]
 ---
 
 # Code Review
@@ -16,7 +16,7 @@ If `$ARGUMENTS` is empty, review unstaged changes from `git diff`.
 
 ## Launch Review
 
-Use the Task tool to launch **4 code-reviewer agents in parallel**, each with a different review focus:
+Use the Agent tool to launch **4 code-reviewer agents in parallel**, each with a different review focus. Without the Agent tool, run the four passes yourself in sequence and say so in the report:
 
 1. **Simplicity & DRY**: "Review the following scope for simplicity, DRY violations, code elegance, and readability. Scope: [determined scope]"
 2. **Bugs & Correctness**: "Review the following scope for bugs, logic errors, security vulnerabilities, race conditions, and functional correctness issues. Scope: [determined scope]"

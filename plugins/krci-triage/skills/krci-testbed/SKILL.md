@@ -82,9 +82,8 @@ Portal specifics:
 
 - **No stable input names.** Form fields use generated ids (`React.useId`) and no `name`
   attribute — select by **placeholder / label / role**, not `[name=...]`.
-- **Kebab/action menus.** The Radix trigger exposes `aria-haspopup="menu"` (stable);
-  note the lucide `MoreVertical` icon renders class `lucide-ellipsis-vertical` in recent
-  versions, so don't match the old class.
+- **Kebab/action menus.** The Radix trigger exposes `aria-haspopup="menu"`. The icon is lucide
+  `EllipsisVertical`, class `lucide-ellipsis-vertical`.
 - **Dependent fields.** A provider/kind `<select>` auto-fills dependent fields **only on
   change** — when you keep the default, fill the dependent field (e.g. User) yourself or the
   form fails a silent "Required" validation and the submit no-ops.
