@@ -192,6 +192,14 @@ const permissions = useCodebasePermissions();
 </ButtonWithPermission>
 ```
 
+### Heavy Dependencies Load on First Use
+
+Libraries such as xterm, xyflow, recharts, Monaco and the log viewer ship in their own chunk, fetched when the user first opens the dialog or tab that renders them. The route chunk stays free of them.
+
+- **Dialog**: `createLazyDialog` from `core/providers/Dialog`; the trigger binds its `preload` on pointer enter and focus. Copy `modules/platform/tekton/dialogs/PipelineGraph/`.
+- **Tab or widget**: `lazyNamed` from `core/utils`, inside a `Suspense` placed inside the tab so the rest of the page stays visible. `data-tour` anchors sit on the wrapper outside the boundary. Copy `modules/platform/codebases/pages/details/components/VulnerabilitiesTab/`.
+- **Verify** with `vite build --manifest`: the route chunk's static import closure excludes the library.
+
 ### Import Aliases
 
 ```typescript
