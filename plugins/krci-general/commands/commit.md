@@ -1,7 +1,6 @@
 ---
 description: Generate conventional commit message from staged changes
 allowed-tools: [Bash]
-model: haiku
 ---
 
 Check for staged changes by running `!git diff --cached`.

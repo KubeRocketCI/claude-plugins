@@ -14,7 +14,7 @@ This Claude Code plugin consolidates general-purpose development utilities used 
 - Generates conventional commit messages with appropriate types (feat, fix, docs, refactor, etc.)
 - Focuses on **why** changes were made and **what** they implement/address (not file listings)
 - Short subject lines (max 180 characters) with detailed body when needed
-- Uses Haiku model for fast, cost-effective generation
+- Runs on the session model, reusing the conversation prompt cache
 - Output in code block format for easy copy-paste
 
 ### Code Review
