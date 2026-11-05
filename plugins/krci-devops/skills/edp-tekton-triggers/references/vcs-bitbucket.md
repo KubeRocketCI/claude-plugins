@@ -29,7 +29,7 @@ The `bitbucket` ClusterInterceptor handles both webhook validation AND event fil
 | gitrevision | `extensions.targetBranch` |
 | gitbranch | `extensions.pullRequest.headRef` |
 | targetBranch | `extensions.targetBranch` |
-| gitrepositoryurl | `git@bitbucket.org:$(body.repository.full_name).git` |
+| gitrepositoryurl | `git@ssh.bitbucket.org:$(body.repository.full_name).git` |
 | gitrepositoryname | `body.repository.name` |
 | gitfullrepositoryname | `body.repository.full_name` |
 | gitsha | `extensions.pullRequest.headSha` |
@@ -41,7 +41,7 @@ The `bitbucket` ClusterInterceptor handles both webhook validation AND event fil
 |-----------|------|
 | gitrevision | `extensions.pullRequest.headSha` |
 | targetBranch | `extensions.targetBranch` |
-| gitrepositoryurl | `git@bitbucket.org:$(body.repository.full_name).git` |
+| gitrepositoryurl | `git@ssh.bitbucket.org:$(body.repository.full_name).git` |
 | gitrepositoryname | `body.repository.name` |
 | gitfullrepositoryname | `body.repository.full_name` |
 | commitMessage | `extensions.pullRequest.lastCommitMessage` |
