@@ -1,6 +1,6 @@
 {
   "name": "krci-release",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "KubeRocketCI release engineering - release KubeRocketCI components or the platform from a krci-workspace",
   "author": {
     "name": "KubeRocketCI Team",
@@ -20,6 +20,9 @@
     "edp-install",
     "edp-cluster-add-ons",
     "release-map",
-    "kuberocketci-pipelines"
+    "kuberocketci-pipelines",
+    "release-notes",
+    "upgrade-guide",
+    "versioning"
   ]
 }

@@ -1,8 +1,8 @@
 ---
 name: KRCI Release Documentation
-description: This skill should be used when the user asks to "write the upgrade guide", "create upgrade-krci-X.Y.md", "update the docs site for the release", "cut the docs version", "version the docs for the new release", "release the docs", "align the install guide with the new release", or "update krci-docs for the latest release". Produces the docs.kuberocketci.io changes for a KubeRocketCI platform release - the upgrade guide, affected pages, install-guide version pins, and the versioned snapshot. For the RELEASES.md changelog entry, defer to write-release-notes; for deciding which components need a release branch, defer to release-audit.
+description: This skill should be used when the user updates docs.kuberocketci.io for a KubeRocketCI platform release - upgrade guide, affected pages, install-guide pins, versioned snapshot. For RELEASES.md, defer to write-release-notes; for the release itself, defer to release-train.
 argument-hint: <new-version> [previous-version]
-allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Task, AskUserQuestion, TodoWrite]
+allowed-tools: [Read, Write, Edit, Grep, Glob, Bash, Agent, AskUserQuestion, TodoWrite]
 authors:
     - KubeRocketCI Team
 ---
@@ -23,25 +23,20 @@ overstate and understate.
 ## Inputs
 
 1. **New and previous platform versions** from `$ARGUMENTS` or AskUserQuestion.
-2. **Component release ranges** — from `release-audit`, or by comparing `edp-install`
-   `Chart.yaml` at both platform tags. Use **release-branch ranges**
-   (`origin/release/0.26..origin/release/0.27`), never the default branch: after a release is cut,
-   the default branch already contains the *next* version's work, which must not leak into these docs.
-3. **A provisioned `krci-workspace`** (`./bootstrap.sh`, then `./git-pull-all.sh`). Local clones are
-   the expected starting point: every commit in the release ranges is read in full, often across
-   dozens of tickets in parallel, which the GitHub API serves too slowly and rate-limits under
-   concurrency.
-
-   Reconcile the cloned set against the components in the release ranges before starting. Working
-   without a component's source does not produce an error — it produces confident, wrong
-   documentation, or silent deletion of correct content on the grounds that it cannot be verified.
+2. **Workspace, component ranges, docs links, noise:** `../../references/release-sources.md`. Every
+   commit in the ranges is read in full, so local clones are required; the GitHub API is too slow
+   and rate-limits under parallel reads.
+3. **Every component of the ranges cloned.** A missing source gives no error: it gives confident,
+   wrong documentation, or deletes correct content as "not verifiable".
+4. **Values drift findings** of the edp-install pin PR (`../release-train/references/edp-install-release.md`),
+   when they exist: each one is a candidate upgrade step.
 
 ## Workflow
 
 ### Phase 1 — Build the ticket → commit map
 
 Group every commit in the release ranges by Jira ID (`EPMDEDP-#####`). Commits without one (some
-repos) group by repository. Exclude `Update current development version` and version bumps.
+repos) group by repository. Exclude noise.
 
 This map is the work list. Every entry must reach a verdict — documented, or explicitly recorded as
 no-doc-impact with a reason. Track it with TodoWrite.
@@ -49,7 +44,7 @@ no-doc-impact with a reason. Track it with TodoWrite.
 ### Phase 2 — Analyse each ticket
 
 For a small release, work through the map directly. For a large one (20+ tickets), parallelise with
-the Task tool using **one agent per Jira ticket**, because each ticket is independently analysable
+the Agent tool using **one agent per Jira ticket**, because each ticket is independently analysable
 and the reading is the slow part.
 
 Each analysis, however it runs, must:
@@ -142,3 +137,5 @@ not yet decided). Do not describe partial work as complete.
   snapshot sync rule, install-guide pin locations, values.yaml line-anchor drift.
 - **`references/upgrade-guide-format.md`** — step heading format, classifications, ordering,
   required first and last steps, admonition style.
+- **`../../references/release-sources.md`** — workspace, component ranges, docs links, noise
+  (shared).

@@ -18,7 +18,8 @@
 #             STALE adds fix-bump
 #   note      STALE: snapshot not above the last release (dev-version bump missing); FIRST: no tag yet
 # Pins table:
-#   status    ok | behind (a newer release exists) | ahead (pinned version not released yet)
+#   status    ok | behind (a newer release exists) | ahead (pinned version not released yet) |
+#             removed (edp-install: pinned on the newest release branch, absent on the default branch)
 set -euo pipefail
 
 WS=${1:?usage: release-map.sh <krci-workspace-dir> [--no-fetch]}
@@ -182,7 +183,13 @@ if [ -d "$SRC/edp-install/.git" ]; then
   r=$SRC/edp-install; ref=$(default_ref "$r")
   pin_rows edp-install "$ref" deploy-templates/Chart.yaml edp-install
   rel=$(last_release_branch "$r")
-  [ -n "$rel" ] && pin_rows edp-install "$rel" deploy-templates/Chart.yaml edp-install
+  if [ -n "$rel" ]; then
+    pin_rows edp-install "$rel" deploy-templates/Chart.yaml edp-install
+    cur=$(deps_of "$r" "$ref" deploy-templates/Chart.yaml | cut -d' ' -f1)
+    while read -r n v; do
+      [ -n "$n" ] && ! grep -qx "$n" <<<"$cur" && echo "| edp-install | ${ref#origin/} | $n | - | ${rel#origin/}: $v | removed |"
+    done < <(deps_of "$r" "$rel" deploy-templates/Chart.yaml)
+  fi
 fi
 if [ -d "$SRC/edp-tekton/.git" ]; then
   r=$SRC/edp-tekton; ref=$(default_ref "$r")

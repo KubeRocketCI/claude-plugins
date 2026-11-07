@@ -24,7 +24,9 @@ Components table, one row per `repos.yaml` entry plus pinned repos missing from 
 
 Pins table: every pin in edp-install (default branch, newest `release/X.Y`), edp-tekton
 pipelines-library and its tekton-cache `image.tag`, and every `@epamedp` dependency in
-`clusters/*/addons/*/Chart.yaml`. Status `ok`, `behind` (newer release exists), `ahead` (unreleased).
+`clusters/*/addons/*/Chart.yaml`. Status `ok`, `behind` (newer release exists), `ahead` (unreleased),
+`removed` (edp-install dependency on the newest `release/X.Y`, absent on the default branch: report it
+as a removal from the platform, not as an omission).
 For tekton-cache and common-library, `latest` is the source chart version, not proof of publication.
 
 The map reads `sources/<dir>`. For another clone, run the same `git log` commands there and say so.
@@ -40,7 +42,8 @@ krci-cache image → tekton-cache chart → edp-tekton → edp-install → edp-c
 
 ## Approval
 
-Show both tables with one action per component and per `behind` pin, then stop (AskUserQuestion).
+Show both tables with one action per component and per `behind` pin, and the edp-install dependency
+block old → new (with `removed` rows), then stop (AskUserQuestion).
 User named components and versions: show those rows and their pins; list the other `real > 0` and
 `behind` rows in one line.
 
@@ -159,4 +162,4 @@ in the train only when approved. No release branch, no dev-version bump.
 ## No Release
 
 edp-cluster-add-ons, krci-docs, skills, claude-plugins, krci-autotests follow `main`. Add-on pins
-(`add-ons.md`) and docs (`krci-docs:release-docs`) carry a release into them.
+(`add-ons.md`) and docs (`release-docs`) carry a release into them.

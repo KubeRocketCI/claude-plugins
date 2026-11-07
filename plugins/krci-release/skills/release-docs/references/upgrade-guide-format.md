@@ -89,8 +89,8 @@ Maintainers sometimes stage documentation on a local branch while building a fea
 version that never shipped. Check for such work before writing:
 
 ```bash
-git -C krci-docs branch -vv
-git -C krci-docs log --oneline main..<branch>
+git -C sources/krci-docs branch -vv
+git -C sources/krci-docs log --oneline main..<branch>
 ```
 
 That content is written by the engineer who built the feature and is high quality — reuse it,
@@ -98,7 +98,7 @@ retargeted to the correct version and file. Confirm the version it claims actual
 trusting its framing:
 
 ```bash
-git -C edp-install tag -l 'v<CLAIMED>'
+git -C sources/edp-install tag -l 'v<CLAIMED>'
 ```
 
 Staged content often names the patch release it was written for. If no such tag exists, the work

@@ -42,9 +42,10 @@ Files: `deploy-templates/Chart.yaml` (dependency versions), `Chart.lock`, `READM
 
 ```bash
 git -C sources/edp-install log --format='%h %s' --cherry-pick --right-only --no-merges \
-  origin/release/X.Y...origin/master \
-  | grep -viE 'current development version|Update development version|Bump version to|docs: Add .* release to RELEASES.md'
+  origin/release/X.Y...origin/master
 ```
+
+Drop the noise commits (`../../../references/release-sources.md`, Noise).
 
 Per commit: state what the installer will lack; ask cherry-pick onto `release/X.Y` before the pin
 commit, or leave for the next minor. PR body: "Not in this release". Not a blocker. Same check for a
@@ -83,4 +84,4 @@ No values change without the user.
    `X.(Y+1).0-SNAPSHOT`; patch: version unchanged. `check` passes; the dependency block equals
    `git show vX.Y.Z:deploy-templates/Chart.yaml`.
 4. Add-on pins: kuberocketci and every `behind` add-on (`add-ons.md`).
-5. `krci-docs:write-release-notes`, `krci-docs:release-docs`.
+5. `write-release-notes`, `release-docs`.
