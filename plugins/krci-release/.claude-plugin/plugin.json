@@ -1,0 +1,25 @@
+{
+  "name": "krci-release",
+  "version": "0.1.0",
+  "description": "KubeRocketCI release engineering - release KubeRocketCI components or the platform from a krci-workspace",
+  "author": {
+    "name": "KubeRocketCI Team",
+    "email": "support@kuberocketci.io"
+  },
+  "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+  "repository": "https://github.com/KubeRocketCI/claude-plugins",
+  "license": "Apache-2.0",
+  "keywords": [
+    "kuberocketci",
+    "release",
+    "release-train",
+    "version-bump",
+    "snapshot",
+    "helm",
+    "chart-lock",
+    "edp-install",
+    "edp-cluster-add-ons",
+    "release-map",
+    "kuberocketci-pipelines"
+  ]
+}

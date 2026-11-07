@@ -71,7 +71,12 @@ TWO KIND PLUGIN:
 - AGENT: technical-writer. fix doc. fix slide. Microsoft Writing Style Guide. script video. build video app. write platform RELEASES.md.
 - SKILL: doc-review, ppt-review, create-video-scenario, create-video-presentation-app, release-audit, write-release-notes, release-docs.
 - USE WHEN: doc bad. slide bad. need clean word. need video script. need React slide-deck app for video. need platform RELEASES.md entry. new platform release. who need new branch. what version. need upgrade guide. need docs version cut.
-- RELEASE HUNT ORDER: release-audit (who need branch) → write-release-notes (RELEASES.md) → release-docs (upgrade guide + docs version).
+- RELEASE HUNT ORDER: release-audit (who need branch) → krci-release:release-train (bump version, pin, add-on) → write-release-notes (RELEASES.md) → release-docs (upgrade guide + docs version).
+
+**krci-release — VERSION SMITH**
+
+- SKILL: release-train. release map first (all component, commit count, new version, pin) → you approve. release branch in KubeRocketCI (label off, branch, label on). release PipelineRun (sign image, Rekor, chart, tag) or tag push. bump dev version. align edp-tekton tekton-cache + common-library. pin edp-install (minor or patch). pin add-on. Chart.lock without network.
+- USE WHEN: new platform release. who release, what version. release branch. release run. need next -SNAPSHOT. need edp-install patch. need add-on pin.
 
 ## AGNOSTIC PLUGINS (think + plan + write + test)
 
@@ -123,6 +128,7 @@ WHO DO WHAT:
 | CI/CD pipeline | krci-devops (devops) |
 | test, defect | krci-qa (qa-engineer, automation-qa-engineer) |
 | docs, slides, overview videos, release notes | krci-docs (technical-writer) |
+| release map, release branch, release run, version bumps, edp-install + add-on pins | krci-release (release-train) |
 | go-to-market | krci-product (product-marketing-manager) |
 | commit, code review | krci-general (any time, any stage) |
 | set up testbed + workspace, fix jira bug, verify change on cluster | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) |
