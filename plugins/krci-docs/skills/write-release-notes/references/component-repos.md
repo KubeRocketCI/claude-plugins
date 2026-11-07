@@ -11,8 +11,9 @@ Sources for a KubeRocketCI platform release entry in `edp-install/RELEASES.md`.
 | `edp-codebase-operator` | `https://github.com/epam/edp-codebase-operator.git` | Codebases, GitServers, scaffolding |
 | `edp-cd-pipeline-operator` | `https://github.com/epam/edp-cd-pipeline-operator.git` | CDPipelines, Stages, CBIS labels |
 | `krci-portal` | `https://github.com/KubeRocketCI/krci-portal.git` | Portal UI / tRPC |
-| `docs` | `https://github.com/KubeRocketCI/docs.git` | Public docs site (no CHANGELOG) |
-| `gitfusion` | `https://github.com/KubeRocketCI/gitfusion.git` | Optional; only if Chart.yaml bumped it |
+| `docs` | `https://github.com/KubeRocketCI/docs.git` | Public docs site (no CHANGELOG); the local folder may be called `krci-docs` |
+| `edp-cluster-add-ons` | `https://github.com/epam/edp-cluster-add-ons.git` | New and changed cluster add-ons; review with `git log` for the release window, there are no per-platform release tags |
+| `gitfusion` | `https://github.com/KubeRocketCI/gitfusion.git` | External; only its version is needed, for Upgrades |
 
 ## Chart.yaml dependency names
 
@@ -26,8 +27,15 @@ In `edp-install/deploy-templates/Chart.yaml`, dependencies are typically named:
 | `krci-portal` | `krci-portal` |
 | `gitfusion` | `gitfusion` |
 
+**Platform components** (described from their PRs; their versions are never written in Upgrades):
+`codebase-operator`, `edp-tekton`, `cd-pipeline-operator`, `krci-portal`.
+
+**External components** (not developed by the platform team: `gitfusion`, `gerrit-operator`, third-party
+tools and images such as Argo CD, Capsule, Tekton or the Go base image): do not collect their commits.
+When one is bumped, write a single Upgrades line linking to the official release of that version.
+
 `Chart.yaml` may pin supporting infrastructure that is not a platform component and is never
-re-released. Document only the dependencies listed above; do not collect commits for the others.
+re-released. Collect commits only for the platform components above.
 
 A dependency present at the previous platform tag but **absent** from the newer `Chart.yaml` was
 removed from the platform (for example `edp-headlamp` in 3.15). Report it as a removal — usually a
@@ -66,6 +74,14 @@ git show "v${NEW}:CHANGELOG.md" | head -120
 
 # edp-install commits in the platform window
 git -C edp-install log "v${PREV}".."v${NEW}" --oneline
+
+# chore: commits that still change defaults, templates or permissions (judge by the diff, not the subject)
+git -C edp-install log "v${PREV}".."v${NEW}" --oneline -- \
+  deploy-templates/values.yaml deploy-templates/Chart.yaml deploy-templates/templates
+
+# cluster add-ons in the release window (dates: previous release and the new tag)
+git -C edp-cluster-add-ons log --since="<PREV_RELEASE_DATE>" --until="<NEW_TAG_DATE>" \
+  --format='%h %ad %s' --date=short
 ```
 
 ## GitHub PR search
@@ -87,6 +103,31 @@ curl -sG "https://api.github.com/search/issues" \
 ```
 
 Pick the PR whose title/repo matches the commit you are documenting. A Jira id can appear in multiple repos; linking the wrong repo's PR is a common review failure.
+
+Listing the merged PRs of the release window and matching on the Jira ID in the title is more reliable than a per-commit search:
+
+```bash
+gh pr list --repo <org>/<repo> --state merged --limit 60 \
+  --json number,title,mergedAt -q '.[] | select(.mergedAt > "<PREV_RELEASE_DATE>") | "\(.number)|\(.title)"'
+```
+
+Add-ons PRs live in `epam/edp-cluster-add-ons`:
+
+```bash
+curl -sG "https://api.github.com/search/issues" \
+  --data-urlencode "q=repo:epam/edp-cluster-add-ons EPMDEDP-17382 is:pr is:merged"
+```
+
+### Without `gh`, or when search returns nothing
+
+The component repositories keep a linear history, so a PR number is not in git. List the closed PRs once per repository and match on Jira ID and title:
+
+```bash
+curl -s "https://api.github.com/repos/<org>/<repo>/pulls?state=closed&sort=updated&direction=desc&per_page=100" \
+  | python3 -c 'import sys,json; [print(p["number"], p["merged_at"], p["title"]) for p in json.load(sys.stdin) if p["merged_at"]]'
+```
+
+Unauthenticated requests are limited to 60 per hour (`curl -s https://api.github.com/rate_limit` shows what is left). Some PRs have no Jira ID in the title; match them by subject. If one Jira ID has several PRs, list them all. When the limit is reached, keep the Jira ID only and report the gap. Ignore PRs merged after the date of the new tag.
 
 ## Helm sanity check (optional)
 

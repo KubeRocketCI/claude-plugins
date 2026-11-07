@@ -25,8 +25,8 @@ Example: `## Version 3.14.0 <a name="3.14.0"></a> (July 14, 2026)`
 Omit a heading entirely when that section has nothing worth publishing (do not leave empty stubs).
 
 1. `### What's New`
-2. `### Breaking Changes` (only if needed)
-3. `### Upgrades`
+2. `### Breaking Changes` (only if an operator must act on upgrade; see below)
+3. `### Upgrades` (external components only; see below)
 4. `### New Functionality`
 5. `### Enhancements`
 6. `### Fixed Issues`
@@ -36,7 +36,7 @@ Patch releases (for example `3.13.5`) may contain only `### Upgrades` or a short
 
 ## What's New
 
-2–4 short paragraphs summarizing themes for operators and developers using the platform. Lead with outcomes (cancel-in-progress, Envoy Gateway, Kubernetes mode, etc.), not internal ticket IDs.
+Short paragraphs, one per theme, summarizing what matters to operators and developers using the platform. There is no fixed number of themes: a large release gets as many as it needs. Lead with outcomes (cancel-in-progress, Envoy Gateway, Kubernetes mode, etc.), not internal ticket IDs, and do not retell individual components or fixes.
 
 Then, when there are new YouTube videos since the previous platform release:
 
@@ -47,6 +47,22 @@ We continue to publish helpful video content on our [YouTube channel](https://ww
 ```
 
 Channel RSS: `https://www.youtube.com/feeds/videos.xml?channel_id=UCPi_wht-YbhQInGrQjR5Rkw`
+
+## Breaking Changes
+
+Include only what requires an operator action when upgrading from the previous version, or what breaks by default after the upgrade. For every candidate ask: "What must the operator do before or during the upgrade?" If the answer is "nothing", it is not breaking. Move it to Enhancements or Fixed Issues, with one short sentence about what to do when something can be tuned. Behavior changes that affect only custom clients, custom scripts or optional settings are not breaking.
+
+State the action in one or two sentences. Link to the upgrade guide only when its page exists in the docs repo.
+
+## Upgrades
+
+Only external components (not developed by the platform team: `gitfusion`, `gerrit-operator`, third-party tools and images). One line each, exactly:
+
+```markdown
+* Component X has been upgraded to the [Y](link_address) version.
+```
+
+`link_address` is the official release of that version (GitHub release or tag, Artifact Hub); check that it exists. Never list platform components (`krci-portal`, `edp-tekton`, `codebase-operator`, `cd-pipeline-operator`, `edp-install`) or the platform version.
 
 ## Bullet style
 
@@ -62,18 +78,21 @@ Rules:
 - Multiple PRs for one outcome: one bullet, multiple links.
 - Same feature across repos: one bullet with both Jira/PR pairs, for example  
   `([EPMDEDP-17140](...), [#651](https://github.com/epam/edp-tekton/pull/651)) ([EPMDEDP-17177](...), [#294](https://github.com/epam/edp-codebase-operator/pull/294))`
-- Upgrades may link Artifact Hub or upstream release notes instead of (or in addition to) Jira/PR.
+- Upgrades lines use the format from the Upgrades section above, not this bullet style.
 
 ## What to include
 
 - User- or operator-visible features, UI changes, pipeline behavior, config flags they set, fixes they can observe.
-- Dependency bumps that change runtime (tekton-cache chart, Node.js image in pipelines, etc.).
+- New cluster add-ons and notable behavior changes of existing ones (from `edp-cluster-add-ons`), with the PR from `epam/edp-cluster-add-ons`. They need no documentation page.
+- Upgraded external components (tekton-cache chart, Node.js image in pipelines, Argo CD, Capsule, etc.) as Upgrades lines.
 - Docs page adds/updates and landing-page changes.
 - YouTube tutorials published after the previous platform release date.
 
 ## What to exclude
 
-- Developer convenience only: CLAUDE.md, eslint/prettier, Dependabot noise, changelog/commit-lint format changes, "Update current development version".
+- Developer convenience only: CLAUDE.md, eslint/prettier, Dependabot noise, changelog/commit-lint format changes. A "Update current development version" commit is excluded only after checking that its diff does not change a default value, template or permission.
+- `feat:` / `fix:` of external components (their changes are not ours; the Upgrades line links to their release).
+- Versions of platform components and of the platform itself.
 - Implementation-only follow-ups when the feature bullet already exists (example: adding Envoy resources to view RBAC so the Networking tab works for developers — do not list separately from "Envoy Gateway support in the portal").
 - Duplicate bullets for the same Jira across New Functionality and Enhancements unless they are genuinely different outcomes.
 - Speculative future work.
@@ -130,3 +149,5 @@ When walking the draft with a human reviewer:
 3. Verify each `#PR` points at the repo that owns the change.
 4. Confirm Documentation section names and Supported Versions placement.
 5. Confirm YouTube list has no videos already listed in the previous release entry.
+6. Check every Breaking Changes bullet against the criterion: what must the operator do on upgrade?
+7. Check that Upgrades has only external components in the required format.
