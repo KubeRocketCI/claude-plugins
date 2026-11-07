@@ -43,6 +43,7 @@ Project Brief → PRD → Epic → Story → Architecture → Code → Test → 
 | CI/CD | krci-devops |
 | Test | krci-qa |
 | Docs | krci-docs |
+| Release: map, branches, pins, RELEASES.md, upgrade guide | krci-release |
 | Go-to-market | krci-product (product-marketing-manager) |
 | Commit, review (any time) | krci-general |
 | Set up testbed, verify a change, fix Jira bug | krci-triage |

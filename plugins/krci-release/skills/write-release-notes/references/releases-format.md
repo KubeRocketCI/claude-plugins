@@ -1,6 +1,6 @@
 # RELEASES.md Format Reference
 
-Use this file as the structure and editorial contract for KubeRocketCI platform release notes in `epam/edp-install` → `RELEASES.md`.
+Structure and editorial contract for the KubeRocketCI platform entry in `sources/edp-install/RELEASES.md`.
 
 ## Overview TOC
 
@@ -46,8 +46,6 @@ We continue to publish helpful video content on our [YouTube channel](https://ww
 * [Video Title](https://www.youtube.com/watch?v=VIDEO_ID)
 ```
 
-Channel RSS: `https://www.youtube.com/feeds/videos.xml?channel_id=UCPi_wht-YbhQInGrQjR5Rkw`
-
 ## Bullet style
 
 ```markdown
@@ -73,9 +71,11 @@ Rules:
 
 ## What to exclude
 
-- Developer convenience only: CLAUDE.md, eslint/prettier, Dependabot noise, changelog/commit-lint format changes, "Update current development version".
+- Noise (`release-sources.md`); Dependabot-only bumps with no runtime change; CI, changelog, eslint/prettier,
+  commit-lint and `CLAUDE.md` changes.
 - Implementation-only follow-ups when the feature bullet already exists (example: adding Envoy resources to view RBAC so the Networking tab works for developers — do not list separately from "Envoy Gateway support in the portal").
 - Duplicate bullets for the same Jira across New Functionality and Enhancements unless they are genuinely different outcomes.
+- A follow-up fix PR under the feature's Jira: no second bullet unless the fix is visible on its own.
 - Speculative future work.
 
 ## Documentation subsection layout
@@ -114,6 +114,9 @@ The [Use Cases](https://docs.kuberocketci.io/docs/use-cases) section is updated 
 
 Notes:
 
+- General (the bullets before the first section): landing page (`src/features/home`), site-wide
+  features, removals that are not one guide page.
+- Blog posts are not listed.
 - **Getting Started** is the correct name (not "Quick Start") in RELEASES.md, matching prior releases.
 - **Supported Versions and Compatibility** belongs under Getting Started, not under the unlabelled General bullets.
 - Use page `title:` from the Markdown front matter for link text.

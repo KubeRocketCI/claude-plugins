@@ -1,21 +1,23 @@
 # krci-release
 
 KubeRocketCI release engineering: release map, release branches and runs, version bumps and pins,
-executed from a krci-workspace.
+release notes and release docs, executed from a krci-workspace.
 
 ## Components
 
 | Component | Type | Purpose |
 |-----------|------|---------|
 | **release-train** | Skill | Plan and execute a platform release train |
+| **write-release-notes** | Skill | Write the platform entry in `edp-install/RELEASES.md` |
+| **release-docs** | Skill | Upgrade guide, affected pages, install-guide pins, docs version snapshot |
 
 ## Release Cycle
 
 | Phase | Skill |
 |-------|-------|
 | Release map, version changes, release runs | `krci-release:release-train` |
-| `edp-install/RELEASES.md` | `krci-docs:write-release-notes` |
-| Upgrade guide, docs versioning | `krci-docs:release-docs` |
+| `edp-install/RELEASES.md` | `krci-release:write-release-notes` |
+| Upgrade guide, docs versioning | `krci-release:release-docs` |
 
 ## release-train
 

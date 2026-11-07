@@ -66,19 +66,21 @@ validate any feature work against it.
 
 ### krci-docs — DEV
 
-Documentation, presentations, narrated overview videos, and the platform release documentation cycle — all KubeRocketCI-specific.
+Documentation, presentations and narrated overview videos — all KubeRocketCI-specific.
 
-- **Agent** `technical-writer`: reviews/improves Markdown docs and PowerPoint presentations using the Microsoft Writing Style Guide and KRCI documentation standards; writes video scenarios and builds their React presentation apps; drafts platform `RELEASES.md` entries.
-- **Skills**: `doc-review`, `ppt-review`, `create-video-scenario`, `create-video-presentation-app`, `release-audit`, `write-release-notes`, `release-docs`.
-- **Use when**: a document or slide deck needs review/cleanup, a KubeRocketCI overview video needs a narration script and/or its presentation app built, or a platform release needs documenting end to end.
-- **Release cycle** — the release skills run in order: `release-audit` (which components need a release branch, at which version — before any branch is cut) → `krci-release:release-train` (the version changes in each repository) → `write-release-notes` (the `edp-install/RELEASES.md` entry) → `release-docs` (the docs site: upgrade guide, affected pages, install-guide version pins, versioned snapshot).
+- **Agent** `technical-writer`: reviews/improves Markdown docs and PowerPoint presentations using the Microsoft Writing Style Guide and KRCI documentation standards; writes video scenarios and builds their React presentation apps.
+- **Skills**: `doc-review`, `ppt-review`, `create-video-scenario`, `create-video-presentation-app`.
+- **Use when**: a document or slide deck needs review/cleanup, or a KubeRocketCI overview video needs a narration script and/or its presentation app built.
 
 ### krci-release — DEV
 
 Release engineering for a KubeRocketCI platform release, run from a krci-workspace.
 
 - **Skills**: `release-train` (release map of all components and pins for approval; cut-or-cherry-pick rule; release branch in KubeRocketCI with the edit-protection label; release runs with cosign/Rekor checks and failure cleanup; tag-push releases; `-SNAPSHOT` bumps; edp-tekton sub-chart alignment; edp-install pins, left-out master commits, master mirror; add-on pins; offline `Chart.lock`).
-- **Use when**: a platform or component release is planned or executed, a release branch was cut, edp-install needs pins, or an add-on pin is `behind`.
+- `write-release-notes`: the `edp-install/RELEASES.md` entry.
+- `release-docs`: the docs site: upgrade guide, affected pages, install-guide version pins, versioned snapshot.
+- **Release cycle**: `release-train` → `write-release-notes` → `release-docs`.
+- **Use when**: a platform or component release is planned or executed, a release branch was cut, edp-install needs pins, an add-on pin is `behind`, or a release needs its notes and docs.
 
 ---
 

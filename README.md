@@ -1,7 +1,7 @@
 # KubeRocketCI Claude Code Plugins
 
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-marketplace-d97757)](https://docs.claude.com/en/docs/claude-code)
-[![Plugins](https://img.shields.io/badge/plugins-10-blue)](#plugins)
+[![Plugins](https://img.shields.io/badge/plugins-12-blue)](#plugins)
 [![Version check](https://img.shields.io/github/actions/workflow/status/KubeRocketCI/claude-plugins/check-plugin-version.yml?label=version%20check)](.github/workflows/check-plugin-version.yml)
 [![License](https://img.shields.io/github/license/KubeRocketCI/claude-plugins)](LICENSE)
 
@@ -19,7 +19,8 @@ flowchart LR
   arch --> code["Code<br/>godev · fullstack"]
   code --> cicd["CI/CD<br/>devops"]
   cicd --> test["Test<br/>qa"]
-  test --> gtm["Docs · GTM<br/>docs · product"]
+  test --> rel["Release<br/>release"]
+  rel --> gtm["Docs · GTM<br/>docs · product"]
 ```
 
 `krci-general` (commit, code review) and `krci-help` (advisor) assist at every stage.
@@ -34,6 +35,7 @@ flowchart LR
 - Gather requirements & business rules → **krci-ba**
 - Plan & run tests, report defects → **krci-qa**
 - Review docs & slides, script & build overview videos → **krci-docs**
+- Release the platform: release map, branches, pins, RELEASES.md, upgrade guide → **krci-release**
 - Generate commits & review code → **krci-general**
 
 ## Installation
@@ -53,8 +55,8 @@ claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-de
 | **krci-godev**     | KRCI     | Go, Kubernetes operators, CRDs, controller reconciliation     |
 | **krci-fullstack** | KRCI     | React/TypeScript/Radix/tRPC portal development                |
 | **krci-devops**    | KRCI     | Tekton pipeline/task/trigger + GitLab CI components           |
-| **krci-docs**      | KRCI     | Doc/presentation review, overview video production, platform RELEASES.md (Microsoft Writing Style Guide) |
-| **krci-release**   | KRCI     | Release train: release map, release branches and runs, dev-version bumps, edp-install and add-on pins |
+| **krci-docs**      | KRCI     | Doc/presentation review, overview video production (Microsoft Writing Style Guide) |
+| **krci-release**   | KRCI     | Release train, RELEASES.md, upgrade guide, docs versioning |
 | **krci-general**   | agnostic | Commit messages, code review (any language)                   |
 | **krci-ba**        | agnostic | Requirements, processes, business rules, user journeys        |
 | **krci-product**   | agnostic | PRDs, epics, stories, charters, go-to-market                  |

@@ -1,24 +1,13 @@
 # krci-docs Versioning and Install-Guide Alignment
 
-Mechanics of releasing the documentation site. The repo is Docusaurus v3; `onBrokenLinks` and
-`onBrokenMarkdownLinks` are both `throw`, so a broken link fails the build.
+Release mechanics of `sources/krci-docs`. Tree layout, `docs:version` and the `versions.json` order:
+the repo's `CLAUDE.md`. `onBrokenLinks` and `onBrokenMarkdownLinks` are `throw`: a broken link fails
+the build.
 
-## Tree layout and what each tree serves
+After the cut, visitors read `versioned_docs/version-<X.Y>/`; `docs/` is only at `/docs/next/`.
+Content only in `docs/` is invisible to users of the release.
 
-| Path | Serves | Editable |
-|---|---|---|
-| `docs/` | `/docs/next/` — the unreleased dev version | Yes; this is where content is written |
-| `versioned_docs/version-X.Y/` | `/docs/...` for that version | No hand edits — generated snapshots |
-| `versioned_sidebars/version-X.Y-sidebars.json` | that version's sidebar | Generated |
-| `versions.json` | list of frozen versions | Yes |
-| `sidebars.ts` | sidebar for `docs/` | Yes |
-
-**The single most important fact:** the **first entry in `versions.json` is the default `/docs`**.
-Once a version is released, `versioned_docs/version-<X.Y>/` is what a visitor to
-docs.kuberocketci.io reads, and `docs/` is only reachable at `/docs/next/`. Content that exists
-solely in `docs/` is invisible to users of the current release.
-
-**Corollary — the sync rule:** every edit made *after* running `docs:version` must be copied into the
+**The sync rule:** every edit made *after* running `docs:version` must be copied into the
 snapshot. Verify with:
 
 ```bash
@@ -27,16 +16,7 @@ diff -rq docs versioned_docs/version-<X.Y>   # must output nothing
 
 ## Cutting a version
 
-Run only when `docs/` content is final.
-
-```bash
-npm run docusaurus docs:version <X.Y>
-```
-
-This copies `docs/` into `versioned_docs/version-<X.Y>/`, creates
-`versioned_sidebars/version-<X.Y>-sidebars.json`, and prepends the version to `versions.json`.
-
-Then, by hand:
+Run only when `docs/` content is final: `npm run docusaurus docs:version <X.Y>`. Then, by hand:
 
 1. **Bump the dev label** in `docusaurus.config.ts` — `label: '<X.Y>-dev'` becomes the *next*
    version's label:
@@ -106,28 +86,16 @@ Bumping the tag without re-checking the anchor silently points operators at the 
 the real line number at the new tag before writing:
 
 ```bash
-git -C edp-install show v<X.Y.Z>:deploy-templates/values.yaml | grep -n '<key>'
+git -C sources/edp-install show v<X.Y.Z>:deploy-templates/values.yaml | grep -n '<key>'
 ```
 
 Verify the tag exists and contains the file before linking to it:
 
 ```bash
-git -C edp-install ls-tree --name-only v<X.Y.Z> -- deploy-templates/values.yaml
+git -C sources/edp-install ls-tree --name-only v<X.Y.Z> -- deploy-templates/values.yaml
 ```
 
-## Verifying a docs page exists before linking
-
-A page exists only if the file exists at `origin/main`. Constructing a plausible-looking path is a
-common and damaging error:
-
-```bash
-git -C krci-docs ls-tree -r --name-only origin/main -- docs/ | grep -E '<slug>'
-```
-
-URL mapping: `docs/a/b.md` serves as `https://docs.kuberocketci.io/docs/a/b`.
-
-When a page genuinely does not exist yet, write the sentence **without a link** rather than inventing
-a plausible URL.
+Docs page links: `release-sources.md`, Docs Links.
 
 ## Validation
 

@@ -1,6 +1,6 @@
 ---
 name: KRCI Release Train
-description: This skill should be used when the user releases KubeRocketCI components or the platform. For RELEASES.md, defer to krci-docs:write-release-notes; for the docs site and upgrade guide, defer to krci-docs:release-docs.
+description: This skill should be used when the user releases KubeRocketCI components or the platform. For RELEASES.md, defer to write-release-notes; for the docs site and upgrade guide, defer to release-docs.
 argument-hint: "[component[=version] ...]"
 allowed-tools: [Read, Grep, Glob, Bash, Edit, Write, AskUserQuestion, TodoWrite, Skill]
 authors:
@@ -15,11 +15,8 @@ merged by the user. Cluster steps: done by the user in KubeRocketCI; give exact 
 
 ## Baseline
 
-- A krci-workspace is required: `repos.yaml`, `bootstrap.sh`, `git-pull-all.sh`, `sources/<dir>`.
-  Without it, stop. `release-map.sh` refuses other directories.
-- Before step 0: `bootstrap.sh`, then `git-pull-all.sh`. User states the local refs are current: skip
-  both, pass `--no-fetch`. No workspace: `/krci-triage:bootstrap-workspace`.
-- Work in `sources/<dir>`.
+- Workspace, component ranges, noise: `../../references/release-sources.md`. Read it first.
+- Local refs current: pass `--no-fetch` to `release-map.sh`.
 
 ## Train Order
 
@@ -33,7 +30,7 @@ merged by the user. Cluster steps: done by the user in KubeRocketCI; give exact 
 | 5 | Pin components | edp-install `release/X.Y` | `references/edp-install-release.md` |
 | 6 | edp-install release run, master pins | KubeRocketCI, edp-install master | `references/edp-install-release.md` |
 | 7 | Add-on pins | edp-cluster-add-ons main | `references/add-ons.md` |
-| 8 | RELEASES.md, upgrade guide | edp-install, krci-docs | `krci-docs:write-release-notes`, `krci-docs:release-docs` |
+| 8 | RELEASES.md, upgrade guide | edp-install, krci-docs | `write-release-notes`, `release-docs` |
 
 - Step 0 is a hard stop. One action per component (`cut`, `patch`, `tag`, `skip`, `fix bump`) and per
   `behind` pin (`pin`). Nothing outside the approved table changes.
@@ -139,6 +136,7 @@ edp-install pins (5-6):
 
 Paths are relative to this skill's directory; call scripts by absolute path.
 
+- `../../references/release-sources.md` — workspace, component ranges, noise (shared).
 - `references/release-paths.md` — map, approval, graph, release branch, release run, recovery, tag push.
 - `references/component-bump.md` — dev-version bump.
 - `references/edp-tekton-dependencies.md` — tekton-cache, common-library.
