@@ -162,6 +162,30 @@
       }
     },
     {
+      "name": "krci-release",
+      "source": "./plugins/krci-release",
+      "description": "KubeRocketCI release engineering - release KubeRocketCI components or the platform from a krci-workspace",
+      "category": "development",
+      "keywords": [
+        "kuberocketci",
+        "release",
+        "release-train",
+        "version-bump",
+        "snapshot",
+        "helm",
+        "chart-lock",
+        "edp-install",
+        "edp-cluster-add-ons",
+        "release-map",
+        "kuberocketci-pipelines"
+      ],
+      "license": "Apache-2.0",
+      "homepage": "https://github.com/KubeRocketCI/claude-plugins",
+      "author": {
+        "name": "KubeRocketCI Team"
+      }
+    },
+    {
       "name": "krci-ba",
       "source": "./plugins/krci-ba",
       "description": "KubeRocketCI Business Analyst agent - requirements gathering, process analysis, business rules, and user journey mapping with BR/NFR traceability",

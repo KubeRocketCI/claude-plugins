@@ -40,7 +40,7 @@ flowchart LR
 
 ```bash
 claude plugin marketplace add KubeRocketCI/claude-plugins
-claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-devops krci-general krci-ba krci-product krci-qa krci-docs
+claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-devops krci-general krci-ba krci-product krci-qa krci-docs krci-release
 ```
 
 ## Plugins
@@ -54,6 +54,7 @@ claude plugin install krci-help krci-architect krci-fullstack krci-godev krci-de
 | **krci-fullstack** | KRCI     | React/TypeScript/Radix/tRPC portal development                |
 | **krci-devops**    | KRCI     | Tekton pipeline/task/trigger + GitLab CI components           |
 | **krci-docs**      | KRCI     | Doc/presentation review, overview video production, platform RELEASES.md (Microsoft Writing Style Guide) |
+| **krci-release**   | KRCI     | Release train: release map, release branches and runs, dev-version bumps, edp-install and add-on pins |
 | **krci-general**   | agnostic | Commit messages, code review (any language)                   |
 | **krci-ba**        | agnostic | Requirements, processes, business rules, user journeys        |
 | **krci-product**   | agnostic | PRDs, epics, stories, charters, go-to-market                  |

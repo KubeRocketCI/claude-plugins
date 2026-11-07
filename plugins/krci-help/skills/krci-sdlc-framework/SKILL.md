@@ -35,6 +35,7 @@ Each artifact depends on the one(s) before it. Skipping a dependency is the most
 | CI/CD — Tekton, GitLab CI | krci-devops (devops) | dev |
 | Test plans, cases, execution, defects, BDD | krci-qa (qa-engineer, automation-qa-engineer) | agnostic |
 | Documentation, presentations, KRCI overview videos, release notes | krci-docs (technical-writer) | dev |
+| Release map, release branch cut, release PipelineRun, dev-version bumps, edp-install and add-on pins | krci-release (release-train) | dev |
 | Go-to-market, pitch, launch, sales | krci-product (product-marketing-manager) | agnostic |
 | Commit messages, code review (cross-cutting) | krci-general (code-reviewer) | dev (utility) |
 | Set up testbed/workspace, verify a change on a cluster, reproduce & fix a Jira bug | krci-triage (setup-testbed, bootstrap-workspace, krci-fix-the-issue) | dev |
