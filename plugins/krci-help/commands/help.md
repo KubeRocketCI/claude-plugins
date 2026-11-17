@@ -75,7 +75,7 @@ TWO KIND PLUGIN:
 **krci-release — VERSION SMITH**
 
 - SKILL: release-train, write-release-notes, release-docs.
-- release-train: release map first (all component, commit count, new version, pin) → you approve. release branch in KubeRocketCI (label off, branch, label on). release PipelineRun (sign image, Rekor, chart, tag) or tag push. bump dev version. align edp-tekton tekton-cache + common-library. pin edp-install (minor or patch). pin add-on. Chart.lock without network.
+- release-train: release map first (all component, commit count, new version, pin) → you approve. release branch in KubeRocketCI (label off, branch, label on). release PipelineRun (sign image, Rekor, chart, tag) or tag push. bump dev version. align edp-tekton krci-cache + common-library. pin edp-install (minor or patch). pin add-on. Chart.lock without network.
 - write-release-notes: RELEASES.md entry. release-docs: upgrade guide, install-guide pin, docs version cut.
 - USE WHEN: new platform release. who release, what version. release branch. release run. need next -SNAPSHOT. need edp-install patch. need add-on pin. need RELEASES.md. need upgrade guide. need docs version cut.
 - RELEASE HUNT ORDER: release-train (map, branch, run, bump, pin) → write-release-notes (RELEASES.md) → release-docs (upgrade guide + docs version).

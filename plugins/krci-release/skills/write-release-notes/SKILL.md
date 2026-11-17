@@ -26,7 +26,7 @@ operators, not the engineering team. The entry is in English.
 1. Commits in the component range. `CHANGELOG.md` at the new tag is a faster source; when it holds
    older sections (regenerated history), use `git log` instead.
 2. Keep user-visible changes (`feat:`, `fix:`, a `refactor:` that changes behavior). Drop noise. A
-   dependency bump stays when it changes runtime (for example the tekton-cache chart).
+   dependency bump stays when it changes runtime (for example the krci-cache chart).
 3. Per change: a user-facing summary, the Jira ID, the PR number.
 
 Jira → PR: a `(#NNN)` at the end of the commit subject is the PR; use it. Else list the merged PRs

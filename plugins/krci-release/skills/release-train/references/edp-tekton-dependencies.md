@@ -1,33 +1,25 @@
 # edp-tekton Dependency Alignment
 
 edp-tekton master, before `release/X.Y` is cut. pipelines-library embeds common-library
-(`file://`, no publish needed) and pins tekton-cache from `@epamedp` (publish first). tekton-cache
-pins the krci-cache image in `charts/tekton-cache/values.yaml` (`image.tag`).
+(`file://`, no publish needed) and pins krci-cache from `@epamedp` (publish first). The krci-cache
+chart lives in krci-cache `deploy-templates/`; its image tag follows the chart `appVersion`.
 
-N/A when: Pins table `ok` for the tekton-cache image and both pipelines-library pins; tekton-cache chart
-in the `@epamedp` index; common-library `version` equals `appVersion`.
+N/A when: Pins table `ok` for both pipelines-library pins; common-library `version` equals
+`appVersion`.
 
-## New krci-cache Image → tekton-cache
+## New krci-cache Release → pipelines-library
 
-Two PRs: PR CI `ct lint` downloads `@epamedp` dependencies; an unpublished pin fails. Do not change
-the tekton-cache source to `file://`.
+PR CI `ct lint` downloads `@epamedp` dependencies; an unpublished pin fails. Do not change the
+krci-cache source to `file://`.
 
-1. Next free tekton-cache version (a published version is never reused):
-
-   ```bash
-   curl -sSL https://epam.github.io/edp-helm-charts/stable/index.yaml \
-     | awk '/^  tekton-cache:/{f=1;next} f&&/^  [a-z]/{f=0} f&&/^    version:/{print $2}' | sort -V | tail -3
-   ```
-
-2. PR 1 `chore: Align tekton-cache with krci-cache X.Y.Z`: `image.tag`, chart `version` and
-   `appVersion` (patch bump), `make helm-docs`. A common-library drift goes in this PR too.
-3. Merge; user runs the tekton-cache chart-only release from master; wait for the index entry and a
-   200 on the package URL.
-4. PR 2 `chore: Align tekton-cache chart version`: pipelines-library `Chart.yaml` pin,
-   `Chart.lock`, `make helm-docs`. Verify with only the current packages in the ignored
-   `charts/pipelines-library/charts/` (stale `.tgz` moved aside): `helm dependency list` `ok`,
-   `helm lint`, `helm template ... --set tekton-cache.enabled=true` shows the new image.
-5. Cut `release/X.Y` after PR 2 merges.
+1. krci-cache release run `X.Y.Z` (release pipeline) is done: chart `krci-cache` `X.Y.Z` in the
+   `@epamedp` index and a 200 on the package URL.
+2. PR `chore: Align krci-cache chart version`: pipelines-library `Chart.yaml` pin, `Chart.lock`,
+   `make helm-docs`. A common-library drift goes in this PR too. Verify with only the current
+   packages in the ignored `charts/pipelines-library/charts/` (stale `.tgz` moved aside):
+   `helm dependency list` `ok`, `helm lint`, `helm template ... --set krci-cache.enabled=true` shows
+   image `epamedp/krci-cache:X.Y.Z`.
+3. Cut `release/X.Y` after the PR merges.
 
 ## common-library
 

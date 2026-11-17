@@ -34,7 +34,7 @@ NOISE='current development version|Update development version|Bump version to|do
 
 path_of() {
   case $1 in
-    krci-cache|cli|claude-code-telemetry) echo "tag push" ;;
+    cli|claude-code-telemetry) echo "tag push" ;;
     edp-cluster-add-ons|krci-docs|skills|claude-plugins|krci-autotests) echo "no release" ;;
     *) echo "release pipeline" ;;
   esac
@@ -44,7 +44,6 @@ path_of() {
 repo_of_chart() {
   case $1 in
     codebase-operator|cd-pipeline-operator|gerrit-operator|keycloak-operator|sonar-operator|nexus-operator) echo "edp-$1" ;;
-    tekton-cache) echo "edp-tekton:charts/tekton-cache" ;;
     edp-tekton-common-library) echo "edp-tekton:charts/common-library" ;;
     *) echo "$1" ;;
   esac
@@ -166,7 +165,7 @@ done
 echo
 echo "### Pins"
 echo
-echo "latest = last vX.Y.Z tag; for tekton-cache and edp-tekton-common-library, the chart version on the"
+echo "latest = last vX.Y.Z tag; for edp-tekton-common-library, the chart version on the"
 echo "edp-tekton default branch (not proof of publication: check the @epamedp index)."
 echo
 echo "| consumer | ref | pinned | version | latest | status |"
@@ -194,9 +193,6 @@ fi
 if [ -d "$SRC/edp-tekton/.git" ]; then
   r=$SRC/edp-tekton; ref=$(default_ref "$r")
   pin_rows edp-tekton "$ref" charts/pipelines-library/Chart.yaml "edp-tekton pipelines-library"
-  img=$(git -C "$r" show "$ref:charts/tekton-cache/values.yaml" 2>/dev/null | awk '/^  tag:/{gsub(/"/,"",$2); print $2; exit}') || true
-  l=$( [ -d "$SRC/krci-cache/.git" ] && t=$(last_tag "$SRC/krci-cache") && echo "${t#v}" || echo "?")
-  [ -n "$img" ] && echo "| edp-tekton tekton-cache image | ${ref#origin/} | krci-cache | $img | $l | $(status_of "$img" "$l") |"
 fi
 if [ -d "$SRC/edp-cluster-add-ons/.git" ]; then
   r=$SRC/edp-cluster-add-ons; ref=$(default_ref "$r")
