@@ -23,11 +23,11 @@ Components table, one row per `repos.yaml` entry plus pinned repos missing from 
 | `note` | `STALE`: snapshot not above the last release; `FIRST`: no tag; `not in repos.yaml`; `NOT_CLONED` |
 
 Pins table: every pin in edp-install (default branch, newest `release/X.Y`), edp-tekton
-pipelines-library and its tekton-cache `image.tag`, and every `@epamedp` dependency in
+pipelines-library, and every `@epamedp` dependency in
 `clusters/*/addons/*/Chart.yaml`. Status `ok`, `behind` (newer release exists), `ahead` (unreleased),
 `removed` (edp-install dependency on the newest `release/X.Y`, absent on the default branch: report it
 as a removal from the platform, not as an omission).
-For tekton-cache and common-library, `latest` is the source chart version, not proof of publication.
+For common-library, `latest` is the source chart version, not proof of publication.
 
 The map reads `sources/<dir>`. For another clone, run the same `git log` commands there and say so.
 
@@ -37,7 +37,7 @@ Release order; the Pins table lists every consumer pin. Other components release
 any order.
 
 ```text
-krci-cache image → tekton-cache chart → edp-tekton → edp-install → edp-cluster-add-ons
+krci-cache → edp-tekton → edp-install → edp-cluster-add-ons
 ```
 
 ## Approval
@@ -77,7 +77,7 @@ Read the subjects of every `real > 0` row first:
 
 codebase-operator, cd-pipeline-operator, edp-tekton, gitfusion, krci-portal, gerrit-operator,
 keycloak-operator, sonar-operator, nexus-operator, krci-audit, krci-env-daemon, tekton-custom-task,
-tekton-pipeline-queue, edp-install; chart-only: tekton-cache, tekton-common-library. Released by a
+tekton-pipeline-queue, krci-cache, edp-install; chart-only: tekton-common-library. Released by a
 release pipeline in the KubeRocketCI installation that builds the platform; ask the release owner for
 the pipeline when not stated.
 
@@ -114,7 +114,7 @@ them into the release notes. Missing signature: the GitHub release fails.
 Done when: run succeeded; `vX.Y.Z` on `release/X.Y`; image on Docker Hub; chart in `@epamedp`; GitHub
 release lists both UUIDs.
 
-Chart-only releases (tekton-cache, tekton-common-library): chart publish only; run from master after
+Chart-only release (tekton-common-library): chart publish only; run from master after
 the chart change merges.
 
 The tag's `CHANGELOG.md` has one `## vX.Y.Z` section (clone without older tags). Never copy it.
@@ -149,7 +149,7 @@ Rerun with the same inputs; repeat the done checks.
 
 ## Tag-Push Components
 
-cli (goreleaser), krci-cache (image to ghcr), claude-code-telemetry (GitHub release only). Own cadence;
+cli (goreleaser), claude-code-telemetry (GitHub release only). Own cadence;
 in the train only when approved. No release branch, no dev-version bump.
 
 - The user pushes a signed `vX.Y.Z` on the default branch; GitHub workflows build and release.

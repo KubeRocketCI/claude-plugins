@@ -139,7 +139,7 @@ Paths are relative to this skill's directory; call scripts by absolute path.
 - `../../references/release-sources.md` — workspace, component ranges, noise (shared).
 - `references/release-paths.md` — map, approval, graph, release branch, release run, recovery, tag push.
 - `references/component-bump.md` — dev-version bump.
-- `references/edp-tekton-dependencies.md` — tekton-cache, common-library.
+- `references/edp-tekton-dependencies.md` — krci-cache pin, common-library.
 - `references/edp-install-release.md` — pins, drift check, left-out commits, master mirror.
 - `references/add-ons.md` — add-on pins.
 - `scripts/release-map.sh <workspace> [--no-fetch]` — Components and Pins tables.

@@ -24,7 +24,7 @@ release notes and release docs, executed from a krci-workspace.
 | Step | Where |
 |------|-------|
 | Release map (commits since the last release, proposed versions, pins), user approval | `repos.yaml` repos |
-| tekton-cache / common-library alignment | edp-tekton |
+| krci-cache / common-library alignment | edp-tekton |
 | `release/X.Y` (edit-protection off, branch, on) | KubeRocketCI |
 | Release run (version commit, signed image, Rekor, chart, tag) or tag push | KubeRocketCI / git |
 | `X.(Y+1).0-SNAPSHOT` bump | each cut component |

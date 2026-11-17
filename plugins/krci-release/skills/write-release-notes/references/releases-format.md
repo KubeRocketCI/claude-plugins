@@ -65,7 +65,7 @@ Rules:
 ## What to include
 
 - User- or operator-visible features, UI changes, pipeline behavior, config flags they set, fixes they can observe.
-- Dependency bumps that change runtime (tekton-cache chart, Node.js image in pipelines, etc.).
+- Dependency bumps that change runtime (krci-cache chart, Node.js image in pipelines, etc.).
 - Docs page adds/updates and landing-page changes.
 - YouTube tutorials published after the previous platform release date.
 

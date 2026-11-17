@@ -1,6 +1,6 @@
 {
   "name": "krci-release",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "KubeRocketCI release engineering - release KubeRocketCI components or the platform from a krci-workspace",
   "author": {
     "name": "KubeRocketCI Team",
