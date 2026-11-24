@@ -284,10 +284,10 @@ Skills already loaded in Phase 1 stay loaded; load only what Phase 2 newly made 
 5. **Testing decision** (based on issue severity):
    - **Write tests if**: Logic bug, data flow issue, API bug, state management bug
    - **Skip tests if**: Simple typo, minor styling fix, documentation update
-   - If writing tests, follow the testing-standards skill split strategy:
-     - Storybook stories (`*.stories.tsx`) for React component (`.tsx`) fixes — `.tsx` is excluded from Vitest coverage
+   - If writing tests, follow the testing-standards skill:
+     - Vitest `*.test.tsx` beside the component for React component (`.tsx`) fixes; coverage excludes `.tsx`, and CI runs no Storybook tests
      - Vitest `*.test.ts` for hook, utility, and business-logic (`.ts`) fixes, and for server/tRPC fixes
-     - Accessibility checks belong in the Storybook story (use accessible queries)
+     - Accessibility checks belong in the component test (use accessible queries)
 6. If tests are written:
    - Run tests: `pnpm test:coverage` (full suite) or `pnpm --filter=client test` (client only)
    - Ensure new tests pass
