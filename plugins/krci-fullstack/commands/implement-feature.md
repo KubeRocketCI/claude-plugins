@@ -174,9 +174,9 @@ Load the `krci-fullstack:testing-standards` skill.
 **Actions**:
 
 1. Mark Phase 5 as in_progress in TodoWrite
-2. Write tests following the **split testing strategy** in the testing-standards skill (read it first):
+2. Write tests following the testing-standards skill (read it first):
    - **Utilities, hooks, business logic (`.ts`)**: Vitest unit tests (`*.test.ts`) — these are what coverage tracks
-   - **React components (`.tsx`)**: Storybook stories (`*.stories.tsx`) for rendering, interactions, and accessibility — `.tsx` files are EXCLUDED from Vitest coverage; do NOT write Vitest unit tests for components
+   - **React components (`.tsx`)**: Vitest component tests (`*.test.tsx` beside the component) for rendering, interactions, and accessibility; add Storybook stories (`*.stories.tsx`) to document visual states. Coverage excludes `.tsx`; CI runs no Storybook tests
    - Use the shared `TestProviders` (and `withAppProviders` Storybook decorator) for any test/story needing providers
    - Focus on user behavior, not implementation details
 3. Run quality checks and fix any failures (Bash):

@@ -1,6 +1,6 @@
 ---
 name: Testing Standards
-description: This skill should be used whenever the user is writing, running, or configuring tests for the KubeRocketCI portal frontend — phrasings like "write tests", "add unit tests", "test this hook or utility", "Vitest", "Testing Library", "renderHook", "mock the tRPC client / Zustand store / a hook", "TestProviders", "seed the query cache", "test coverage", "what gets tested where", or "add a Storybook story to test states". The portal uses a split strategy — Vitest for .ts utilities/hooks/server code, Storybook for .tsx components (which are excluded from Vitest coverage). Use it even when testing is only part of the request. Do NOT use it when the user is implementing the feature itself rather than testing it — defer to component-development, form-patterns, table-patterns, filter-patterns, api-integration, k8s-resources, or routing-permissions for the implementation.
+description: This skill should be used whenever the user is writing, running, or configuring tests for the KubeRocketCI portal frontend — phrasings like "write tests", "add unit tests", "test this hook or utility", "Vitest", "Testing Library", "renderHook", "mock the tRPC client / Zustand store / a hook", "TestProviders", "seed the query cache", "test coverage", "what gets tested where", or "add a Storybook story to test states". Vitest runs every `*.test.ts` and `*.test.tsx`; Storybook stories document component states; coverage excludes `.tsx`. Use it even when testing is only part of the request. Do NOT use it when the user is implementing the feature itself rather than testing it — defer to component-development, form-patterns, table-patterns, filter-patterns, api-integration, k8s-resources, or routing-permissions for the implementation.
 authors:
     - Sergiy Kulanov <sergiy_kulanov@epam.com>
 ---
@@ -27,16 +27,16 @@ Orientation guide for testing in the KubeRocketCI portal -- toolchain, conventio
 
 ## Test Strategy: What Gets Tested Where
 
-The portal uses a **split testing strategy** defined in the root `vitest.config.ts`:
+Vitest runs every `src/**/*.test.{ts,tsx}` (`apps/client/vitest.config.ts`). It skips `*.stories.tsx`, except where a module composes its stories in its own test (`apps/client/src/modules/agent-substrate/stories.test.tsx`). CI runs `pnpm test:coverage` and no Storybook test run, so a story asserts only when a Vitest test composes it.
 
-| What | Tool | Coverage tracked? |
-|------|------|------------------|
-| Utility functions, pure logic | Vitest unit tests | Yes |
-| Custom hooks (data fetching, business logic) | Vitest with `renderHook` | Yes |
-| React components (rendering, interactions) | **Storybook** stories | No (excluded: `**/*.tsx`) |
-| Server routes, procedures | Vitest unit tests | Yes |
+| What | Where | Coverage tracked? |
+|------|-------|------------------|
+| Utility functions, pure logic | `*.test.ts` | Yes |
+| Custom hooks (data fetching, business logic) | `*.test.ts(x)` with `renderHook` | Yes |
+| React components (rendering, interactions, accessibility) | `*.test.tsx` beside the component; stories document visual states | No (excluded: `**/*.tsx`) |
+| Server routes, procedures | `*.test.ts` | Yes |
 
-**Key insight**: All `.tsx` files are **excluded from Vitest coverage**. Components are tested through Storybook stories, not Vitest unit tests. Vitest coverage tracks `.ts` files only: utilities, hooks, services, and server code.
+**Coverage**: `**/*.tsx` is excluded from the coverage figure; it still gets tests. Coverage tracks `.ts` files: utilities, hooks, services, and server code.
 
 Other coverage exclusions include: route files, type definitions, constants, config files, schemas, context files, barrel exports (including every `**/hooks.ts`), and certain UI-only hooks (useTabs, useFilter, useColumns, useDefaultValues). Read `vitest.config.ts` at the repo root for the full exclusion list.
 

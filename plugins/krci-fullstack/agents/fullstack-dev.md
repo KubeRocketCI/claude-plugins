@@ -32,7 +32,7 @@ Load the matching skill before implementing:
 - Data: tRPC routers use `t.router()` with Zod input schemas. On the client, get the vanilla client from `useTRPCClient()` (`@/core/providers/trpc`) and wrap calls in React Query: `useQuery` with `trpc.<ns>.<proc>.query()` as `queryFn`, `useMutation` with `trpc.<ns>.<proc>.mutate()` as `mutationFn`. Complex query hooks live in a `hooks` folder. Kubernetes resources go through the watch and CRUD hooks under `apps/client/src/k8s`.
 - Permissions: `ButtonWithPermission` and the resource `usePermissions` hooks gate every mutating action.
 - Empty states: `EmptyList`.
-- Tests: `.ts` utilities, hooks, and server code get Vitest tests colocated with the source. `.tsx` components get Storybook stories with play assertions and are excluded from Vitest coverage.
+- Tests: utilities, hooks, server code, and `.tsx` components get Vitest tests (`*.test.ts`, `*.test.tsx`) colocated with the source. Stories document component states. Coverage excludes `.tsx`.
 - Accessibility target is WCAG 2.1 Level AA: ARIA attributes, keyboard navigation, focus indicators.
 
 ## Comments

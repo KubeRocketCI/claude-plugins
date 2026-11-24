@@ -44,7 +44,7 @@ The plugin provides 10 comprehensive skills covering frontend development patter
 6. **api-integration**: Vanilla tRPC client, React Query patterns, and API integration
 7. **routing-permissions**: TanStack Router routing, navigation, and K8s RBAC permission patterns
 8. **k8s-resources**: Kubernetes resource UI patterns (watch hooks, CRUD, resource configs)
-9. **testing-standards**: Vitest + Storybook split testing strategy and Testing Library patterns
+9. **testing-standards**: Vitest tests, Storybook stories, and Testing Library patterns
 10. **tour-patterns**: Interactive tours with react-joyride, page guides, and feature intros
 
 ## Tech Stack
